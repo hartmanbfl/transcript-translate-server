@@ -1,0 +1,62 @@
+body {
+    margin: 0;
+    padding-bottom: 3rem;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#messages>li {
+    padding: 0.5rem 1rem;
+}
+
+#messages>li:nth-child(odd) {
+    background: #efefef;
+}
+
+.button-container {
+    display: flex;
+}
+
+.button-box {
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.button-box h2 {
+    margin-top: 0;
+}
+.button-box button {
+    display: block;
+    margin-bottom: 10px;
+}
+
+label[for="audioInputSelect"] {
+    display: block;
+    font-size: 1.2em;
+    margin-bottom: 0.5em;
+}
+
+select#audioInputSelect {
+    display: block;
+    font-size: 1.2em;
+    padding: 0.5em;
+    border-radius: 0.5em;
+    border: none;
+    background-color: #f2f2f2;
+}
+
+.start-action {
+    color: green;
+}
+
+.stop-action {
+    color: red;
+}

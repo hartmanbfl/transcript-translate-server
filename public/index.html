@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="client.css">
+    <title>Transcription Producer App</title>
+</head>
+
+<body>
+    <h1>Transcription Producer App</h1>
+    <div class="button-container">
+
+        <div class="button-box">
+            <h2>Deepgram Controls</h2>
+            <button class="start-action" id="deepConnect">Deepgram Connect</button>
+            <button class="stop-action" id="deepDisconnect">Deepgram Disconnect</button>
+        </div>
+        <div class="button-box">
+            <h2>Streaming Controls</h2>
+            <button class="start-action" id="streamStart">Start Streaming</button>
+            <button class="stop-action" id="streamStop">Stop Streaming</button>
+        </div>
+        <div class="button-box">
+            <h2>Mic Controls</h2>
+            <button class="start-action" id="micStart">Start Mic</button>
+            <button class="stop-action" id="micStop">Stop Mic</button>
+        </div>
+        <div class="button-box">
+            <h2>Audio Select</h2>
+            <label for="audioInputSelect">Select an audio input device:</label>
+            <select id="audioInputSelect"></select>
+        </div>
+    </div>
+    <ul id="messages"></ul>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+
+</html>
