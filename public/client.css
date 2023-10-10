@@ -4,20 +4,6 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-#messages {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-
-#messages>li {
-    padding: 0.5rem 1rem;
-}
-
-#messages>li:nth-child(odd) {
-    background: #efefef;
-}
-
 .button-container {
     display: flex;
 }
@@ -100,4 +86,32 @@ select#audioInputSelect {
 
 .box h2 {
     margin-top: 0;
+}
+
+#transcript {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#transcript>li {
+    padding: 0.5rem 1rem;
+}
+
+#transcript>li:nth-child(odd) {
+    background: #efefef;
+}
+
+#translation {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#translation>li {
+    padding: 0.5rem 1rem;
+}
+
+#translation>li:nth-child(odd) {
+    background: #efefef;
 }

@@ -81,8 +81,8 @@ export const sendMicStreamToDeepgram = (deepgram, audio) => {
     } else if (deepgram.getReadyState() >= 2 /* 2 = CLOSING, 3 = CLOSED */) {
         console.log("socket: data couldn't be sent to deepgram");
         console.log("socket: retrying connection to deepgram");
-        /* Attempt to reopen the Deepgram connection */
         deepgram.finish();
+        /* Attempt to reopen the Deepgram connection */
 //        deepgram.removeAllListeners();
 //        deepgram = setupDeepgram(socket);
     } else {

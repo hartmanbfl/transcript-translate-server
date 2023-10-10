@@ -58,9 +58,11 @@ io.on('connection', (socket) => {
 
     // Streaming Controls
     socket.on('streaming_start', () => {
+        console.log(`Streaming started`);
         sendUrlStreamToDeepgram(deepgram, url);
     });
     socket.on('streaming_stop', () => {
+        console.log(`Streaming stopped`);
         abortStream();
     });
     

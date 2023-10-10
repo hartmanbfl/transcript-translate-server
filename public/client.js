@@ -61,6 +61,7 @@ const getUserAudioDevices = () => {
                 const option = document.createElement("option");
                 option.value = device.deviceId;
                 option.text = device.label || `Microphone ${audioInputSelect.length + 1}`;
+                console.log(`Found device: ${option.text}`);
                 audioInputSelect.appendChild(option);
             });
         })
@@ -69,53 +70,55 @@ const getUserAudioDevices = () => {
         });
 }
 
+const setupLanguages = (socket) => {
+    let currentLanguage;
+    document.getElementById("langInputSelect").addEventListener("change", () => {
+        const selectedLanguage = document.getElementById("langInputSelect").value;
+        
+        // If language has changed, unsubscribe from previous
+        if (currentLanguage != selectedLanguage) {
+            currentLanguage === "" ? console.log(`No unsubscribe required`) : socket.emit("unsubscribe", currentLanguage);
+            currentLanguage = selectedLanguage;
+        }
 
-window.addEventListener("load", () => {
-    const socket = io("wss://live-pegasus-first.ngrok-free.app");
+        if (selectedLanguage === "") {
+            console.log(`No language is selected.`);
+        } else {
+            console.log(`Selected language: ${selectedLanguage}`);
+            socket.emit("subscribe", selectedLanguage);
+        }
+    });
+}
+
+
+window.addEventListener("load", async () => {
+//    const socket = io("wss://live-pegasus-first.ngrok-free.app");
+    const socket = io();
     let deepgramState;
+
+    // Populate the dropdown list of audio input devices
+    await getUserAudioDevices();
+
+    // Populate the language select
+    setupLanguages(socket);
 
     const deepgramConnect = document.getElementById('deepConnect');
     const deepgramDisconnect = document.getElementById('deepDisconnect');
     const startStreaming = document.getElementById('streamStart');
     const stopStreaming = document.getElementById('streamStop');
-    const messages = document.getElementById('messages');
+    const transcript = document.getElementById('transcript');
     const transcriptTextBox = document.getElementById('transcript-text-box');
+    const translation = document.getElementById('translation');
+    const translationTextBox = document.getElementById('translation-text-box');
 
     // get the initial state of Deepgram
     socket.emit('deepgram_state_request');
     socket.on('deepgram_state', (state) => {
         deepgramState = state;
         console.log(`Current state of Deepgram is: ${state}`);
-//        if (state === 1) {  // OPEN
-//            deepgramConnect.textContent = "Deepgram Disconnect";
-//            deepgramConnect.className = "stop-action"            
-//        } else {
-//            deepgramConnect.textContent = "Deepgram Connect";
-//            deepgramConnect.className = "start-action"            
-//        }
-    })
+    });
 
 
-//    deepgramConnect.addEventListener("click", () => {
-//        if (deepgramState === 1 ) { // currently ON
-//            socket.emit('deepgram_disconnect');
-//            deepgramConnect.textContent = "Deepgram Connect";
-//            deepgramConnect.className = "start-action"            
-//        } else {
-//            socket.emit('deepgram_connect');
-//            deepgramConnect.textContent = "Deepgram Disconnect";
-//            deepgramConnect.className = "stop-action"            
-//        }
-//        deepgramConnect.classList.toggle("toggled");
-//        const isToggled = deepgramConnect.classList.contains("toggled");
-//        if (isToggled) {
-//            socket.emit('deepgram_connect');
-//            deepgramConnect.textContent = "Deepgram Stop";
-//        } else {
-//            socket.emit('deepgram_disconnect');
-//            deepgramConnect.textContent = "Deepgram Start";
-//        }
-//    });
     deepgramConnect.addEventListener("click", () => {
         socket.emit('deepgram_connect');
     });
@@ -129,18 +132,22 @@ window.addEventListener("load", () => {
         socket.emit('streaming_stop');
     });
 
-    // Listen for messages coming in from Deepgram
-    socket.on('transcript', function (msg) {
+    // Listen for transcript messages coming in from Deepgram
+    socket.on('transcript', (msg) => {
         var item = document.createElement('li');
         item.textContent = msg;
-        messages.appendChild(item);
-        messages.scrollTop = messages.scrollHeight;
-//        window.scrollTo(0, transcriptTextBox.scrollHeight);
-        transcriptTextBox.scrollTo(0, messages.scrollHeight);
+        transcript.appendChild(item);
+        transcript.scrollTop = transcript.scrollHeight;
+        transcriptTextBox.scrollTo(0, transcript.scrollHeight);
     });
 
-    // Populate the dropdown list of audio input devices
-    getUserAudioDevices();
+    socket.on('translation', (msg) => {
+        var item = document.createElement('li');
+        item.textContent = msg;
+        translation.appendChild(item);
+        translation.scrollTop = translation.scrollHeight;
+        translationTextBox.scrollTo(0, translation.scrollHeight);
+    })
 
     // Start streaming from the audio device 
     startListening(socket);
