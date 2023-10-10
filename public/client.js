@@ -27,6 +27,7 @@ async function openMicrophone(microphone, socket) {
 
 async function closeMicrophone(microphone) {
     microphone.stop();
+    microphone.stream.getTracks().forEach(track => track.stop());
 }
 
 async function startListening(socket) {
@@ -70,13 +71,51 @@ const getUserAudioDevices = () => {
 
 
 window.addEventListener("load", () => {
-    const socket = io();
+    const socket = io("wss://live-pegasus-first.ngrok-free.app");
+    let deepgramState;
 
     const deepgramConnect = document.getElementById('deepConnect');
     const deepgramDisconnect = document.getElementById('deepDisconnect');
-    let startStreaming = document.getElementById('streamStart');
-    let stopStreaming = document.getElementById('streamStop');
+    const startStreaming = document.getElementById('streamStart');
+    const stopStreaming = document.getElementById('streamStop');
+    const messages = document.getElementById('messages');
+    const transcriptTextBox = document.getElementById('transcript-text-box');
 
+    // get the initial state of Deepgram
+    socket.emit('deepgram_state_request');
+    socket.on('deepgram_state', (state) => {
+        deepgramState = state;
+        console.log(`Current state of Deepgram is: ${state}`);
+//        if (state === 1) {  // OPEN
+//            deepgramConnect.textContent = "Deepgram Disconnect";
+//            deepgramConnect.className = "stop-action"            
+//        } else {
+//            deepgramConnect.textContent = "Deepgram Connect";
+//            deepgramConnect.className = "start-action"            
+//        }
+    })
+
+
+//    deepgramConnect.addEventListener("click", () => {
+//        if (deepgramState === 1 ) { // currently ON
+//            socket.emit('deepgram_disconnect');
+//            deepgramConnect.textContent = "Deepgram Connect";
+//            deepgramConnect.className = "start-action"            
+//        } else {
+//            socket.emit('deepgram_connect');
+//            deepgramConnect.textContent = "Deepgram Disconnect";
+//            deepgramConnect.className = "stop-action"            
+//        }
+//        deepgramConnect.classList.toggle("toggled");
+//        const isToggled = deepgramConnect.classList.contains("toggled");
+//        if (isToggled) {
+//            socket.emit('deepgram_connect');
+//            deepgramConnect.textContent = "Deepgram Stop";
+//        } else {
+//            socket.emit('deepgram_disconnect');
+//            deepgramConnect.textContent = "Deepgram Start";
+//        }
+//    });
     deepgramConnect.addEventListener("click", () => {
         socket.emit('deepgram_connect');
     });
@@ -95,7 +134,9 @@ window.addEventListener("load", () => {
         var item = document.createElement('li');
         item.textContent = msg;
         messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
+        messages.scrollTop = messages.scrollHeight;
+//        window.scrollTo(0, transcriptTextBox.scrollHeight);
+        transcriptTextBox.scrollTo(0, messages.scrollHeight);
     });
 
     // Populate the dropdown list of audio input devices

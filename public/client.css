@@ -30,9 +30,11 @@ body {
     flex-direction: column;
     align-items: center;
 }
+
 .button-box h2 {
     margin-top: 0;
 }
+
 .button-box button {
     display: block;
     margin-bottom: 10px;
@@ -54,9 +56,48 @@ select#audioInputSelect {
 }
 
 .start-action {
-    color: green;
+    background-color: green;
+    color: white;
+    font-size: 1em;
+    padding: 0.5em;
+    border: none;
+    border-radius: 0.5em;
+}
+.start-action.toggled {
+    background-color: red;
 }
 
 .stop-action {
-    color: red;
+    background-color: red;
+    color: white;
+    font-size: 1em;
+    padding: 0.5em;
+    border: none;
+    border-radius: 0.5em;
+}
+
+
+/* #deepConnect {
+    background-color: green;
+    color: white;
+    font-size: 1em;
+    padding: 0.5em;
+    border: none;
+    border-radius: 0.5em;
+}
+#deepConnect.toggled {
+    background-color: red;
+} */
+
+
+.text-box {
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 5px;
+    height: 400px;
+    overflow-y: scroll;
+}
+
+.box h2 {
+    margin-top: 0;
 }
