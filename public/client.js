@@ -93,14 +93,15 @@ const setupLanguages = (socket) => {
 
 window.addEventListener("load", async () => {
 //    const socket = io("wss://live-pegasus-first.ngrok-free.app");
-    const socket = io();
+    const adminSocket = io('/admin-control');
+    const publicSocket = io('/');
     let deepgramState;
 
     // Populate the dropdown list of audio input devices
     await getUserAudioDevices();
 
     // Populate the language select
-    setupLanguages(socket);
+    setupLanguages(publicSocket);
 
     const deepgramConnect = document.getElementById('deepConnect');
     const deepgramDisconnect = document.getElementById('deepDisconnect');
@@ -112,28 +113,28 @@ window.addEventListener("load", async () => {
     const translationTextBox = document.getElementById('translation-text-box');
 
     // get the initial state of Deepgram
-    socket.emit('deepgram_state_request');
-    socket.on('deepgram_state', (state) => {
+    adminSocket.emit('deepgram_state_request');
+    adminSocket.on('deepgram_state', (state) => {
         deepgramState = state;
         console.log(`Current state of Deepgram is: ${state}`);
     });
 
 
     deepgramConnect.addEventListener("click", () => {
-        socket.emit('deepgram_connect');
+        adminSocket.emit('deepgram_connect');
     });
     deepgramDisconnect.addEventListener("click", () => {
-        socket.emit('deepgram_disconnect');
+        adminSocket.emit('deepgram_disconnect');
     });
     startStreaming.addEventListener("click", function() {
-        socket.emit('streaming_start');
+        adminSocket.emit('streaming_start');
     });
     stopStreaming.addEventListener("click", function() {
-        socket.emit('streaming_stop');
+        adminSocket.emit('streaming_stop');
     });
 
     // Listen for transcript messages coming in from Deepgram
-    socket.on('transcript', (msg) => {
+    publicSocket.on('transcript', (msg) => {
         var item = document.createElement('li');
         item.textContent = msg;
         transcript.appendChild(item);
@@ -141,7 +142,7 @@ window.addEventListener("load", async () => {
         transcriptTextBox.scrollTo(0, transcript.scrollHeight);
     });
 
-    socket.on('translation', (msg) => {
+    publicSocket.on('translation', (msg) => {
         var item = document.createElement('li');
         item.textContent = msg;
         translation.appendChild(item);
@@ -150,6 +151,6 @@ window.addEventListener("load", async () => {
     })
 
     // Start streaming from the audio device 
-    startListening(socket);
+    startListening(adminSocket);
 
 });

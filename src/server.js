@@ -27,9 +27,11 @@ const io = new Server(server, {
 // Register the translation service to receive the transcripts
 registerForTranscripts(io);
 
-// Websocket connection to the client
-io.on('connection', (socket) => {
-    console.log(`Client connected to our socket.io server`);
+// Create a namespace for admin control features
+const controlNsp = io.of('/admin-control');
+controlNsp.on('connection', (socket) => {
+    // Socket.io controls
+    console.log(`Client connected to our socket.io admin namespace`);
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
@@ -51,11 +53,6 @@ io.on('connection', (socket) => {
         io.emit('deepgram_state', (state));
     });
 
-    // Audio stream from client mic
-    socket.on('audio_available', (audio) => {
-        sendMicStreamToDeepgram(deepgram, audio);
-    }) 
-
     // Streaming Controls
     socket.on('streaming_start', () => {
         console.log(`Streaming started`);
@@ -64,6 +61,19 @@ io.on('connection', (socket) => {
     socket.on('streaming_stop', () => {
         console.log(`Streaming stopped`);
         abortStream();
+    });
+
+    // Audio stream from client mic
+    socket.on('audio_available', (audio) => {
+        sendMicStreamToDeepgram(deepgram, audio);
+    }) 
+})
+
+// Websocket connection to the client
+io.on('connection', (socket) => {
+    console.log(`Client connected to our socket.io public namespace`);
+    socket.on('disconnect', () => {
+        console.log('Client disconnected');
     });
     
     // Translation Rooms
