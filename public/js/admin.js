@@ -90,27 +90,45 @@ const setupLanguages = (socket) => {
     });
 }
 
+const generateRandomPin = () => {
+    return Math.floor(Math.random() * 900000 + 100000);
+}
+
 
 window.addEventListener("load", async () => {
-//    const socket = io("wss://live-pegasus-first.ngrok-free.app");
-    const adminSocket = io('/admin-control');
-    const publicSocket = io('/');
-    let deepgramState;
-
-    // Populate the dropdown list of audio input devices
-    await getUserAudioDevices();
-
-    // Populate the language select
-    setupLanguages(publicSocket);
-
     const deepgramConnect = document.getElementById('deepConnect');
     const deepgramDisconnect = document.getElementById('deepDisconnect');
+    const pinGenerate = document.getElementById('pinGenerate');
+    const serviceId = document.getElementById('serviceId');
     const startStreaming = document.getElementById('streamStart');
     const stopStreaming = document.getElementById('streamStop');
     const transcript = document.getElementById('transcript');
     const transcriptTextBox = document.getElementById('transcript-text-box');
     const translation = document.getElementById('translation');
     const translationTextBox = document.getElementById('translation-text-box');
+
+//    const socket = io("wss://live-pegasus-first.ngrok-free.app");
+    const adminSocket = io('/admin-control');
+    const publicSocket = io('/');
+    let deepgramState;
+
+    // When we first load, generate a new PIN if one isn't already defined
+    let serviceCode;
+    if (sessionStorage.getItem('serviceId') === null) {
+        serviceCode = generateRandomPin();
+        console.log(`No service code yet.  Generating PIN of ${serviceCode}`);
+        sessionStorage.setItem('serviceId', serviceCode);
+    } else {
+        console.log(`Using existing PIN: ${sessionStorage.getItem('serviceId')}`);
+        serviceCode = sessionStorage.getItem('serviceId');
+    }
+    serviceId.innerHTML = serviceCode;
+
+    // Populate the dropdown list of audio input devices
+    await getUserAudioDevices();
+
+    // Populate the language select
+    setupLanguages(publicSocket);
 
     // get the initial state of Deepgram
     adminSocket.emit('deepgram_state_request');
@@ -120,6 +138,13 @@ window.addEventListener("load", async () => {
     });
 
 
+    // Button listeners
+    pinGenerate.addEventListener("click", () => {
+        serviceCode = generateRandomPin();
+        serviceId.innerHTML = serviceCode;
+        // Update session storage
+        sessionStorage.setItem('serviceId', serviceCode);
+    })
     deepgramConnect.addEventListener("click", () => {
         adminSocket.emit('deepgram_connect');
     });

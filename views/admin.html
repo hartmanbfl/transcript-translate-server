@@ -27,6 +27,11 @@
                 <button class="stop-action" id="micStop">Stop Mic</button>
             </div>
             <div class="button-box">
+                <h2>Service ID</h2>
+                <button class="start-action" id="pinGenerate">Generate ID</button>
+                <p id="serviceId"></p>
+            </div>
+            <div class="button-box">
                 <h2>Language Select</h2>
                 <label for="langInputSelect">Select a translation language:</label>
                 <select id="langInputSelect">
@@ -55,7 +60,7 @@
         <ul id="translation"></ul>
     </div>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
+    <script src="/js/admin.js"></script>
 </body>
 
 </html>

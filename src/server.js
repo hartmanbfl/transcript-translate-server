@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import http from 'http';
+import path from 'path';
 import { Server } from 'socket.io';
 import {
     setupDeepgram, shutdownDeepgram, getCurrentDeepgramState,
@@ -117,52 +118,66 @@ const firebaseAuth = getAuth(firebaseApp);
 const isAuthenticated = (req, res, next) => {
     const user = firebaseAuth.currentUser;
     if (user !== null) {
-      next();
+        next();
     } else {
-      res.redirect('/login');
+        res.redirect('/login');
     }
-  }
+}
 
-  // Login page
-app.get('/login', (req, res) => {
-    res.send(`
-      <form action="/login" method="POST">
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-      </form>
-    `);
-  });
-  
-  // Login handler
-  app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
+// Login page
+//app.get('/login', (req, res) => {
+//    res.send(`
+//      <form action="/login" method="POST">
+//        <input type="email" name="email" placeholder="Email" required>
+//        <input type="password" name="password" placeholder="Password" required>
+//        <button type="submit">Login</button>
+//      </form>
+//    `);
+//  });
+
+// Login handler
+app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
     const { email, password } = req.body;
-  
+
     try {
-      await signInWithEmailAndPassword(firebaseAuth, email, password);
-      res.redirect('/');
+        await signInWithEmailAndPassword(firebaseAuth, email, password);
+        res.redirect('/admin');
     } catch (error) {
-      console.error(error);
-//      res.status(401).send('Unauthorized');
-      res.redirect('/login');
+        console.error(error);
+        //      res.status(401).send('Unauthorized');
+        res.redirect('/');
     }
-  });
-  
-  // Logout handler
-  app.get('/logout', (req, res) => {
+});
+
+// Logout handler
+app.get('/logout', (req, res) => {
     firebaseAuth.signOut();
     res.redirect('/login');
-  });
-
-
-// Serve the Web app
-app.use('/', isAuthenticated);
-app.use(express.static("public/"));
-app.get('/', (req, res) => {
-    const user = firebaseAuth.currentUser;
-    console.log(`Allowing in ${user.displayName}`);
-    res.sendFile(__dirname, + '/public/index.html');
 });
+//
+//
+//// Serve the Web app
+//app.use('/', isAuthenticated);
+app.use(express.static("public"));
+app.use(express.json());
+//app.get('/', (req, res) => {
+//    const user = firebaseAuth.currentUser;
+//    console.log(`Allowing in ${user.displayName}`);
+//    res.sendFile(__dirname, + '/public/index.html');
+//});
+const __dirname = path.resolve(path.dirname(''));
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/views/index.html');
+})
+app.get('/admin', isAuthenticated, (req, res) => {
+    res.sendFile(__dirname + '/views/admin.html');
+})
+app.get('/login', (req, res) => {
+    res.sendFile(__dirname + '/views/login.html');
+})
+app.get('/participant', (req, res) => {
+    res.sendFile(__dirname + '/views/participant.html');
+})
 
 server.listen(3000, () => {
     console.log('listening on *:3000');
