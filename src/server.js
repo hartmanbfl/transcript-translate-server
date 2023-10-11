@@ -84,7 +84,7 @@ io.on('connection', (socket) => {
     // Translation Rooms
     socket.on('subscribe', async (channel) => {
         console.log(`Subscribed call to room: ${channel}`);
-        await socket.join(channel);
+        socket.join(channel);
         addTranslationLanguage(channel);
         console.log(`Current rooms: ${JSON.stringify(socket.rooms)}`);
     });
@@ -99,12 +99,6 @@ io.on('connection', (socket) => {
         console.log(`Transcript received by server: ${transcript}`);
     });
 });
-
-// Initialize Firebase Admin SDK
-//admin.initializeApp({
-//    credential: admin.credential.applicationDefault(),
-//    databaseURL: 'https://<DATABASE_NAME>.firebaseio.com'
-//  });
 
 const firebaseConfig = {
     apiKey: "AIzaSyAYS7YuGPQiJRT07_iZ3QXKPOmZUFNu1LI",
@@ -149,7 +143,8 @@ app.get('/login', (req, res) => {
       res.redirect('/');
     } catch (error) {
       console.error(error);
-      res.status(401).send('Invalid email or password');
+//      res.status(401).send('Unauthorized');
+      res.redirect('/login');
     }
   });
   
@@ -161,13 +156,12 @@ app.get('/login', (req, res) => {
 
 
 // Serve the Web app
+app.use('/', isAuthenticated);
 app.use(express.static("public/"));
-app.get('/', isAuthenticated, (req, res) => {
+app.get('/', (req, res) => {
     const user = firebaseAuth.currentUser;
     console.log(`Allowing in ${user.displayName}`);
-//    res.sendFile(__dirname, + '/public/index.html');
-    res.sendFile('index.html', { root: 'public' });
-//    res.send(`hello ${user.displayName}`);
+    res.sendFile(__dirname, + '/public/index.html');
 });
 
 server.listen(3000, () => {
