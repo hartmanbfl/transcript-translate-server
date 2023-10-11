@@ -1,25 +1,35 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
 import {
     setupDeepgram, shutdownDeepgram, getCurrentDeepgramState,
-    sendMicStreamToDeepgram, sendUrlStreamToDeepgram, abortStream, startupDeepgram
+    sendMicStreamToDeepgram, sendUrlStreamToDeepgram, abortStream, startupDeepgram, printDeepgramState
 } from './deepgram.js';
 import { registerForTranscripts, addTranslationLanguage } from './translate.js';
+import { transcriptSubject } from "./globals.js";
 
 // Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+
+// Deepgram needs to be imported as CommonJS
+import pkg from "@deepgram/sdk";
+const { Deepgram } = pkg;
+const deepgram = new Deepgram(process.env.DEEPGRAM_API_KEY);
+
+// Environment variables
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
 const url = "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service";
 
-let deepgram;
+let deepgramObj;
 
 app.use(cors());
 const io = new Server(server, {
@@ -45,24 +55,24 @@ controlNsp.on('connection', (socket) => {
     // Deepgram Controls
     socket.on('deepgram_connect', () => {
         console.log(`Deepgram connect requested`);
-        deepgram = setupDeepgram(io);
-        startupDeepgram(deepgram);
+        deepgramObj = setupDeepgram(io);
+        startupDeepgram(deepgramObj);
     });
     socket.on('deepgram_disconnect', () => {
         console.log(`Deepgram disconnect requested`);
-        shutdownDeepgram(deepgram);
+        shutdownDeepgram(deepgramObj);
     });
     socket.on('deepgram_state_request', () => {
         console.log(`Deepgram state requested`);
-        const state = getCurrentDeepgramState(deepgram);
-        console.log(`Current state of deepgram is: ${state}`);
+        const state = getCurrentDeepgramState(deepgramObj);
+        console.log(`Current state of deepgram is: ${printDeepgramState(state)}`);
         io.emit('deepgram_state', (state));
     });
 
     // Streaming Controls
     socket.on('streaming_start', () => {
         console.log(`Streaming started`);
-        sendUrlStreamToDeepgram(deepgram, url);
+        sendUrlStreamToDeepgram(deepgramObj, url);
     });
     socket.on('streaming_stop', () => {
         console.log(`Streaming stopped`);
@@ -71,7 +81,7 @@ controlNsp.on('connection', (socket) => {
 
     // Audio stream from client mic
     socket.on('audio_available', (audio) => {
-        sendMicStreamToDeepgram(deepgram, audio);
+        sendMicStreamToDeepgram(deepgramObj, audio);
     })
 })
 
@@ -94,11 +104,17 @@ io.on('connection', (socket) => {
         socket.leave(channel);
     });
 
-    // Transcripts
+    // Transcripts directly from Deepgram
     socket.on('transcript', (transcript) => {
         io.emit('transcript', transcript);
         console.log(`Transcript received by server: ${transcript}`);
     });
+
+    // Transcripts from the client (not directly from Deepgram)
+    socket.on('transcriptReady', (transcript) => {
+        io.emit('transcript', transcript);    
+        transcriptSubject.next(transcript);
+    })
 });
 
 const firebaseConfig = {
@@ -124,16 +140,8 @@ const isAuthenticated = (req, res, next) => {
     }
 }
 
-// Login page
-//app.get('/login', (req, res) => {
-//    res.send(`
-//      <form action="/login" method="POST">
-//        <input type="email" name="email" placeholder="Email" required>
-//        <input type="password" name="password" placeholder="Password" required>
-//        <button type="submit">Login</button>
-//      </form>
-//    `);
-//  });
+app.use(express.static("public"));
+app.use(express.json());
 
 // Login handler
 app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
@@ -149,6 +157,26 @@ app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) =
     }
 });
 
+// Auth handler for keys
+app.post('/auth', async (req, res) => {
+    try {
+        const { serviceId, churchKey } = req.body
+        if (req.body.churchKey != process.env.CHURCH_KEY) {
+            return res.json({ error: 'Key is missing or incorrect' })
+        }
+        const newKey = await deepgram.keys.create(
+            process.env.DEEPGRAM_PROJECT,
+            'Temporary key - works for 10 secs',
+            ['usage:write'],
+            { timeToLive: 10 }
+        )
+        res.json({ deepgramToken: newKey.key })
+    } catch (error) {
+        console.error(`Caught error in auth: ${error}`);
+        res.json({ error })
+    }
+});
+
 // Logout handler
 app.get('/logout', (req, res) => {
     firebaseAuth.signOut();
@@ -158,8 +186,6 @@ app.get('/logout', (req, res) => {
 //
 //// Serve the Web app
 //app.use('/', isAuthenticated);
-app.use(express.static("public"));
-app.use(express.json());
 //app.get('/', (req, res) => {
 //    const user = firebaseAuth.currentUser;
 //    console.log(`Allowing in ${user.displayName}`);
@@ -177,6 +203,9 @@ app.get('/login', (req, res) => {
 })
 app.get('/participant', (req, res) => {
     res.sendFile(__dirname + '/views/participant.html');
+})
+app.get('/control', (req, res) => {
+    res.sendFile(__dirname + '/views/control.html');
 })
 
 server.listen(3000, () => {

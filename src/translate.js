@@ -24,6 +24,10 @@ export const addTranslationLanguage = (lang) => {
 }
 
 async function translateText(lang, text) {
-    const translated = await translate(text, { to: lang });
-    return translated.text;
+    try {
+        const translated = await translate(text, { to: lang });
+        return translated.text;
+    } catch (error) {
+        console.error(`Caught error in translation: ${error}`);
+    }
 }

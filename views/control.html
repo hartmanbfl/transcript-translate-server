@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="client.css">
+    <title>Transcription Controller</title>
+</head>
+
+<body>
+    <div>
+        <h1>Main Controller</h1>
+        <div class="button-container">
+            <div class="button-box">
+                <h2>Service ID</h2>
+                <button class="start-action" id="pinGenerate">Generate ID</button>
+                <p id="serviceId"></p>
+            </div>
+            <div class="button-box">
+                <h2>Language Select</h2>
+                <label for="langInputSelect">Select a translation language:</label>
+                <select id="langInputSelect">
+                    <option value="">None</option>
+                    <option value="ar">Arabic</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="es">Spanish</option>
+                    <option value="tr">Turkish</option>
+                    <option value="uk">Ukranian</option>
+                </select>
+            </div>
+            <div class="button-box">
+                <h2>Audio Select</h2>
+                <label for="audioInputSelect">Select an audio input device:</label>
+                <select id="audioInputSelect"></select>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

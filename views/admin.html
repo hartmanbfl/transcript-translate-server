@@ -3,12 +3,12 @@
 
 <head>
     <link rel="stylesheet" href="client.css">
-    <title>Transcription Producer App</title>
+    <title>Transcription Tester</title>
 </head>
 
 <body>
     <div>
-        <h1>Transcription Producer App</h1>
+        <h1>Transcription Tester App</h1>
 
         <div class="button-container">
             <div class="button-box">
@@ -17,9 +17,19 @@
                 <button class="stop-action" id="deepDisconnect">Deepgram Disconnect</button>
             </div>
             <div class="button-box">
-                <h2>Streaming Controls</h2>
+                <h2>URL Streaming Controls</h2>
                 <button class="start-action" id="streamStart">Start Streaming</button>
                 <button class="stop-action" id="streamStop">Stop Streaming</button>
+            </div>
+            <div class="button-box">
+                <h2>Audio Controls</h2>
+                <button class="start-action" id="enableStreaming">Enable Streaming</button>
+                <button class="stop-action" id="disableStreaming" style="display: none;">Disable Streaming</button>
+                <form id="audioForm" style="display: none;">
+                    <label for="key">Church Key</label>
+                    <input type="password" id="key" name="key" />
+                    <input type="submit" value="Start Streaming">
+                </form>
             </div>
             <div class="button-box">
                 <h2>Mic Controls</h2>

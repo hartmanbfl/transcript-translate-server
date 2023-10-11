@@ -7,6 +7,21 @@ const client = new Deepgram(process.env.DEEPGRAM_API_KEY);
 
 let keepAlive;
 
+export const printDeepgramState = (state) => {
+    switch (state) {
+        case 0:
+            return "CONNECTING";
+        case 1:
+            return "OPEN";
+        case 2:
+            return "CLOSING";
+        case 3:
+            return "CLOSED";
+        default:
+            return "UNKNOWN";
+    }
+}
+
 export const setupDeepgram = (io) => {
     const deepgramLive = client.transcription.live({
         language: "en",
