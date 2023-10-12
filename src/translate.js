@@ -12,6 +12,9 @@ export const registerForTranscripts = (io) => {
         languages.forEach(async (lang) => {
             let translation = await translateText(lang, transcript);
             console.log(`Translation in ${lang}: ${translation}`);
+
+            // Send this language to all participants that are
+            // subscribed to it
             io.to(lang).emit("translation", translation);
         })
     });

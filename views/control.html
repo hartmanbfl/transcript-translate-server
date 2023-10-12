@@ -12,13 +12,16 @@
         <div class="button-container">
             <div class="button-box">
                 <h2>Service ID</h2>
+                <!--
                 <button class="start-action" id="pinGenerate">Generate ID</button>
+                -->
                 <p id="serviceId"></p>
             </div>
+            <!--
             <div class="button-box">
                 <h2>Language Select</h2>
                 <label for="langInputSelect">Select a translation language:</label>
-                <select id="langInputSelect">
+                <select id="langInputSelect" class="drop-down-selector">
                     <option value="">None</option>
                     <option value="ar">Arabic</option>
                     <option value="fr">French</option>
@@ -28,12 +31,39 @@
                     <option value="uk">Ukranian</option>
                 </select>
             </div>
+        -->
             <div class="button-box">
                 <h2>Audio Select</h2>
                 <label for="audioInputSelect">Select an audio input device:</label>
-                <select id="audioInputSelect"></select>
+                <select id="audioInputSelect" class="drop-down-selector"></select>
+            </div>
+            <div class="button-box">
+                <h2>Audio Controls</h2>
+                <form id="audioForm">
+                    <label for="key">Church Key</label>
+                    <input type="password" id="key" name="key" />
+                    <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
+                </form>
+                <button class="stop-action" id="disableStreaming" style="display: none;">Disable Streaming</button>
+            </div>
+            <div class="button-box">
+                <h2>Options</h2>
+                <input type="checkbox" id="interimCheckbox" name="Show Interim" value="interimValue">
+                <label for="finalCheckbox">Interim Results</label>
+            </div>
+            <div class="button-box">
+                <h2>Recording</h2>
+                <div id="recording-light" class="status-light recording" style="display: none;"></div>
             </div>
         </div>
+        <div class="text-box-large" id="transcript-text-box">
+            <h2>Transcript</h2>
+            <ul id="transcript"></ul>
+        </div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/control.js"></script>
 </body>
+
 </html>
