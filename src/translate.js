@@ -1,9 +1,14 @@
 import translate from 'google-translate-api-x';
-import { transcriptSubject } from './globals.js';
+import { transcriptAvailServiceSub, transcriptSubject } from './globals.js';
 
 // Array of languages that are supported and if there are any subscribers
 let languages = [];
 
+// Map of Services/Languages - Church Services are the keys, and array of 
+// languages the values
+let serviceLanguageMap = new Map();
+
+// TBD - make the payload of the Subject a json object that includes the service id
 
 export const registerForTranscripts = (io) => {
     const transcriptSubscription = transcriptSubject.subscribe((transcript) => {
@@ -32,5 +37,27 @@ async function translateText(lang, text) {
         return translated.text;
     } catch (error) {
         console.error(`Caught error in translation: ${error}`);
+    }
+}
+
+// Service based methods
+
+export const registerForServiceTranscripts = (io) => {
+    const subscription = transcriptAvailServiceSub.subscribe((data) => {
+        const serviceId = data.serviceId;
+        const transcript = data.transcript;
+
+        // TBD
+    })
+}
+
+export const addTranslationLanguageToService = (service, lang) => {
+    serviceLanguageMap.get(service).push(lang);
+}
+
+export const removeTranslationLanguageFromService = (service, lang) => {
+    let index = serviceLanguageMap.get(service).indexOf(lang);
+    if (index !== -1) {
+        serviceLanguageMap.get(service).splice(index, 1);
     }
 }

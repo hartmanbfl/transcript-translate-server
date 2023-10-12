@@ -1,4 +1,7 @@
-const publicSocket = io('/');
+const serviceSocket = io('/');
+const url = new URL(location.href)
+const search = new URLSearchParams(url.search)
+const id = search.get('id')
 
 const setupLanguages = () => {
     let currentLanguage = undefined;
@@ -7,7 +10,12 @@ const setupLanguages = () => {
 
         // If language has changed, unsubscribe from previous
         if (currentLanguage != selectedLanguage) {
-            currentLanguage === undefined ? console.log(`No unsubscribe required`) : publicSocket.emit("unsubscribe", currentLanguage);
+            if (currentLanguage === undefined) {
+                console.log(`No unsubscribe required`);
+            } else {
+                const room = `${id}:${currentLanguage}`;
+                serviceSocket.emit("leave", room);
+            }
             currentLanguage = selectedLanguage;
         }
 
@@ -15,7 +23,8 @@ const setupLanguages = () => {
             console.log(`No language is selected.`);
         } else {
             console.log(`Selected language: ${selectedLanguage}`);
-            publicSocket.emit("subscribe", selectedLanguage);
+            const room = `${id}:${selectedLanguage}`
+                serviceSocket.emit("join", room);
         }
     });
 }
@@ -26,11 +35,13 @@ window.addEventListener("load", async () => {
     const translation = document.getElementById('translation');
     const translationTextBox = document.getElementById('translation-text-box');
 
+    document.querySelector('#id').textContent = id
+
     // Populate the language select
     setupLanguages();
 
     // Listen for transcript messages coming in from the Server
-    publicSocket.on('transcript', (msg) => {
+    serviceSocket.on('transcript', (msg) => {
         var item = document.createElement('li');
         item.textContent = msg;
         transcript.appendChild(item);
@@ -38,7 +49,7 @@ window.addEventListener("load", async () => {
         transcriptTextBox.scrollTo(0, transcript.scrollHeight);
     });
 
-    publicSocket.on('translation', (msg) => {
+    serviceSocket.on('translation', (msg) => {
         var item = document.createElement('li');
         item.textContent = msg;
         translation.appendChild(item);

@@ -11,6 +11,7 @@ import {
 } from './deepgram.js';
 import { registerForTranscripts, addTranslationLanguage } from './translate.js';
 import { transcriptSubject } from "./globals.js";
+import { Translation } from './translateClass.js'
 
 // Firebase
 import { initializeApp } from 'firebase/app';
@@ -42,6 +43,16 @@ const io = new Server(server, {
 
 // Register the translation service to receive the transcripts
 registerForTranscripts(io);
+
+const parseRoom = (room) => {
+    const roomArray = room.split(":");
+    const serviceId = roomArray[0];
+    const language = roomArray[1];
+    return {
+        serviceId: serviceId,
+        language: language
+    }
+}
 
 // Create a namespace for admin control features
 const controlNsp = io.of('/admin-control');
@@ -104,6 +115,18 @@ io.on('connection', (socket) => {
         socket.leave(channel);
     });
 
+    // Rooms defined by <ServiceId:Language>
+    socket.on('join', (room) => {
+        socket.join(room);
+        const data = parseRoom(room);
+        console.log(`Joining service-> ${data.serviceId}, Language-> ${data.language}`);
+    })
+    socket.on('leave', (room) => {
+        socket.leave(room);
+        const data = parseRoom(room);
+        console.log(`Leaving service-> ${data.serviceId}, Language-> ${data.language}`);
+    })
+
     // Transcripts directly from Deepgram
     socket.on('transcript', (transcript) => {
         io.emit('transcript', transcript);
@@ -112,7 +135,7 @@ io.on('connection', (socket) => {
 
     // Transcripts from the client (not directly from Deepgram)
     socket.on('transcriptReady', (transcript) => {
-        io.emit('transcript', transcript);    
+        io.emit('transcript', transcript);
         transcriptSubject.next(transcript);
     })
 });
@@ -182,15 +205,37 @@ app.get('/logout', (req, res) => {
     firebaseAuth.signOut();
     res.redirect('/login');
 });
-//
-//
-//// Serve the Web app
-//app.use('/', isAuthenticated);
-//app.get('/', (req, res) => {
-//    const user = firebaseAuth.currentUser;
-//    console.log(`Allowing in ${user.displayName}`);
-//    res.sendFile(__dirname, + '/public/index.html');
-//});
+
+// Test creating namespaces dynamically.  The idea is to have a namespace
+// per (church) Service. This may become too complicated, but keeping code 
+// here as a reference of what I was trying to do.
+app.get('/service/:serviceId', (req, res) => {
+    const serviceId = req.params.serviceId;
+    const dynNamespace = io.of('/' + serviceId);
+    const translationObj = new Translation(dynNamespace);
+
+    translationObj.registerForTranscripts();
+
+    dynNamespace.on('connection', (socket) => {
+        // Subscribe to a particular language 
+        socket.on('subscribe', async (channel) => {
+            console.log(`Subscribed call to room: ${channel}`);
+            socket.join(channel);
+            addTranslationLanguage(channel);
+            console.log(`Current rooms: ${JSON.stringify(socket.rooms)}`);
+        });
+        socket.on('unsubscribe', (channel) => {
+            console.log(`Unsubscribing from ${channel}`);
+            socket.leave(channel);
+        });
+        socket.on('transcriptReady', (transcript) => {
+            dynNamespace.emit('transcript', transcript);
+            translationObj.transcriptAvailableSub.next(transcript);
+        })
+    })
+})
+
+//// Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
