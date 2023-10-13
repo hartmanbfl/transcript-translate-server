@@ -51,11 +51,15 @@ export const registerForServiceTranscripts = (io) => {
     })
 }
 
-export const addTranslationLanguageToService = (service, lang) => {
+export const addTranslationLanguageToService = (data) => {
+    const service = data.serviceId;
+    const lang = data.language;
     serviceLanguageMap.get(service).push(lang);
 }
 
-export const removeTranslationLanguageFromService = (service, lang) => {
+export const removeTranslationLanguageFromService = (data) => {
+    const service = data.serviceId;
+    const lang = data.language;
     let index = serviceLanguageMap.get(service).indexOf(lang);
     if (index !== -1) {
         serviceLanguageMap.get(service).splice(index, 1);

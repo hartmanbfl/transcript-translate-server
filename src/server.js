@@ -9,7 +9,7 @@ import {
     setupDeepgram, shutdownDeepgram, getCurrentDeepgramState,
     sendMicStreamToDeepgram, sendUrlStreamToDeepgram, abortStream, startupDeepgram, printDeepgramState
 } from './deepgram.js';
-import { registerForTranscripts, addTranslationLanguage } from './translate.js';
+import { registerForTranscripts, addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService } from './translate.js';
 import { transcriptSubject } from "./globals.js";
 import { Translation } from './translateClass.js'
 
@@ -119,11 +119,14 @@ io.on('connection', (socket) => {
     socket.on('join', (room) => {
         socket.join(room);
         const data = parseRoom(room);
+        // Add this language to the service
+        addTranslationLanguageToService(data);
         console.log(`Joining service-> ${data.serviceId}, Language-> ${data.language}`);
     })
     socket.on('leave', (room) => {
         socket.leave(room);
         const data = parseRoom(room);
+        removeTranslationLanguageFromService(data);
         console.log(`Leaving service-> ${data.serviceId}, Language-> ${data.language}`);
     })
 
