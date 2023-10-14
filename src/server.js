@@ -64,11 +64,12 @@ const listenForClients = () => {
             console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
 
             // Make sure sericeId and language are not undefined
-            if (serviceId === undefined || language === undefined) {
+            if (typeof serviceId === "undefined" || typeof language === "undefined") {
                 console.log(`WARNING, undefined inputs`);
                 return;
             }
             socket.join(room);
+// always empty set            console.log(`Room info: ${JSON.stringify(socket.rooms)}`);
             // Add this language to the service
             const joinData = { serviceId, language, serviceLanguageMap };
 

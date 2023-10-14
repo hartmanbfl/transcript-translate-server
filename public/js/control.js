@@ -54,6 +54,7 @@ const setupDeepgram = () => {
 
         if (resp.error) return alert(resp.error);
 
+
         document.querySelector('#audioForm').style.display = "none";
 
         const deepgramURL = `wss://api.deepgram.com/v1/listen?language=en-GB`
@@ -177,12 +178,16 @@ window.addEventListener("load", async () => {
     })
 
     // When we first load, generate a new PIN if one isn't already defined
+
     if (sessionStorage.getItem('serviceId') === null) {
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);
     } else {
         serviceCode = sessionStorage.getItem('serviceId');
     }
+    // HARDCODE FOR HACKATHON
+    serviceCode = "580178";
+
     serviceId.innerHTML = serviceCode;
 
     // Populate the dropdown list of audio input devices
