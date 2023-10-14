@@ -1,4 +1,5 @@
-const publicSocket = io('/');
+//const publicSocket = io('/');
+const controlSocket = io('/control')
 let serviceCode;
 
 const getUserAudioDevices = () => {
@@ -55,7 +56,8 @@ const setupDeepgram = () => {
 
         document.querySelector('#audioForm').style.display = "none";
 
-        ws = new WebSocket('wss://api.deepgram.com/v1/listen', ['token', resp.deepgramToken])
+        const deepgramURL = `wss://api.deepgram.com/v1/listen?language=en-GB`
+        ws = new WebSocket(deepgramURL, ['token', resp.deepgramToken])
         ws.onopen = startStreamingToDeepgram;
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
@@ -72,6 +74,11 @@ const setupDeepgram = () => {
             audioForm.style.display = "block";
         })
     });
+}
+
+const buildDeepgramUrl = () => {
+    const deepgramUrl = `wss://api.deepgram.com/v1/listen`;
+
 }
 
 const startStreamingToDeepgram = () => {
@@ -101,7 +108,7 @@ const handleDeepgramResponse = (message) => {
 
         // Send to our server
         const data = {serviceCode, transcript};
-        publicSocket.emit('transcriptReady', data)
+        controlSocket.emit('transcriptReady', data)
     }
 }
 

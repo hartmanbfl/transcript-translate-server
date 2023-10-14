@@ -31,6 +31,7 @@ const io = new Server(server, {
         origin: "*"
     }
 });
+const controlIo = io.of("/control")
 
 
 // Register the translation service to receive the transcripts
@@ -47,57 +48,59 @@ const parseRoom = (room) => {
     }
 }
 
+
 // Websocket connection to the client
-io.on('connection', (socket) => {
-    console.log(`Client connected to our socket.io public namespace`);
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
+const listenForClients = () => {
 
-    // Translation Rooms
-    socket.on('subscribe', async (channel) => {
-        console.log(`Subscribed call to room: ${channel}`);
-        socket.join(channel);
-        addTranslationLanguage(channel);
-        console.log(`Current rooms: ${JSON.stringify(socket.rooms)}`);
-    });
-    socket.on('unsubscribe', (channel) => {
-        console.log(`Unsubscribing from ${channel}`);
-        socket.leave(channel);
-    });
+    io.on('connection', (socket) => {
+        console.log(`Client connected to our socket.io public namespace`);
+        socket.on('disconnect', () => {
+            console.log('Client disconnected');
+        });
 
-    // Rooms defined by <ServiceId:Language>
-    socket.on('join', (room) => {
-        socket.join(room);
-        const {serviceId, language} = parseRoom(room);
-        console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
-        // Add this language to the service
-        const joinData = {serviceId, language, serviceLanguageMap}; 
+        // Rooms defined by <ServiceId:Language>
+        socket.on('join', (room) => {
+            const { serviceId, language } = parseRoom(room);
+            console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
 
-        if (language != "transcript") {
-            addTranslationLanguageToService(joinData);
-        }
+            // Make sure sericeId and language are not undefined
+            if (serviceId === undefined || language === undefined) {
+                console.log(`WARNING, undefined inputs`);
+                return;
+            }
+            socket.join(room);
+            // Add this language to the service
+            const joinData = { serviceId, language, serviceLanguageMap };
+
+            if (language != "transcript") {
+                serviceLanguageMap = addTranslationLanguageToService(joinData);
+            }
+        })
+        socket.on('leave', (room) => {
+            socket.leave(room);
+            const { serviceId, language } = parseRoom(room);
+            console.log(`Leaving service-> ${serviceId}, Language-> ${language}`);
+            const leaveData = { serviceId, language, serviceLanguageMap };
+            if (language != "transcript") {
+                serviceLanguageMap = removeTranslationLanguageFromService(leaveData);
+            }
+        })
     })
-    socket.on('leave', (room) => {
-        socket.leave(room);
-        const {serviceId, language} = parseRoom(room);
-        console.log(`Leaving service-> ${serviceId}, Language-> ${language}`);
-        const leaveData = {serviceId, language, serviceLanguageMap}; 
-        if (language != "transcript") {
-            removeTranslationLanguageFromService(leaveData);
-        }
-    })
+}
 
-    // Transcripts from the client (not directly from Deepgram)
+controlIo.on('connection', (socket) => {
+    console.log(`Client connected to our socket.io control namespace`);
     socket.on('transcriptReady', (data) => {
-        const {serviceCode, transcript} = data;
-//        io.emit('transcript', transcript);
+        const { serviceCode, transcript } = data;
+        //        io.emit('transcript', transcript);
 
         // Let all observers know that a new transcript is available
-        const transciptData = {serviceCode, transcript, serviceLanguageMap};
+        //        console.log(`Received a transcriptReady message`);
+        const transciptData = { serviceCode, transcript, serviceLanguageMap };
         transcriptAvailServiceSub.next(transciptData);
     })
 });
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyAYS7YuGPQiJRT07_iZ3QXKPOmZUFNu1LI",
@@ -151,7 +154,7 @@ app.post('/auth', async (req, res) => {
         }
 
         // Start up our transcript listerner for this service code
-        const data = {io, serviceId};
+        const data = { io, serviceId };
         serviceLanguageMap = registerForServiceTranscripts(data);
 
         const newKey = await deepgram.keys.create(
@@ -160,6 +163,9 @@ app.post('/auth', async (req, res) => {
             ['usage:write'],
             { timeToLive: 10 }
         )
+
+        // server is ready, start listening for client connections
+        listenForClients();
         res.json({ deepgramToken: newKey.key })
     } catch (error) {
         console.error(`Caught error in auth: ${error}`);

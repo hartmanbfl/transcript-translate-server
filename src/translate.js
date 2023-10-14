@@ -72,6 +72,11 @@ export const registerForServiceTranscripts = (data) => {
         let languagesForChannel = serviceLanguageMap.get(serviceCode);
 //        printLanguageMap(serviceLanguageMap);
 
+        if (languagesForChannel === undefined) {
+            console.warn("Warning, language map is undefined");
+            return;
+        }
+
         // Now iterate over the languages, getting and emitting the translation
         // TBD - do this in parallel?
 //        for (lang in languagesForChannel) {
@@ -98,11 +103,18 @@ const printLanguageMap = (myMap) => {
 export const addTranslationLanguageToService = (data) => {
     const { serviceId, language, serviceLanguageMap } = data;
     console.log(`Attempting to add ${language} to ${serviceId}`);
+
     if (serviceLanguageMap.get(serviceId) === undefined) {
         serviceLanguageMap.set(serviceId, language);
     } else {
-        serviceLanguageMap.get(serviceId).push(language);
+        // only add language if it doesn't already exist
+        let langArray = serviceLanguageMap.get(serviceId);
+        if (langArray.indexOf(language) == -1) {
+            langArray.push(language);
+            serviceLanguageMap.set(serviceId, langArray);
+        }
     }
+    return serviceLanguageMap;
 //    printLanguageMap(serviceLanguageMap);
 }
 
@@ -113,4 +125,5 @@ export const removeTranslationLanguageFromService = (data) => {
     if (index !== -1) {
         serviceLanguageMap.get(serviceId).splice(index, 1);
     }
+    return serviceLanguageMap;
 }
