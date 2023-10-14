@@ -85,7 +85,10 @@ const startStreamingToDeepgram = () => {
     mediaRecorder.start(250)
 }
 
-const handleDeepgramResponse = (message) => {
+let propresenterHost="localhost";
+let propresenterPort="1025";
+let previousTranscript = "";
+const handleDeepgramResponse = async (message) => {
     const data = JSON.parse(message.data)
     const transcript = data.channel.alternatives[0].transcript
     const transcriptText = document.getElementById('transcript');
@@ -98,6 +101,26 @@ const handleDeepgramResponse = (message) => {
         transcriptTextBox.scrollTo(0, transcriptText.scrollHeight);
 
         console.log(`Transcript ready for service: ${serviceCode}`);
+        
+        // If requested, push latest transcript to ProPresenter
+        if (pushToProPresenter) {
+            propresenterHost = document.querySelector('#host').value;
+            propresenterPort = document.querySelector('#port').value;
+            const resp = await fetch(`http://${propresenterHost}:${propresenterPort}/v1/message/Translation/trigger`, {
+                method: 'POST',
+                body: JSON.stringify( [
+                    {
+                    name: "Message",
+                        text: {
+                            text: previousTranscript + "\n" + transcript
+                        }
+                    }
+                ]),
+                headers: { 'Content-Type': 'application/json' }
+            }).then(r => r.json()).catch(error => console.log(error))
+            previousTranscript = transcript;
+        }
+
 
         // Send to our server
         const data = {serviceCode, transcript};
@@ -106,6 +129,8 @@ const handleDeepgramResponse = (message) => {
 }
 
 let useInterim = false;
+let pushToProPresenter = false;
+
 window.addEventListener("load", async () => {
     const serviceId = document.getElementById('serviceId');
     const interimCheckbox = document.getElementById('interimCheckbox')
@@ -123,6 +148,24 @@ window.addEventListener("load", async () => {
         } else {
             console.log(`Not using interim results`);
             useInterim = false;
+        }
+    })
+
+    const propresenterCheckbox = document.getElementById('propresenterCheckbox')
+
+    if (propresenterCheckbox.checked) {
+        pushToProPresenter = true;
+    } else {
+        pushToProPresenter = false;
+    }
+
+    propresenterCheckbox.addEventListener("change", () => {
+        if (propresenterCheckbox.checked) {
+            console.log(`Push to ProPresenter`);
+            pushToProPresenter = true;
+        } else {
+            console.log(`Not pushing to ProPresenter`);
+            pushToProPresenter = false;
         }
     })
 

@@ -13,13 +13,13 @@ import { Translation } from './translateClass.js'
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
+// Environment variables
+dotenv.config();
+
 // Deepgram needs to be imported as CommonJS
 import pkg from "@deepgram/sdk";
 const { Deepgram } = pkg;
 const deepgram = new Deepgram(process.env.DEEPGRAM_API_KEY);
-
-// Environment variables
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
