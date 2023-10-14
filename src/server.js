@@ -42,6 +42,7 @@ const io = new Server(server, {
 
 
 // Register the translation service to receive the transcripts
+// TBD - replace this once we have the service:
 registerForTranscripts(io);
 
 const parseRoom = (room) => {

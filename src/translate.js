@@ -48,15 +48,18 @@ export const registerForServiceTranscripts = (io) => {
         const transcript = data.transcript;
 
         // TBD
+        // Check if the service already exists
     })
 }
 
+// data = {serviceId, language}
 export const addTranslationLanguageToService = (data) => {
     const service = data.serviceId;
     const lang = data.language;
     serviceLanguageMap.get(service).push(lang);
 }
 
+// data = {serviceId, language}
 export const removeTranslationLanguageFromService = (data) => {
     const service = data.serviceId;
     const lang = data.language;

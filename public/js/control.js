@@ -1,4 +1,5 @@
 const publicSocket = io('/');
+let serviceCode;
 
 const getUserAudioDevices = () => {
     navigator.mediaDevices.enumerateDevices()
@@ -96,6 +97,8 @@ const handleDeepgramResponse = (message) => {
         transcriptText.scrollTop = transcriptText.scrollHeight;
         transcriptTextBox.scrollTo(0, transcriptText.scrollHeight);
 
+        console.log(`Transcript ready for service: ${serviceCode}`);
+
         // Send to our server
         publicSocket.emit('transcriptReady', transcript)
     }
@@ -123,7 +126,6 @@ window.addEventListener("load", async () => {
     })
 
     // When we first load, generate a new PIN if one isn't already defined
-    let serviceCode;
     if (sessionStorage.getItem('serviceId') === null) {
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);
