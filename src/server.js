@@ -80,10 +80,11 @@ io.on('connection', (socket) => {
     })
     socket.on('leave', (room) => {
         socket.leave(room);
-        const data = parseRoom(room);
-        console.log(`Leaving service-> ${data.serviceId}, Language-> ${data.language}`);
+        const {serviceId, language} = parseRoom(room);
+        console.log(`Leaving service-> ${serviceId}, Language-> ${language}`);
+        const leaveData = {serviceId, language, serviceLanguageMap}; 
         if (language != "transcript") {
-            removeTranslationLanguageFromService({data, serviceLanguageMap});
+            removeTranslationLanguageFromService(leaveData);
         }
     })
 

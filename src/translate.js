@@ -112,6 +112,6 @@ export const removeTranslationLanguageFromService = (data) => {
     const { serviceId, language, serviceLanguageMap } = data;
     let index = serviceLanguageMap.get(serviceId).indexOf(language);
     if (index !== -1) {
-        serviceLanguageMap.get(service).splice(index, 1);
+        serviceLanguageMap.get(serviceId).splice(index, 1);
     }
 }
