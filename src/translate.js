@@ -9,11 +9,11 @@ let languages = [];
 
 export const registerForTranscripts = (io) => {
     const transcriptSubscription = transcriptSubject.subscribe((transcript) => {
-//        console.log(`Received new transcript Subject: ${transcript}`);
+        //        console.log(`Received new transcript Subject: ${transcript}`);
         // Translate into our current language list
         languages.forEach(async (lang) => {
             let translation = await translateText(lang, transcript);
-//            console.log(`Translation in ${lang}: ${translation}`);
+            //            console.log(`Translation in ${lang}: ${translation}`);
 
             // Send this language to all participants that are
             // subscribed to it
@@ -31,13 +31,13 @@ export const addTranslationLanguage = (lang) => {
 async function translateTextAndDistribute(data) {
     const { io, channel, lang, transcript } = data;
     try {
-//        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
+        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
         const translated = await translate(transcript, { to: lang });
-//        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
+        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
         io.to(channel).emit("translation", translated.text);
         return translated.text;
     } catch (error) {
-        console.error(`Caught error in translation: ${error}`);
+        console.error(`Caught error in translateTextAndDistribute: ${error}`);
     }
 }
 
@@ -56,8 +56,8 @@ export const registerForServiceTranscripts = (data) => {
     serviceLanguageMap.set(serviceId, []);
     printLanguageMap(serviceLanguageMap);
     const test = serviceLanguageMap.get(serviceId);
-    console.log(`test: ${test}`);
 
+    // Subscribe to a RxJs Subject to detect when transcripts are available
     const subscription = transcriptAvailServiceSub.subscribe(async (data) => {
         const { serviceCode, transcript, serviceLanguageMap } = data;
 
@@ -70,7 +70,7 @@ export const registerForServiceTranscripts = (data) => {
         // Now send the translation to any subscribers.  First get the array
         // of currently subscribed languages for this service
         let languagesForChannel = serviceLanguageMap.get(serviceCode);
-//        printLanguageMap(serviceLanguageMap);
+        //        printLanguageMap(serviceLanguageMap);
 
         if (languagesForChannel === undefined) {
             console.warn("Warning, language map is undefined");
@@ -79,7 +79,7 @@ export const registerForServiceTranscripts = (data) => {
 
         // Now iterate over the languages, getting and emitting the translation
         // TBD - do this in parallel?
-//        for (lang in languagesForChannel) {
+        //        for (lang in languagesForChannel) {
         languagesForChannel.forEach(async lang => {
             // update channel to have the language
             channel = `${serviceCode}:${lang}`;
@@ -99,6 +99,23 @@ const printLanguageMap = (myMap) => {
     }
 }
 
+export const printSubscribersPerLanguage = (data) => {
+    const io = data.io;
+    const sericeId = data.sericeId;
+    const serviceLanguageMap = data.serviceLanguageMap;
+
+    try {
+        let languagesForChannel = serviceLanguageMap.get(serviceId);
+        languagesForChannel.forEach(language => {
+            const room = `${sericeId}:${language}`;
+            const subscribers = io.sockets.adapter.rooms.get(room).size;
+            console.log(`Subscribers for ${language}: ${subscribers}`);
+        })
+    } catch (error) {
+        console.log(`Error printing subscribers`)
+    }
+}
+
 // data = {serviceId, language}
 export const addTranslationLanguageToService = (data) => {
     const { serviceId, language, serviceLanguageMap } = data;
@@ -115,7 +132,7 @@ export const addTranslationLanguageToService = (data) => {
         }
     }
     return serviceLanguageMap;
-//    printLanguageMap(serviceLanguageMap);
+    //    printLanguageMap(serviceLanguageMap);
 }
 
 // data = {serviceId, language}

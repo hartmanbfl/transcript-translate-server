@@ -14,3 +14,7 @@ Format of the channels that are subscribed to:
 
 Subscribe for a transcript:
 <service code>:"transcript"
+
+
+Current Issues:
+- stopping and restarting stream creates a duplicate/triplicate, etc. transcript stream

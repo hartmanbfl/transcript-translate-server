@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
-import { addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts } from './translate.js';
+import { addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts, printSubscribersPerLanguage } from './translate.js';
 import { transcriptAvailServiceSub, transcriptSubject } from "./globals.js";
 import { Translation } from './translateClass.js'
 
@@ -34,10 +34,7 @@ const io = new Server(server, {
 const controlIo = io.of("/control")
 
 
-// Register the translation service to receive the transcripts
-// TBD - replace this once we have the service:
-// LEGACY registerForTranscripts(io);
-
+// Helper function to split the room into <serviceId:language>
 const parseRoom = (room) => {
     const roomArray = room.split(":");
     const serviceId = roomArray[0];
@@ -49,9 +46,9 @@ const parseRoom = (room) => {
 }
 
 
-// Websocket connection to the client
+// Websocket connection to the client.  Moved this into its own connection in 
+// order to make sure the server is running and connected
 const listenForClients = () => {
-
     io.on('connection', (socket) => {
         console.log(`Client connected to our socket.io public namespace`);
         socket.on('disconnect', () => {
@@ -69,10 +66,12 @@ const listenForClients = () => {
                 return;
             }
             socket.join(room);
-// always empty set            console.log(`Room info: ${JSON.stringify(socket.rooms)}`);
-            // Add this language to the service
-            const joinData = { serviceId, language, serviceLanguageMap };
 
+            // Add this language to the service
+//TBD            const printData = {io, serviceId, serviceLanguageMap};
+//TBD            printSubscribersPerLanguage(printData);
+
+            const joinData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
                 serviceLanguageMap = addTranslationLanguageToService(joinData);
             }
@@ -106,6 +105,8 @@ controlIo.on('connection', (socket) => {
 });
 
 
+// Firebase auth can be used to restrict access to certain pages of the
+// web app (e.g. the control page)
 const firebaseConfig = {
     apiKey: "AIzaSyAYS7YuGPQiJRT07_iZ3QXKPOmZUFNu1LI",
     authDomain: "realtimetranslation-583a6.firebaseapp.com",
@@ -226,6 +227,7 @@ app.get('/login', (req, res) => {
 app.get('/participant', (req, res) => {
     res.sendFile(__dirname + '/views/participant.html');
 })
+// Add isAuthenticated if authentication is needed
 app.get('/control', (req, res) => {
     res.sendFile(__dirname + '/views/control.html');
 })
