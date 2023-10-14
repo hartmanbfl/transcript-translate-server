@@ -9,11 +9,11 @@ let languages = [];
 
 export const registerForTranscripts = (io) => {
     const transcriptSubscription = transcriptSubject.subscribe((transcript) => {
-        console.log(`Received new transcript Subject: ${transcript}`);
+//        console.log(`Received new transcript Subject: ${transcript}`);
         // Translate into our current language list
         languages.forEach(async (lang) => {
             let translation = await translateText(lang, transcript);
-            console.log(`Translation in ${lang}: ${translation}`);
+//            console.log(`Translation in ${lang}: ${translation}`);
 
             // Send this language to all participants that are
             // subscribed to it
@@ -31,9 +31,9 @@ export const addTranslationLanguage = (lang) => {
 async function translateTextAndDistribute(data) {
     const { io, channel, lang, transcript } = data;
     try {
-        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
+//        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
         const translated = await translate(transcript, { to: lang });
-        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
+//        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
         io.to(channel).emit("translation", translated.text);
         return translated.text;
     } catch (error) {
@@ -70,8 +70,7 @@ export const registerForServiceTranscripts = (data) => {
         // Now send the translation to any subscribers.  First get the array
         // of currently subscribed languages for this service
         let languagesForChannel = serviceLanguageMap.get(serviceCode);
-        console.log(`langmap-> ${languagesForChannel}, size-> ${languagesForChannel.length}`);
-        printLanguageMap(serviceLanguageMap);
+//        printLanguageMap(serviceLanguageMap);
 
         // Now iterate over the languages, getting and emitting the translation
         // TBD - do this in parallel?
@@ -104,7 +103,7 @@ export const addTranslationLanguageToService = (data) => {
     } else {
         serviceLanguageMap.get(serviceId).push(language);
     }
-    printLanguageMap(serviceLanguageMap);
+//    printLanguageMap(serviceLanguageMap);
 }
 
 // data = {serviceId, language}
