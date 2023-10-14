@@ -89,6 +89,9 @@ const listenForClients = () => {
 }
 
 controlIo.on('connection', (socket) => {
+    socket.on('disconnect', () => {
+        console.log('Control io disconnected');
+    });
     console.log(`Client connected to our socket.io control namespace`);
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
