@@ -4,9 +4,6 @@ import { transcriptAvailServiceSub, transcriptSubject } from './globals.js';
 // Array of languages that are supported and if there are any subscribers
 let languages = [];
 
-// Map of Services/Languages - Church Services are the keys, and array of 
-// languages the values
-let serviceLanguageMap = new Map();
 
 // TBD - make the payload of the Subject a json object that includes the service id
 
@@ -31,9 +28,13 @@ export const addTranslationLanguage = (lang) => {
     }
 }
 
-async function translateText(lang, text) {
+async function translateTextAndDistribute(data) {
+    const { io, channel, lang, transcript } = data;
     try {
-        const translated = await translate(text, { to: lang });
+        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
+        const translated = await translate(transcript, { to: lang });
+        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
+        io.to(channel).emit("translation", translated.text);
         return translated.text;
     } catch (error) {
         console.error(`Caught error in translation: ${error}`);
@@ -42,28 +43,74 @@ async function translateText(lang, text) {
 
 // Service based methods
 
-export const registerForServiceTranscripts = (io) => {
-    const subscription = transcriptAvailServiceSub.subscribe((data) => {
-        const serviceId = data.serviceId;
-        const transcript = data.transcript;
+// data = {io, serviceId} 
+export const registerForServiceTranscripts = (data) => {
+    const { io, serviceId } = data;
 
-        // TBD
-        // Check if the service already exists
-    })
+    // Map of Services/Languages - Church Services are the keys, and array of 
+    // languages the values
+    let serviceLanguageMap = new Map();
+
+    // Initialize the service  
+    console.log(`Initializing language map for service: ${serviceId}`);
+    serviceLanguageMap.set(serviceId, []);
+    printLanguageMap(serviceLanguageMap);
+    const test = serviceLanguageMap.get(serviceId);
+    console.log(`test: ${test}`);
+
+    const subscription = transcriptAvailServiceSub.subscribe(async (data) => {
+        const { serviceCode, transcript, serviceLanguageMap } = data;
+
+        console.log(`Received transcript: ${serviceCode} ${transcript}`);
+
+        // Send the transcript to any subscribers 
+        let channel = `${serviceCode}:transcript`;
+        io.to(channel).emit("transcript", transcript);
+
+        // Now send the translation to any subscribers.  First get the array
+        // of currently subscribed languages for this service
+        let languagesForChannel = serviceLanguageMap.get(serviceCode);
+        console.log(`langmap-> ${languagesForChannel}, size-> ${languagesForChannel.length}`);
+        printLanguageMap(serviceLanguageMap);
+
+        // Now iterate over the languages, getting and emitting the translation
+        // TBD - do this in parallel?
+//        for (lang in languagesForChannel) {
+        languagesForChannel.forEach(async lang => {
+            // update channel to have the language
+            channel = `${serviceCode}:${lang}`;
+            const data = { io, channel, lang, transcript };
+            let translation = await translateTextAndDistribute(data);
+        });
+    });
+    return serviceLanguageMap;
+}
+
+const printLanguageMap = (myMap) => {
+    for (const [key, value] of myMap.entries()) {
+        // value should be an array of strings
+        value.forEach((val => {
+            console.log(`key: ${key}, lang: ${val}`);
+        }))
+    }
 }
 
 // data = {serviceId, language}
 export const addTranslationLanguageToService = (data) => {
-    const service = data.serviceId;
-    const lang = data.language;
-    serviceLanguageMap.get(service).push(lang);
+    const { serviceId, language, serviceLanguageMap } = data;
+    console.log(`Attempting to add ${language} to ${serviceId}`);
+    if (serviceLanguageMap.get(serviceId) === undefined) {
+        serviceLanguageMap.set(serviceId, language);
+    } else {
+        serviceLanguageMap.get(serviceId).push(language);
+    }
+    printLanguageMap(serviceLanguageMap);
 }
 
 // data = {serviceId, language}
 export const removeTranslationLanguageFromService = (data) => {
-    const service = data.serviceId;
-    const lang = data.language;
-    let index = serviceLanguageMap.get(service).indexOf(lang);
+    const { serviceId, language, serviceLanguageMap } = data;
+    let index = serviceLanguageMap.get(serviceId).indexOf(language);
     if (index !== -1) {
         serviceLanguageMap.get(service).splice(index, 1);
     }

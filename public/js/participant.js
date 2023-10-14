@@ -29,6 +29,11 @@ const setupLanguages = () => {
     });
 }
 
+const registerForTranscripts = (serviceId) => {
+    const room = `${serviceId}:transcript`;
+    serviceSocket.emit("join", room);
+}
+
 window.addEventListener("load", async () => {
     const transcript = document.getElementById('transcript');
     const transcriptTextBox = document.getElementById('transcript-text-box');
@@ -39,6 +44,9 @@ window.addEventListener("load", async () => {
 
     // Populate the language select
     setupLanguages();
+
+    // register to receive transcripts
+    registerForTranscripts(id);
 
     // Listen for transcript messages coming in from the Server
     serviceSocket.on('transcript', (msg) => {

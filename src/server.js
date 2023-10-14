@@ -5,12 +5,8 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
-import {
-    setupDeepgram, shutdownDeepgram, getCurrentDeepgramState,
-    sendMicStreamToDeepgram, sendUrlStreamToDeepgram, abortStream, startupDeepgram, printDeepgramState
-} from './deepgram.js';
-import { registerForTranscripts, addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService } from './translate.js';
-import { transcriptSubject } from "./globals.js";
+import { addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts } from './translate.js';
+import { transcriptAvailServiceSub, transcriptSubject } from "./globals.js";
 import { Translation } from './translateClass.js'
 
 // Firebase
@@ -28,10 +24,6 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-const url = "http://stream.live.vc.bbcmedia.co.uk/bbc_world_service";
-
-let deepgramObj;
-
 app.use(cors());
 const io = new Server(server, {
     path: '/socket.io',
@@ -43,7 +35,7 @@ const io = new Server(server, {
 
 // Register the translation service to receive the transcripts
 // TBD - replace this once we have the service:
-registerForTranscripts(io);
+// LEGACY registerForTranscripts(io);
 
 const parseRoom = (room) => {
     const roomArray = room.split(":");
@@ -54,48 +46,6 @@ const parseRoom = (room) => {
         language: language
     }
 }
-
-// Create a namespace for admin control features
-const controlNsp = io.of('/admin-control');
-controlNsp.on('connection', (socket) => {
-    // Socket.io controls
-    console.log(`Client connected to our socket.io admin namespace`);
-    socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    });
-
-    // Deepgram Controls
-    socket.on('deepgram_connect', () => {
-        console.log(`Deepgram connect requested`);
-        deepgramObj = setupDeepgram(io);
-        startupDeepgram(deepgramObj);
-    });
-    socket.on('deepgram_disconnect', () => {
-        console.log(`Deepgram disconnect requested`);
-        shutdownDeepgram(deepgramObj);
-    });
-    socket.on('deepgram_state_request', () => {
-        console.log(`Deepgram state requested`);
-        const state = getCurrentDeepgramState(deepgramObj);
-        console.log(`Current state of deepgram is: ${printDeepgramState(state)}`);
-        io.emit('deepgram_state', (state));
-    });
-
-    // Streaming Controls
-    socket.on('streaming_start', () => {
-        console.log(`Streaming started`);
-        sendUrlStreamToDeepgram(deepgramObj, url);
-    });
-    socket.on('streaming_stop', () => {
-        console.log(`Streaming stopped`);
-        abortStream();
-    });
-
-    // Audio stream from client mic
-    socket.on('audio_available', (audio) => {
-        sendMicStreamToDeepgram(deepgramObj, audio);
-    })
-})
 
 // Websocket connection to the client
 io.on('connection', (socket) => {
@@ -119,28 +69,32 @@ io.on('connection', (socket) => {
     // Rooms defined by <ServiceId:Language>
     socket.on('join', (room) => {
         socket.join(room);
-        const data = parseRoom(room);
+        const {serviceId, language} = parseRoom(room);
+        console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
         // Add this language to the service
-        addTranslationLanguageToService(data);
-        console.log(`Joining service-> ${data.serviceId}, Language-> ${data.language}`);
+        const joinData = {serviceId, language, serviceLanguageMap}; 
+
+        if (language != "transcript") {
+            addTranslationLanguageToService(joinData);
+        }
     })
     socket.on('leave', (room) => {
         socket.leave(room);
         const data = parseRoom(room);
-        removeTranslationLanguageFromService(data);
         console.log(`Leaving service-> ${data.serviceId}, Language-> ${data.language}`);
+        if (language != "transcript") {
+            removeTranslationLanguageFromService({data, serviceLanguageMap});
+        }
     })
 
-    // Transcripts directly from Deepgram
-    socket.on('transcript', (transcript) => {
-        io.emit('transcript', transcript);
-        console.log(`Transcript received by server: ${transcript}`);
-    });
-
     // Transcripts from the client (not directly from Deepgram)
-    socket.on('transcriptReady', (transcript) => {
-        io.emit('transcript', transcript);
-        transcriptSubject.next(transcript);
+    socket.on('transcriptReady', (data) => {
+        const {serviceCode, transcript} = data;
+//        io.emit('transcript', transcript);
+
+        // Let all observers know that a new transcript is available
+        const transciptData = {serviceCode, transcript, serviceLanguageMap};
+        transcriptAvailServiceSub.next(transciptData);
     })
 });
 
@@ -184,13 +138,21 @@ app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) =
     }
 });
 
-// Auth handler for keys
+
+// Auth handler for keys from deepgram
+let serviceLanguageMap;
 app.post('/auth', async (req, res) => {
     try {
         const { serviceId, churchKey } = req.body
-        if (req.body.churchKey != process.env.CHURCH_KEY) {
+        console.log(`The service code is: ${serviceId}`);
+        if (churchKey != process.env.CHURCH_KEY) {
             return res.json({ error: 'Key is missing or incorrect' })
         }
+
+        // Start up our transcript listerner for this service code
+        const data = {io, serviceId};
+        serviceLanguageMap = registerForServiceTranscripts(data);
+
         const newKey = await deepgram.keys.create(
             process.env.DEEPGRAM_PROJECT,
             'Temporary key - works for 10 secs',

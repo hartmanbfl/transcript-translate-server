@@ -4,3 +4,13 @@
 
 - Which languages are represented in the attendees?
 - Is this just for a church service or other situations as well?
+
+
+How to get the service code into the server?
+  - try setting in /auth call
+
+Format of the channels that are subscribed to:
+  - <service code:lang>
+
+Subscribe for a transcript:
+<service code>:"transcript"

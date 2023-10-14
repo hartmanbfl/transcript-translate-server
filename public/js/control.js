@@ -100,7 +100,8 @@ const handleDeepgramResponse = (message) => {
         console.log(`Transcript ready for service: ${serviceCode}`);
 
         // Send to our server
-        publicSocket.emit('transcriptReady', transcript)
+        const data = {serviceCode, transcript};
+        publicSocket.emit('transcriptReady', data)
     }
 }
 
