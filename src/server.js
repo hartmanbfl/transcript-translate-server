@@ -5,9 +5,8 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
-import { addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts, printSubscribersPerLanguage } from './translate.js';
+import { addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts } from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
-import { Translation } from './translateClass.js'
 
 // Firebase
 import { initializeApp } from 'firebase/app';
@@ -145,20 +144,6 @@ const isAuthenticated = (req, res, next) => {
 app.use(express.static("public"));
 app.use(express.json());
 
-// Login handler
-app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
-    const { email, password } = req.body;
-
-    try {
-        await signInWithEmailAndPassword(firebaseAuth, email, password);
-        res.redirect('/admin');
-    } catch (error) {
-        console.error(error);
-        //      res.status(401).send('Unauthorized');
-        res.redirect('/');
-    }
-});
-
 
 // Auth handler for keys from deepgram.  This is the method that triggers the server
 // to start listening for client subscriptions.
@@ -191,48 +176,30 @@ app.post('/auth', async (req, res) => {
     }
 });
 
+// Login handler
+app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        await signInWithEmailAndPassword(firebaseAuth, email, password);
+        res.redirect('/control');
+    } catch (error) {
+        console.error(error);
+        //      res.status(401).send('Unauthorized');
+        res.redirect('/');
+    }
+});
+
 // Logout handler
 app.get('/logout', (req, res) => {
     firebaseAuth.signOut();
     res.redirect('/login');
 });
 
-// Test creating namespaces dynamically.  The idea is to have a namespace
-// per (church) Service. This may become too complicated, but keeping code 
-// here as a reference of what I was trying to do.
-app.get('/service/:serviceId', (req, res) => {
-    const serviceId = req.params.serviceId;
-    const dynNamespace = io.of('/' + serviceId);
-    const translationObj = new Translation(dynNamespace);
-
-    translationObj.registerForTranscripts();
-
-    dynNamespace.on('connection', (socket) => {
-        // Subscribe to a particular language 
-        socket.on('subscribe', async (channel) => {
-            console.log(`Subscribed call to room: ${channel}`);
-            socket.join(channel);
-            addTranslationLanguage(channel);
-            console.log(`Current rooms: ${JSON.stringify(socket.rooms)}`);
-        });
-        socket.on('unsubscribe', (channel) => {
-            console.log(`Unsubscribing from ${channel}`);
-            socket.leave(channel);
-        });
-        socket.on('transcriptReady', (transcript) => {
-            dynNamespace.emit('transcript', transcript);
-            translationObj.transcriptAvailableSub.next(transcript);
-        })
-    })
-})
-
 //// Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
-})
-app.get('/admin', isAuthenticated, (req, res) => {
-    res.sendFile(__dirname + '/views/admin.html');
 })
 app.get('/login', (req, res) => {
     res.sendFile(__dirname + '/views/login.html');
@@ -241,7 +208,7 @@ app.get('/participant', (req, res) => {
     res.sendFile(__dirname + '/views/participant.html');
 })
 // Add isAuthenticated if authentication is needed
-app.get('/control', (req, res) => {
+app.get('/control', isAuthenticated, (req, res) => {
     res.sendFile(__dirname + '/views/control.html');
 })
 
