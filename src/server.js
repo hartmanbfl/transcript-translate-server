@@ -6,7 +6,7 @@ import http from 'http';
 import path from 'path';
 import { Server } from 'socket.io';
 import { addTranslationLanguage, addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts, printSubscribersPerLanguage } from './translate.js';
-import { transcriptAvailServiceSub, transcriptSubject } from "./globals.js";
+import { transcriptAvailServiceSub } from "./globals.js";
 import { Translation } from './translateClass.js'
 
 // Firebase
@@ -31,6 +31,8 @@ const io = new Server(server, {
         origin: "*"
     }
 });
+
+// Create a control namespace for messages between control page and the server
 const controlIo = io.of("/control")
 
 
@@ -45,9 +47,23 @@ const parseRoom = (room) => {
     }
 }
 
+// Helper function to make sure room exists for this server
+const isRoomValid = (data) => {
+    const { serviceId, language } = data;
+    if (typeof serviceId === "undefined") {
+        console.log(`ERROR: client is attempting to connect to a service that is not currently running on this server.`);
+        return false;
+    } else if (typeof language === "undefined") {
+        console.log(`ERROR: client did not provide a language to subscribe to.`);
+        return false;
+    }
+    return true;
+}
+
 
 // Websocket connection to the client.  Moved this into its own connection in 
-// order to make sure the server is running and connected
+// order to make sure the server is running and connected first before starting
+// to join clients to the stream
 const listenForClients = () => {
     io.on('connection', (socket) => {
         console.log(`Client connected to our socket.io public namespace`);
@@ -61,15 +77,9 @@ const listenForClients = () => {
             console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
 
             // Make sure sericeId and language are not undefined
-            if (typeof serviceId === "undefined" || typeof language === "undefined") {
-                console.log(`WARNING, undefined inputs`);
-                return;
-            }
-            socket.join(room);
+            if (!isRoomValid({serviceId, language})) return;
 
-            // Add this language to the service
-//TBD            const printData = {io, serviceId, serviceLanguageMap};
-//TBD            printSubscribersPerLanguage(printData);
+            socket.join(room);
 
             const joinData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
@@ -77,8 +87,11 @@ const listenForClients = () => {
             }
         })
         socket.on('leave', (room) => {
-            socket.leave(room);
             const { serviceId, language } = parseRoom(room);
+            // Make sure sericeId and language are not undefined
+            if (!isRoomValid({serviceId, language})) return;
+
+            socket.leave(room);
             console.log(`Leaving service-> ${serviceId}, Language-> ${language}`);
             const leaveData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
@@ -95,7 +108,6 @@ controlIo.on('connection', (socket) => {
     console.log(`Client connected to our socket.io control namespace`);
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
-        //        io.emit('transcript', transcript);
 
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
@@ -148,7 +160,8 @@ app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) =
 });
 
 
-// Auth handler for keys from deepgram
+// Auth handler for keys from deepgram.  This is the method that triggers the server
+// to start listening for client subscriptions.
 let serviceLanguageMap;
 app.post('/auth', async (req, res) => {
     try {

@@ -1,7 +1,9 @@
-//const publicSocket = io('/');
+// Use the control namespace to communicate to the server via WSS.
 const controlSocket = io('/control')
 let serviceCode;
 
+// Method to see what audio input devices are available on the PC and populate
+// a drop-down list with these values
 const getUserAudioDevices = () => {
     navigator.mediaDevices.enumerateDevices()
         .then((devices) => {
@@ -43,7 +45,10 @@ const setupDeepgram = () => {
         await getMicrophone();
 
         const churchKey = document.querySelector('#key').value;
-        const serviceId = sessionStorage.getItem('serviceId');
+        //const serviceId = sessionStorage.getItem('serviceId');
+
+        // Hackathon hardcode
+        const serviceId = '580178';
 
         // Validate the key with server/Deepgram
         const resp = await fetch('/auth', {

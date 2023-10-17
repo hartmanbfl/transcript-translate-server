@@ -1,26 +1,35 @@
 import translate from 'google-translate-api-x';
+import { TranslationServiceClient } from '@google-cloud/translate';
 import { transcriptAvailServiceSub, transcriptSubject } from './globals.js';
 
+
 // Array of languages that are supported and if there are any subscribers
+// TBD - don't make this global
 let languages = [];
 
 
-// TBD - make the payload of the Subject a json object that includes the service id
+const TRANSLATE = new TranslationServiceClient();
+let parent;
+TRANSLATE.getProjectId().then(result => {
+    parent = `projects/${result}`;
+    console.log(`Setting project to: ${parent}`);
+});
 
-export const registerForTranscripts = (io) => {
-    const transcriptSubscription = transcriptSubject.subscribe((transcript) => {
-        //        console.log(`Received new transcript Subject: ${transcript}`);
-        // Translate into our current language list
-        languages.forEach(async (lang) => {
-            let translation = await translateText(lang, transcript);
-            //            console.log(`Translation in ${lang}: ${translation}`);
-
-            // Send this language to all participants that are
-            // subscribed to it
-            io.to(lang).emit("translation", translation);
-        })
-    });
-}
+//LEGACY export const registerForTranscripts = (io) => {
+//LEGACY     const transcriptSubscription = transcriptSubject.subscribe((transcript) => {
+//LEGACY         //        console.log(`Received new transcript Subject: ${transcript}`);
+//LEGACY         // Translate into our current language list
+//LEGACY 
+//LEGACY         languages.forEach(async (lang) => {
+//LEGACY             let translation = await translateText(lang, transcript);
+//LEGACY             console.log(`Translation in ${lang}: ${translation}`);
+//LEGACY 
+//LEGACY             // Send this language to all participants that are
+//LEGACY             // subscribed to it
+//LEGACY             io.to(lang).emit("translation", translation);
+//LEGACY         })
+//LEGACY     });
+//LEGACY }
 
 export const addTranslationLanguage = (lang) => {
     if (languages.indexOf(lang) === -1) {
@@ -28,11 +37,51 @@ export const addTranslationLanguage = (lang) => {
     }
 }
 
+const translateText = async (data) => {
+    const { lang, transcript } = data;
+    const request = {
+        contents: [transcript],
+        parent: parent,
+        mimeType: 'text/plain',
+        targetLanguageCode: lang
+    };
+    try {
+        const [response] = await TRANSLATE.translateText(request);
+        let translatedText ='';
+        for (const translation of response.translations) {
+            translatedText = translatedText + ' ' + translation.translatedText;
+        }
+        return translatedText;
+    } catch (error) {
+        console.log(`Error in translateText: ${error}`);
+    }
+}
+
+const distributeTranslation = (data) => {
+    const { io, channel, translation } = data;
+    try {
+        io.to(channel).emit("translation", translation);
+    } catch (error) {
+        console.log(`Error in distribute translation: ${error}`);
+    }
+}
+
 async function translateTextAndDistribute(data) {
     const { io, channel, lang, transcript } = data;
     try {
+        //const request = {
+        //    parent: `projects/${projectId}/locations/global`,
+        //    contents: [transcript],
+        //    mimeType: 'text/plain',
+        //    sourceLanguageCode: 'en=GB',
+        //    targetLanguageCode: lang
+        //}
         console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
         const translated = await translate(transcript, { to: lang });
+        //        const [response] = await translateClient.translateText(request);
+        //        for (const translation of response.translations) {
+        //            console.log(`Translation: ${translation.translatedText}`);
+        //        }
         console.log(`Sending to channel: ${channel} -> ${translated.text}`);
         io.to(channel).emit("translation", translated.text);
         return translated.text;
@@ -72,7 +121,7 @@ export const registerForServiceTranscripts = (data) => {
         let languagesForChannel = serviceLanguageMap.get(serviceCode);
         //        printLanguageMap(serviceLanguageMap);
 
-        if (languagesForChannel === undefined) {
+        if (typeof languagesForChannel === 'undefined') {
             console.warn("Warning, language map is undefined");
             return;
         }
@@ -84,7 +133,13 @@ export const registerForServiceTranscripts = (data) => {
             // update channel to have the language
             channel = `${serviceCode}:${lang}`;
             const data = { io, channel, lang, transcript };
-            let translation = await translateTextAndDistribute(data);
+
+            if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION) {
+                let translation = await translateText({ lang, transcript });
+                distributeTranslation({ io, channel, translation });
+            } else {
+                let translation = await translateTextAndDistribute(data);
+            }
         });
     });
     return serviceLanguageMap;
