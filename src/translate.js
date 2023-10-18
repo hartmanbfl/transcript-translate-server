@@ -1,6 +1,6 @@
 import translate from 'google-translate-api-x';
 import { TranslationServiceClient } from '@google-cloud/translate';
-import { transcriptAvailServiceSub, transcriptSubject } from './globals.js';
+import { transcriptAvailServiceSub } from './globals.js';
 
 
 // Array of languages that are supported and if there are any subscribers

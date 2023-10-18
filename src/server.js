@@ -12,6 +12,8 @@ import { transcriptAvailServiceSub } from "./globals.js";
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
+const PORT = process.env.PORT || 3000;
+
 // Environment variables
 dotenv.config();
 
@@ -212,6 +214,6 @@ app.get('/control', isAuthenticated, (req, res) => {
     res.sendFile(__dirname + '/views/control.html');
 })
 
-server.listen(3000, () => {
-    console.log('listening on *:3000');
+server.listen(PORT, () => {
+    console.log(`server started on port ${PORT}`);
 });
