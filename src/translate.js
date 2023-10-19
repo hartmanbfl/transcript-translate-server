@@ -3,39 +3,12 @@ import { TranslationServiceClient } from '@google-cloud/translate';
 import { transcriptAvailServiceSub } from './globals.js';
 
 
-// Array of languages that are supported and if there are any subscribers
-// TBD - don't make this global
-let languages = [];
-
-
 const TRANSLATE = new TranslationServiceClient();
 let parent;
 TRANSLATE.getProjectId().then(result => {
     parent = `projects/${result}`;
     console.log(`Setting project to: ${parent}`);
 });
-
-//LEGACY export const registerForTranscripts = (io) => {
-//LEGACY     const transcriptSubscription = transcriptSubject.subscribe((transcript) => {
-//LEGACY         //        console.log(`Received new transcript Subject: ${transcript}`);
-//LEGACY         // Translate into our current language list
-//LEGACY 
-//LEGACY         languages.forEach(async (lang) => {
-//LEGACY             let translation = await translateText(lang, transcript);
-//LEGACY             console.log(`Translation in ${lang}: ${translation}`);
-//LEGACY 
-//LEGACY             // Send this language to all participants that are
-//LEGACY             // subscribed to it
-//LEGACY             io.to(lang).emit("translation", translation);
-//LEGACY         })
-//LEGACY     });
-//LEGACY }
-
-export const addTranslationLanguage = (lang) => {
-    if (languages.indexOf(lang) === -1) {
-        languages.push(lang);
-    }
-}
 
 const translateText = async (data) => {
     const { lang, transcript } = data;
@@ -69,19 +42,8 @@ const distributeTranslation = (data) => {
 async function translateTextAndDistribute(data) {
     const { io, channel, lang, transcript } = data;
     try {
-        //const request = {
-        //    parent: `projects/${projectId}/locations/global`,
-        //    contents: [transcript],
-        //    mimeType: 'text/plain',
-        //    sourceLanguageCode: 'en=GB',
-        //    targetLanguageCode: lang
-        //}
         console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
         const translated = await translate(transcript, { to: lang });
-        //        const [response] = await translateClient.translateText(request);
-        //        for (const translation of response.translations) {
-        //            console.log(`Translation: ${translation.translatedText}`);
-        //        }
         console.log(`Sending to channel: ${channel} -> ${translated.text}`);
         io.to(channel).emit("translation", translated.text);
         return translated.text;
@@ -94,17 +56,18 @@ async function translateTextAndDistribute(data) {
 
 // data = {io, serviceId} 
 export const registerForServiceTranscripts = (data) => {
-    const { io, serviceId } = data;
+    const { io, serviceId, serviceLanguageMap, serviceSubscriptionMap } = data;
 
-    // Map of Services/Languages - Church Services are the keys, and array of 
-    // languages the values
-    let serviceLanguageMap = new Map();
+    // Check if we have already registered
+    if (serviceSubscriptionMap.get(serviceId) !== undefined && serviceSubscriptionMap.get(serviceId) === true) {
+        console.log(`Already registered so returning.`);
+        return;
+    } 
 
     // Initialize the service  
     console.log(`Initializing language map for service: ${serviceId}`);
     serviceLanguageMap.set(serviceId, []);
-    printLanguageMap(serviceLanguageMap);
-    const test = serviceLanguageMap.get(serviceId);
+    serviceSubscriptionMap.set(serviceId, true);
 
     // Subscribe to a RxJs Subject to detect when transcripts are available
     const subscription = transcriptAvailServiceSub.subscribe(async (data) => {
@@ -127,8 +90,6 @@ export const registerForServiceTranscripts = (data) => {
         }
 
         // Now iterate over the languages, getting and emitting the translation
-        // TBD - do this in parallel?
-        //        for (lang in languagesForChannel) {
         languagesForChannel.forEach(async lang => {
             // update channel to have the language
             channel = `${serviceCode}:${lang}`;
@@ -142,7 +103,6 @@ export const registerForServiceTranscripts = (data) => {
             }
         });
     });
-    return serviceLanguageMap;
 }
 
 const printLanguageMap = (myMap) => {
@@ -186,8 +146,6 @@ export const addTranslationLanguageToService = (data) => {
             serviceLanguageMap.set(serviceId, langArray);
         }
     }
-    return serviceLanguageMap;
-    //    printLanguageMap(serviceLanguageMap);
 }
 
 // data = {serviceId, language}
@@ -197,5 +155,4 @@ export const removeTranslationLanguageFromService = (data) => {
     if (index !== -1) {
         serviceLanguageMap.get(serviceId).splice(index, 1);
     }
-    return serviceLanguageMap;
 }

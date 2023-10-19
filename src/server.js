@@ -36,6 +36,9 @@ const io = new Server(server, {
 // Create a control namespace for messages between control page and the server
 const controlIo = io.of("/control")
 
+// Create maps to track the languages per Service
+const serviceLanguageMap = new Map();
+const serviceSubscriptionMap = new Map();
 
 // Helper function to split the room into <serviceId:language>
 const parseRoom = (room) => {
@@ -84,7 +87,7 @@ const listenForClients = () => {
 
             const joinData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
-                serviceLanguageMap = addTranslationLanguageToService(joinData);
+                addTranslationLanguageToService(joinData);
             }
         })
         socket.on('leave', (room) => {
@@ -96,7 +99,7 @@ const listenForClients = () => {
             console.log(`Leaving service-> ${serviceId}, Language-> ${language}`);
             const leaveData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
-                serviceLanguageMap = removeTranslationLanguageFromService(leaveData);
+                removeTranslationLanguageFromService(leaveData);
             }
         })
     })
@@ -149,7 +152,6 @@ app.use(express.json());
 
 // Auth handler for keys from deepgram.  This is the method that triggers the server
 // to start listening for client subscriptions.
-let serviceLanguageMap;
 app.post('/auth', async (req, res) => {
     try {
         const { serviceId, churchKey } = req.body
@@ -159,8 +161,8 @@ app.post('/auth', async (req, res) => {
         }
 
         // Start up our transcript listerner for this service code
-        const data = { io, serviceId };
-        serviceLanguageMap = registerForServiceTranscripts(data);
+        const data = { io, serviceId, serviceLanguageMap, serviceSubscriptionMap };
+        registerForServiceTranscripts(data);
 
         const newKey = await deepgram.keys.create(
             process.env.DEEPGRAM_PROJECT,
