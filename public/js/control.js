@@ -45,10 +45,7 @@ const setupDeepgram = () => {
         await getMicrophone();
 
         const churchKey = document.querySelector('#key').value;
-        //const serviceId = sessionStorage.getItem('serviceId');
-
-        // Hackathon hardcode
-        const serviceId = '580178';
+        const serviceId = sessionStorage.getItem('serviceId');
 
         // Validate the key with server/Deepgram
         const resp = await fetch('/auth', {
@@ -62,8 +59,8 @@ const setupDeepgram = () => {
 
         document.querySelector('#audioForm').style.display = "none";
 
-        const deepgramURL = `wss://api.deepgram.com/v1/listen?language=en-GB`
-        ws = new WebSocket(deepgramURL, ['token', resp.deepgramToken])
+        const deepgramUrl = buildDeepgramUrl();
+        ws = new WebSocket(deepgramUrl, ['token', resp.deepgramToken])
         ws.onopen = startStreamingToDeepgram;
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
@@ -84,7 +81,9 @@ const setupDeepgram = () => {
 
 const buildDeepgramUrl = () => {
     const deepgramUrl = `wss://api.deepgram.com/v1/listen`;
+    const locale = `?language=${selectedLocale}`;
 
+    return `${deepgramUrl}${locale}`; 
 }
 
 const startStreamingToDeepgram = () => {
@@ -141,6 +140,28 @@ const handleDeepgramResponse = async (message) => {
     }
 }
 
+let selectedLocale = "en-GB";
+const setupSourceLanguage = () => {
+    const localeDropDown = document.getElementById('langInputSelect');
+    const locales = [
+        { value: 'en-GB', text: 'English UK' },
+        { value: 'en-US', text: 'English US' },
+        { value: 'de', text: 'German' },
+        { value: 'es', text: 'Spanish' }
+    ];
+
+    locales.forEach(locale => {
+        const option = document.createElement("option");
+        option.value = locale.value;
+        option.text = locale.text;
+        localeDropDown.add(option);
+    });
+
+    localeDropDown.addEventListener("change", () => {
+        selectedLocale = localeDropDown.value;
+    });
+}
+
 let useInterim = false;
 let pushToProPresenter = false;
 
@@ -190,13 +211,14 @@ window.addEventListener("load", async () => {
     } else {
         serviceCode = sessionStorage.getItem('serviceId');
     }
-    // HARDCODE FOR HACKATHON
-    serviceCode = "580178";
 
     serviceId.innerHTML = serviceCode;
 
     // Populate the dropdown list of audio input devices
     await getUserAudioDevices();
+
+    // Populate the dropdown lists of input languages
+    setupSourceLanguage();
 
     setupDeepgram();
 
