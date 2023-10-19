@@ -146,6 +146,7 @@ const setupSourceLanguage = () => {
     const locales = [
         { value: 'en-GB', text: 'English UK' },
         { value: 'en-US', text: 'English US' },
+        { value: 'fr', text: 'French' },
         { value: 'de', text: 'German' },
         { value: 'es', text: 'Spanish' }
     ];
