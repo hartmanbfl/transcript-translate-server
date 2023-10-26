@@ -1,14 +1,22 @@
+import * as dotenv from 'dotenv';
 import translate from 'google-translate-api-x';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { transcriptAvailServiceSub } from './globals.js';
 
+dotenv.config();
 
-const TRANSLATE = new TranslationServiceClient();
+let TRANSLATE;
 let parent;
-TRANSLATE.getProjectId().then(result => {
-    parent = `projects/${result}`;
-    console.log(`Setting project to: ${parent}`);
-});
+if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
+    console.log(`Using a subscription based Google Translate Key`);
+    TRANSLATE = new TranslationServiceClient();
+    TRANSLATE.getProjectId().then(result => {
+        parent = `projects/${result}`;
+        console.log(`Setting project to: ${parent}`);
+    });
+} else {
+    console.log(`Using a limited free Google Translate version.`);
+}
 
 const translateText = async (data) => {
     const { lang, transcript } = data;
@@ -20,7 +28,7 @@ const translateText = async (data) => {
     };
     try {
         const [response] = await TRANSLATE.translateText(request);
-        let translatedText ='';
+        let translatedText = '';
         for (const translation of response.translations) {
             translatedText = translatedText + ' ' + translation.translatedText;
         }
@@ -62,7 +70,7 @@ export const registerForServiceTranscripts = (data) => {
     if (serviceSubscriptionMap.get(serviceId) !== undefined && serviceSubscriptionMap.get(serviceId) === true) {
         console.log(`Already registered so returning.`);
         return;
-    } 
+    }
 
     // Initialize the service  
     console.log(`Initializing language map for service: ${serviceId}`);
@@ -95,7 +103,7 @@ export const registerForServiceTranscripts = (data) => {
             channel = `${serviceCode}:${lang}`;
             const data = { io, channel, lang, transcript };
 
-            if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION) {
+            if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
                 let translation = await translateText({ lang, transcript });
                 distributeTranslation({ io, channel, translation });
             } else {

@@ -12,10 +12,10 @@ import { transcriptAvailServiceSub } from "./globals.js";
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
-const PORT = process.env.PORT || 3000;
-
 // Environment variables
 dotenv.config();
+
+const PORT = process.env.PORT || 3000;
 
 // Deepgram needs to be imported as CommonJS
 import pkg from "@deepgram/sdk";
