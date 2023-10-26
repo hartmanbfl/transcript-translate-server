@@ -124,13 +124,7 @@ controlIo.on('connection', (socket) => {
 // Firebase auth can be used to restrict access to certain pages of the
 // web app (e.g. the control page)
 const firebaseConfig = {
-    apiKey: "AIzaSyAYS7YuGPQiJRT07_iZ3QXKPOmZUFNu1LI",
-    authDomain: "realtimetranslation-583a6.firebaseapp.com",
-    projectId: "realtimetranslation-583a6",
-    storageBucket: "realtimetranslation-583a6.appspot.com",
-    messagingSenderId: "184731763616",
-    appId: "1:184731763616:web:9577e01a13863eb4861ac5",
-    measurementId: "G-VHQ2V60SGS"
+    apiKey: process.env.FIREBASE_API_KEY,
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);
