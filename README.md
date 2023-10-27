@@ -9,6 +9,7 @@ Note:  you can test with the free version of Google Translate by setting the env
 -  Copy env.example to .env.  The next steps will explain how to fill in this file. 
 
 ### Firebase Setup
+Firebase is used for the authentication of the control page of the web application.
 1.  Create a new Firebase project with default settings
 2.  Open Build->Authentication and click on the Get started button
 3.  Choose Sign-in provider Email/Password (other could be used here if desired)
@@ -27,6 +28,7 @@ Note that this section can be skipped if `USE_GOOGLE_TRANSLATE_SUBSCRIPTION` is 
 5.  Rename or copy the json file to google-api-credentials.json
 
 ### Deepgram Setup
+Deepgram (https://deepgram.com/) is the service used for generating transcripts.  
 1.  Create a Deepgram account and project
 2.  Add the Project ID and the API Key Secret to the .env file 
 
@@ -40,4 +42,5 @@ Note that this section can be skipped if `USE_GOOGLE_TRANSLATE_SUBSCRIPTION` is 
 ## Deployment
 Current hackathon 2023 version is deployed to render at https://debabel-server.onrender.com.  For the render deployment, I added two entries to the environment:
 - .env file 
+  - Make sure to put the URL of the client web application in the .env file as `DEBABEL_CLIENT_URL`. This is needed to generate the QR code properly.
 - google-api-credentials.json file (rename the JSON file that you generated with the Google Cloud Service Account)

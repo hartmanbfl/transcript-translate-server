@@ -19,7 +19,7 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 // Get our own URL
-const myUrl = process.env.DEBABEL_SERVER_NAME || `localhost:${PORT}`;
+const clientUrl = process.env.DEBABEL_CLIENT_URL || `localhost:${PORT}`;
 
 // Deepgram needs to be imported as CommonJS
 import pkg from "@deepgram/sdk";
@@ -149,7 +149,7 @@ app.use(express.json());
 
 
 const generateQR = async (serviceId) => {
-    const url = `${myUrl}?serviceId=${serviceId}`; 
+    const url = `${clientUrl}?serviceId=${serviceId}`; 
     try {
         // File Test QRCode.toFile(path.join(__dirname, `qrcode-${serviceId}.png`), url);
         const qrcode = await QRCode.toString(url, {type: "svg"});
