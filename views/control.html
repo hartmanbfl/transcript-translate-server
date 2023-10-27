@@ -14,6 +14,9 @@
                 <h2>Service ID</h2>
                 <p id="serviceId"></p>
             </div>
+            <div class="button-box" id="qrcode-box">
+                <h2>QR Code</h2>
+            </div>
             <div class="button-box">
                 <h2>Language</h2>
                 <label for="langInputSelect">Select the source language :</label>
@@ -42,7 +45,8 @@
                 <input type="checkbox" id="propresenterCheckbox" name="Display in ProPropresenter" value="propresenterValue">
                 <label for="finalCheckbox">Display in ProPresenter</label>
             </div>
-            <div class="button-box">
+            <!-- For now hide the options box until we have it working -->
+            <div class="button-box" style="display: none;">
                 <h2>Options</h2>
                 <input type="checkbox" id="interimCheckbox" name="Show Interim" value="interimValue">
                 <label for="finalCheckbox">Interim Results</label>

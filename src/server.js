@@ -4,6 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
+import  QRCode  from 'qrcode';
 import { Server } from 'socket.io';
 import { addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts } from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
@@ -16,6 +17,9 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
+
+// Get our own URL
+const myUrl = process.env.DEBABEL_SERVER_NAME || `localhost:${PORT}`;
 
 // Deepgram needs to be imported as CommonJS
 import pkg from "@deepgram/sdk";
@@ -144,6 +148,18 @@ app.use(express.static("public"));
 app.use(express.json());
 
 
+const generateQR = async (serviceId) => {
+    const url = `${myUrl}?serviceId=${serviceId}`; 
+    try {
+        // File Test QRCode.toFile(path.join(__dirname, `qrcode-${serviceId}.png`), url);
+        const qrcode = await QRCode.toString(url, {type: "svg"});
+        return qrcode;
+    } catch (err) {
+        console.log(`ERROR generating QR code for: ${url}`);
+        return null;
+    }
+}
+
 // Auth handler for keys from deepgram.  This is the method that triggers the server
 // to start listening for client subscriptions.
 app.post('/auth', async (req, res) => {
@@ -173,6 +189,18 @@ app.post('/auth', async (req, res) => {
         res.json({ error })
     }
 });
+
+app.post('/qrcode', async (req, res) => {
+    try {
+        const { serviceId } = req.body;
+        const qrcode = await generateQR(serviceId);
+        res.json({ qrCode: qrcode});
+        
+    } catch (error) {
+        console.error(`ERROR generating QR code: ${error}`);
+        res.json({error});
+    }
+})
 
 // Login handler
 app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {

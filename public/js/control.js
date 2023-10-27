@@ -79,6 +79,21 @@ const setupDeepgram = () => {
     });
 }
 
+const getQRCode = async (data) => {
+    const serviceId  = data.serviceId;
+
+    // Validate the key with server/Deepgram
+    const resp = await fetch('/qrcode', {
+        method: 'POST',
+        body: JSON.stringify({ serviceId }),
+        headers: { 'Content-Type': 'application/json' }
+    }).then(r => r.json()).catch(error => alert(error))
+
+    if (resp.error) return alert(resp.error);
+
+    return resp.qrCode;
+}
+
 const buildDeepgramUrl = () => {
     const deepgramUrl = `wss://api.deepgram.com/v1/listen`;
     const locale = `?language=${selectedLocale}`;
@@ -212,8 +227,16 @@ window.addEventListener("load", async () => {
     } else {
         serviceCode = sessionStorage.getItem('serviceId');
     }
-
     serviceId.innerHTML = serviceCode;
+
+    // Get a QR Code for this service
+    const qrcode = await getQRCode({serviceId: serviceCode});
+
+    const qrcodeBox = document.getElementById('qrcode-box');
+    const parser = new DOMParser();
+    const svgElement = parser.parseFromString(qrcode, 'image/svg+xml').documentElement;
+    qrcodeBox.appendChild(svgElement);
+
 
     // Populate the dropdown list of audio input devices
     await getUserAudioDevices();
