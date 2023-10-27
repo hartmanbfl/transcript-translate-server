@@ -127,8 +127,6 @@ const handleDeepgramResponse = async (message) => {
         transcriptText.scrollTop = transcriptText.scrollHeight;
         transcriptTextBox.scrollTo(0, transcriptText.scrollHeight);
 
-        console.log(`Transcript ready for service: ${serviceCode}`);
-        
         // If requested, push latest transcript to ProPresenter
         if (pushToProPresenter) {
             propresenterHost = document.querySelector('#host').value;

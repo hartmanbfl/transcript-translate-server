@@ -64,6 +64,9 @@ const isRoomValid = (data) => {
     } else if (typeof language === "undefined") {
         console.log(`ERROR: client did not provide a language to subscribe to.`);
         return false;
+    } else if (serviceLanguageMap.get('serviceId') === undefined) {
+        console.log(`ERROR:  trying to subscribe to a service that isn't currently running.`);
+        return false;
     }
     return true;
 }
