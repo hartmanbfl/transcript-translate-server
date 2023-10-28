@@ -93,7 +93,6 @@ export const registerForServiceTranscripts = (data) => {
         //        printLanguageMap(serviceLanguageMap);
 
         if (typeof languagesForChannel === 'undefined') {
-            console.warn("Warning, language map is undefined");
             return;
         }
 

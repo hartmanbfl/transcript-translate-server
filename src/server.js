@@ -4,7 +4,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
-import  QRCode  from 'qrcode';
+import QRCode from 'qrcode';
 import { Server } from 'socket.io';
 import { addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts } from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
@@ -44,6 +44,11 @@ const controlIo = io.of("/control")
 const serviceLanguageMap = new Map();
 const serviceSubscriptionMap = new Map();
 
+// Also track the subscriptions per room { Subscriber: Room[] }
+const clientSubscriptionMap = new Map();
+const roomSubscriptionMap = new Map();
+
+
 // Helper function to split the room into <serviceId:language>
 const parseRoom = (room) => {
     const roomArray = room.split(":");
@@ -64,11 +69,61 @@ const isRoomValid = (data) => {
     } else if (typeof language === "undefined") {
         console.log(`ERROR: client did not provide a language to subscribe to.`);
         return false;
-    } else if (serviceLanguageMap.get('serviceId') === undefined) {
+    } else if (serviceLanguageMap.get(serviceId) === undefined) {
         console.log(`ERROR:  trying to subscribe to a service that isn't currently running.`);
         return false;
     }
     return true;
+}
+
+const addClientToRoom = (data) => {
+    const { room, socketId } = data;
+    if (roomSubscriptionMap.get(room) === undefined) {
+        roomSubscriptionMap.set(room, [socketId]);
+    } else {
+        let subArray = roomSubscriptionMap.get(room);
+        if (subArray.indexOf(socketId) === -1) {
+            subArray.push(socketId);
+        }
+    }
+}
+const removeClientFromRoom = (data) => {
+    const { room, socketId } = data;
+    if (roomSubscriptionMap.get(room) === undefined) {
+        console.log(`WARNING, room-> ${room} is already empty`);
+    } else {
+        // Remove this client from the room
+        let subArray = roomSubscriptionMap.get(room);
+        const index = subArray.indexOf(socketId);
+        if (index !== -1) {
+            subArray.splice(index, 1);
+        }
+    }
+}
+const addRoomToClient = (data) => {
+    const { room, socketId } = data;
+    if (clientSubscriptionMap.get(socketId) === undefined) {
+        clientSubscriptionMap.set(socketId, [room]);
+    } else {
+        let subArray = clientSubscriptionMap.get(socketId);
+        if (subArray.indexOf(room) === -1) {
+            subArray.push(room);
+        }
+    }
+}
+const removeRoomFromClient = (data) => {
+    const { room, socketId } = data;
+    if (roomSubscriptionMap.get(room) === undefined) {
+        console.log(`WARNING, room-> ${room} is already empty`);
+    } else {
+        // Remove the room from the client
+        let roomArray = clientSubscriptionMap.get(socketId);
+        const roomIdx = roomArray.indexOf(room);
+        if (roomIdx !== -1) {
+            roomArray.splice(roomIdx, 1);
+        }
+    }
+
 }
 
 
@@ -77,9 +132,12 @@ const isRoomValid = (data) => {
 // to join clients to the stream
 const listenForClients = () => {
     io.on('connection', (socket) => {
-        console.log(`Client connected to our socket.io public namespace`);
+        console.log(`Client ${socket.id} / ${socket.handshake.address} / ${socket.handshake.headers['user-agent']} connected to our socket.io public namespace`);
         socket.on('disconnect', () => {
-            console.log('Client disconnected');
+            console.log(`Client ${socket.id} disconnected`);
+
+            // Disconnect all rooms from this client
+
         });
 
         // Rooms defined by <ServiceId:Language>
@@ -88,9 +146,18 @@ const listenForClients = () => {
             console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
 
             // Make sure sericeId and language are not undefined
-            if (!isRoomValid({serviceId, language})) return;
+            if (!isRoomValid({ serviceId, language })) return;
 
             socket.join(room);
+
+            console.log(`Client-> ${socket.id} just joined room-> ${room}`);
+
+            // Add this client to the room
+            let socketId = socket.id;
+            addClientToRoom({ room, socketId });
+
+            // Add this room to the client
+            addRoomToClient({ room, socketId });
 
             const joinData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
@@ -99,11 +166,20 @@ const listenForClients = () => {
         })
         socket.on('leave', (room) => {
             const { serviceId, language } = parseRoom(room);
+
             // Make sure sericeId and language are not undefined
-            if (!isRoomValid({serviceId, language})) return;
+            if (!isRoomValid({ serviceId, language })) return;
 
             socket.leave(room);
-            console.log(`Leaving service-> ${serviceId}, Language-> ${language}`);
+            console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
+
+            // Remove this client from the room
+            const socketId = socket.id;
+            removeClientFromRoom({room, socketId});
+
+            // Remove this room from the client
+            removeRoomFromClient({room, socketId});
+
             const leaveData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
                 removeTranslationLanguageFromService(leaveData);
@@ -114,9 +190,9 @@ const listenForClients = () => {
 
 controlIo.on('connection', (socket) => {
     socket.on('disconnect', () => {
-        console.log('Control io disconnected');
+        console.log(`Control io disconnected for client-> ${socket.id}`);
     });
-    console.log(`Client connected to our socket.io control namespace`);
+    console.log(`Client ${socket.id} connected to our socket.io control namespace`);
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
 
@@ -152,16 +228,56 @@ app.use(express.json());
 
 
 const generateQR = async (serviceId) => {
-    const url = `${clientUrl}?serviceId=${serviceId}`; 
+    const url = `${clientUrl}?serviceId=${serviceId}`;
     try {
         // File Test QRCode.toFile(path.join(__dirname, `qrcode-${serviceId}.png`), url);
-        const qrcode = await QRCode.toString(url, {type: "svg"});
+        const qrcode = await QRCode.toString(url, { type: "svg" });
         return qrcode;
     } catch (err) {
         console.log(`ERROR generating QR code for: ${url}`);
         return null;
     }
 }
+
+// API Calls for getting information about the subscribers
+app.get('/rooms/:id/subscribers', async (req, res) => {
+    try {
+        const roomId = req.params.id;
+        console.log(`Getting the number of subscribers for ${roomId}`);
+        const clients = io.sockets.adapter.rooms.get(roomId).size;
+        res.json({ clients: clients });
+    } catch (error) {
+        console.log(`Error getting subscribers: ${error}`);
+        res.json({ clients: "0" });
+    }
+});
+
+app.get('/rooms/subscribers', async (req, res) => {
+    try {
+        let subscriberString = {};
+        console.log(`Getting the number of subscribers for all rooms`);
+        for (const [key, value] of roomSubscriptionMap.entries()) {
+            subscriberString[key] = value;
+        }
+        res.json(subscriberString);
+    } catch (error) {
+        console.log(`Error getting subscribers: ${error}`);
+        res.json({ clients: "0" });
+    }
+});
+
+app.get('/clients/rooms', async (req, res) => {
+    try {
+        let subscriberString = {};
+        for (const [key, value] of clientSubscriptionMap.entries()) {
+            subscriberString[key] = value;
+        }
+        res.json(subscriberString);
+    } catch (error) {
+        console.log(`Error getting clients: ${error}`);
+        res.json({ rooms: "0" });
+    }
+});
 
 // Auth handler for keys from deepgram.  This is the method that triggers the server
 // to start listening for client subscriptions.
@@ -197,11 +313,11 @@ app.post('/qrcode', async (req, res) => {
     try {
         const { serviceId } = req.body;
         const qrcode = await generateQR(serviceId);
-        res.json({ qrCode: qrcode});
-        
+        res.json({ qrCode: qrcode });
+
     } catch (error) {
         console.error(`ERROR generating QR code: ${error}`);
-        res.json({error});
+        res.json({ error });
     }
 })
 

@@ -14,6 +14,7 @@ const setupLanguages = () => {
                 console.log(`No unsubscribe required`);
             } else {
                 const room = `${id}:${currentLanguage}`;
+                console.log(`Leaving room-> ${room}`);
                 serviceSocket.emit("leave", room);
             }
             currentLanguage = selectedLanguage;
