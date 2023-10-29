@@ -18,6 +18,15 @@
                 <h2>QR Code</h2>
             </div>
             <div class="button-box">
+                <h2>Main Controls</h2>
+                <form id="audioForm">
+                    <label for="key">Church Key</label>
+                    <input type="password" id="key" name="key" />
+                    <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
+                </form>
+                <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
+            </div>
+            <div class="button-box">
                 <h2>Language</h2>
                 <label for="langInputSelect">Select the source language :</label>
                 <select id="langInputSelect" class="drop-down-selector"></select>
@@ -28,16 +37,7 @@
                 <select id="audioInputSelect" class="drop-down-selector"></select>
             </div>
             <div class="button-box">
-                <h2>Audio Controls</h2>
-                <form id="audioForm">
-                    <label for="key">Church Key</label>
-                    <input type="password" id="key" name="key" />
-                    <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
-                </form>
-                <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
-            </div>
-            <div class="button-box">
-                <h2>ProPresenter integration</h2>
+                <h2>ProPresenter</h2>
                 <label for="host">Host</label>
                 <input id="host" name="host"/>
                 <label for="port">Port</label>

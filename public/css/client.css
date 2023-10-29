@@ -44,6 +44,8 @@ select#audioInputSelect {
     border-radius: 0.5em;
     border: none;
     background-color: #f2f2f2;
+    width: 200px;
+    overflow: hidden;
 }
 select.drop-down-selector {
     display: block;

@@ -4,7 +4,11 @@ let serviceCode;
 
 // Method to see what audio input devices are available on the PC and populate
 // a drop-down list with these values
-const getUserAudioDevices = () => {
+const getUserAudioDevices = async () => {
+    const micPermission = await navigator.permissions.query({name: "microphone"});
+    if (micPermission.state !== 'granted') {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
     navigator.mediaDevices.enumerateDevices()
         .then((devices) => {
             const audioInputDevices = devices.filter((device) => device.kind === "audioinput");
@@ -183,6 +187,9 @@ window.addEventListener("load", async () => {
     const serviceId = document.getElementById('serviceId');
     const interimCheckbox = document.getElementById('interimCheckbox')
 
+    // Populate the dropdown list of audio input devices
+    await getUserAudioDevices();
+
     if (interimCheckbox.checked) {
         useInterim = true;
     } else {
@@ -235,9 +242,6 @@ window.addEventListener("load", async () => {
     const svgElement = parser.parseFromString(qrcode, 'image/svg+xml').documentElement;
     qrcodeBox.appendChild(svgElement);
 
-
-    // Populate the dropdown list of audio input devices
-    await getUserAudioDevices();
 
     // Populate the dropdown lists of input languages
     setupSourceLanguage();
