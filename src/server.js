@@ -76,8 +76,36 @@ const isRoomValid = (data) => {
     return true;
 }
 
+const disconnectClientFromAllRooms = (data) => {
+    const { socket } = data;
+    const client = socket.id;
+    if (clientSubscriptionMap.get(client) === undefined) {
+        console.log(`Client ${client} is already disconnected from all rooms.`);
+    } else {
+        let subscriberString = {};
+        for (const [key, value] of clientSubscriptionMap.entries()) {
+            subscriberString[key] = value;
+        }
+        const roomArray = clientSubscriptionMap.get(client);
+        roomArray.forEach ((room) =>  {
+            console.log(`CLient ${client} leaving room ${room}`);
+            socket.leave(room);
+            removeClientFromRoom({ room, socketId: client });
+        });
+        // Remove this client completely
+        clientSubscriptionMap.set(client, {});
+        clientSubscriptionMap.delete(client);
+
+    }
+    let subscriberString = {};
+    for (const [key, value] of clientSubscriptionMap.entries()) {
+        subscriberString[key] = value;
+    }
+}
+
 const addClientToRoom = (data) => {
     const { room, socketId } = data;
+//debug    console.log(`addClientToRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
         roomSubscriptionMap.set(room, [socketId]);
     } else {
@@ -89,6 +117,7 @@ const addClientToRoom = (data) => {
 }
 const removeClientFromRoom = (data) => {
     const { room, socketId } = data;
+//debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
         console.log(`WARNING, room-> ${room} is already empty`);
     } else {
@@ -98,10 +127,17 @@ const removeClientFromRoom = (data) => {
         if (index !== -1) {
             subArray.splice(index, 1);
         }
+
+        // If there are no other clients in this room, delete it
+        if (subArray.length === 0) {
+            console.log(`Room ${room} is now empty`);
+            roomSubscriptionMap.delete(room);
+        }
     }
 }
 const addRoomToClient = (data) => {
     const { room, socketId } = data;
+//debug    console.log(`addRoomToClient: room-> ${room}, socketId-> ${socketId}`);
     if (clientSubscriptionMap.get(socketId) === undefined) {
         clientSubscriptionMap.set(socketId, [room]);
     } else {
@@ -113,6 +149,7 @@ const addRoomToClient = (data) => {
 }
 const removeRoomFromClient = (data) => {
     const { room, socketId } = data;
+//debug    console.log(`removeRoomFromClient: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
         console.log(`WARNING, room-> ${room} is already empty`);
     } else {
@@ -123,7 +160,6 @@ const removeRoomFromClient = (data) => {
             roomArray.splice(roomIdx, 1);
         }
     }
-
 }
 
 
@@ -137,7 +173,7 @@ const listenForClients = () => {
             console.log(`Client ${socket.id} disconnected`);
 
             // Disconnect all rooms from this client
-
+            disconnectClientFromAllRooms({ socket })
         });
 
         // Rooms defined by <ServiceId:Language>
@@ -175,10 +211,10 @@ const listenForClients = () => {
 
             // Remove this client from the room
             const socketId = socket.id;
-            removeClientFromRoom({room, socketId});
+            removeClientFromRoom({ room, socketId });
 
             // Remove this room from the client
-            removeRoomFromClient({room, socketId});
+            removeRoomFromClient({ room, socketId });
 
             const leaveData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
@@ -243,7 +279,6 @@ const generateQR = async (serviceId) => {
 app.get('/rooms/:id/subscribers', async (req, res) => {
     try {
         const roomId = req.params.id;
-        console.log(`Getting the number of subscribers for ${roomId}`);
         const clients = io.sockets.adapter.rooms.get(roomId).size;
         res.json({ clients: clients });
     } catch (error) {
@@ -255,7 +290,6 @@ app.get('/rooms/:id/subscribers', async (req, res) => {
 app.get('/rooms/subscribers', async (req, res) => {
     try {
         let subscriberString = {};
-        console.log(`Getting the number of subscribers for all rooms`);
         for (const [key, value] of roomSubscriptionMap.entries()) {
             subscriberString[key] = value;
         }

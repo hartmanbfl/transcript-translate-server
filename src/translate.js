@@ -50,9 +50,9 @@ const distributeTranslation = (data) => {
 async function translateTextAndDistribute(data) {
     const { io, channel, lang, transcript } = data;
     try {
-        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
+//debug        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
         const translated = await translate(transcript, { to: lang });
-        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
+//debug        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
         io.to(channel).emit("translation", translated.text);
         return translated.text;
     } catch (error) {
@@ -141,7 +141,6 @@ export const printSubscribersPerLanguage = (data) => {
 // data = {serviceId, language}
 export const addTranslationLanguageToService = (data) => {
     const { serviceId, language, serviceLanguageMap } = data;
-    console.log(`Attempting to add ${language} to ${serviceId}`);
 
     if (serviceLanguageMap.get(serviceId) === undefined) {
         serviceLanguageMap.set(serviceId, language);
