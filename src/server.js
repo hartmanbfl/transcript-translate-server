@@ -132,6 +132,13 @@ const removeClientFromRoom = (data) => {
         if (subArray.length === 0) {
             console.log(`Room ${room} is now empty`);
             roomSubscriptionMap.delete(room);
+
+            // Also remove this language for this service
+            const {serviceId, language} = parseRoom(room);
+            if (language !== "transcript") {
+                console.log(`Removing language ${language} from service ${serviceId}`);
+                serviceLanguageMap.delete(room);
+            }
         }
     }
 }
