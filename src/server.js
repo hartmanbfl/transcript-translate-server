@@ -6,7 +6,8 @@ import http from 'http';
 import path from 'path';
 import QRCode from 'qrcode';
 import { Server } from 'socket.io';
-import { addTranslationLanguageToService, removeTranslationLanguageFromService, registerForServiceTranscripts } from './translate.js';
+import { addTranslationLanguageToService, removeTranslationLanguageFromService, 
+    registerForServiceTranscripts } from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
 
 // Firebase
@@ -136,8 +137,12 @@ const removeClientFromRoom = (data) => {
             // Also remove this language for this service
             const {serviceId, language} = parseRoom(room);
             if (language !== "transcript") {
-                console.log(`Removing language ${language} from service ${serviceId}`);
-                serviceLanguageMap.delete(room);
+                console.log(`Removing language ${language} from service ${serviceId} in room ${room}`);
+                const langArray = serviceLanguageMap.get(serviceId);
+                const langIdx = langArray.indexOf(language);
+                if (langIdx !== -1) {
+                    langArray.splice(langIdx, 1);
+                }
             }
         }
     }

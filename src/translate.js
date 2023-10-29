@@ -112,7 +112,7 @@ export const registerForServiceTranscripts = (data) => {
     });
 }
 
-const printLanguageMap = (myMap) => {
+export const printLanguageMap = (myMap) => {
     for (const [key, value] of myMap.entries()) {
         // value should be an array of strings
         value.forEach((val => {
