@@ -50,9 +50,8 @@ const distributeTranslation = (data) => {
 async function translateTextAndDistribute(data) {
     const { io, channel, lang, transcript } = data;
     try {
-//debug        console.log(`Attempting to translate ${transcript} into ${lang} for channel ${channel}`);
         const translated = await translate(transcript, { to: lang });
-//debug        console.log(`Sending to channel: ${channel} -> ${translated.text}`);
+        console.log(`Sending ${lang} to ${channel}, transcript-> ${transcript} : translated-> ${translated.text}`);
         io.to(channel).emit("translation", translated.text);
         return translated.text;
     } catch (error) {
