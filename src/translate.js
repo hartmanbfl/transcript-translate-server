@@ -101,6 +101,7 @@ export const registerForServiceTranscripts = (data) => {
             // update channel to have the language
             channel = `${serviceCode}:${lang}`;
             const data = { io, channel, lang, transcript };
+            console.log(`Translating ${transcript} for channel ${channel} to ${lang}`);
 
             if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
                 let translation = await translateText({ lang, transcript });
