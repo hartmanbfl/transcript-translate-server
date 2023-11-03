@@ -90,23 +90,22 @@ export const registerForServiceTranscripts = (data) => {
         // Now send the translation to any subscribers.  First get the array
         // of currently subscribed languages for this service
         let languagesForChannel = serviceLanguageMap.get(serviceCode);
-        //        printLanguageMap(serviceLanguageMap);
 
         if (typeof languagesForChannel === 'undefined') {
             return;
         }
 
         // Now iterate over the languages, getting and emitting the translation
+//DEBUG        console.log(`Current languagesForChannel: ${printLanguageMap(serviceLanguageMap)}`);
         languagesForChannel.forEach(async lang => {
-            // update channel to have the language
-            channel = `${serviceCode}:${lang}`;
-            const data = { io, channel, lang, transcript };
-            console.log(`Translating ${transcript} for channel ${channel} to ${lang}`);
 
             if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
                 let translation = await translateText({ lang, transcript });
-                distributeTranslation({ io, channel, translation });
+                const ioChannel = `${serviceCode}:${lang}`;
+                distributeTranslation({ io, channel: ioChannel, translation });
             } else {
+                const ioChannel = `${serviceCode}:${lang}`;
+                const data = { io, channel: ioChannel, lang, transcript };
                 let translation = await translateTextAndDistribute(data);
             }
         });
@@ -115,6 +114,10 @@ export const registerForServiceTranscripts = (data) => {
 
 export const printLanguageMap = (myMap) => {
     for (const [key, value] of myMap.entries()) {
+        if (typeof value === 'undefined') {
+            console.log(`No languages defined yet for service ${key}`);
+            return;
+        }
         // value should be an array of strings
         value.forEach((val => {
             console.log(`key: ${key}, lang: ${val}`);
@@ -144,7 +147,8 @@ export const addTranslationLanguageToService = (data) => {
     const { serviceId, language, serviceLanguageMap } = data;
 
     if (serviceLanguageMap.get(serviceId) === undefined) {
-        serviceLanguageMap.set(serviceId, language);
+        let langArray = [language];
+        serviceLanguageMap.set(serviceId, langArray);
     } else {
         // only add language if it doesn't already exist
         let langArray = serviceLanguageMap.get(serviceId);
