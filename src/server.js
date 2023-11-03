@@ -6,8 +6,10 @@ import http from 'http';
 import path from 'path';
 import QRCode from 'qrcode';
 import { Server } from 'socket.io';
-import { addTranslationLanguageToService, removeTranslationLanguageFromService, 
-    registerForServiceTranscripts } from './translate.js';
+import {
+    addTranslationLanguageToService, removeTranslationLanguageFromService,
+    registerForServiceTranscripts
+} from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
 
 // Firebase
@@ -88,7 +90,7 @@ const disconnectClientFromAllRooms = (data) => {
             subscriberString[key] = value;
         }
         const roomArray = clientSubscriptionMap.get(client);
-        roomArray.forEach ((room) =>  {
+        roomArray.forEach((room) => {
             console.log(`CLient ${client} leaving room ${room}`);
             socket.leave(room);
             removeClientFromRoom({ room, socketId: client });
@@ -106,7 +108,7 @@ const disconnectClientFromAllRooms = (data) => {
 
 const addClientToRoom = (data) => {
     const { room, socketId } = data;
-//debug    console.log(`addClientToRoom: room-> ${room}, socketId-> ${socketId}`);
+    //debug    console.log(`addClientToRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
         roomSubscriptionMap.set(room, [socketId]);
     } else {
@@ -118,7 +120,7 @@ const addClientToRoom = (data) => {
 }
 const removeClientFromRoom = (data) => {
     const { room, socketId } = data;
-//debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
+    //debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
         console.log(`WARNING, room-> ${room} is already empty`);
     } else {
@@ -135,7 +137,7 @@ const removeClientFromRoom = (data) => {
             roomSubscriptionMap.delete(room);
 
             // Also remove this language for this service
-            const {serviceId, language} = parseRoom(room);
+            const { serviceId, language } = parseRoom(room);
             if (language !== "transcript") {
                 console.log(`Removing language ${language} from service ${serviceId} in room ${room}`);
                 const langArray = serviceLanguageMap.get(serviceId);
@@ -149,7 +151,7 @@ const removeClientFromRoom = (data) => {
 }
 const addRoomToClient = (data) => {
     const { room, socketId } = data;
-//debug    console.log(`addRoomToClient: room-> ${room}, socketId-> ${socketId}`);
+    //debug    console.log(`addRoomToClient: room-> ${room}, socketId-> ${socketId}`);
     if (clientSubscriptionMap.get(socketId) === undefined) {
         clientSubscriptionMap.set(socketId, [room]);
     } else {
@@ -161,7 +163,7 @@ const addRoomToClient = (data) => {
 }
 const removeRoomFromClient = (data) => {
     const { room, socketId } = data;
-//debug    console.log(`removeRoomFromClient: room-> ${room}, socketId-> ${socketId}`);
+    //debug    console.log(`removeRoomFromClient: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
         console.log(`WARNING, room-> ${room} is already empty`);
     } else {
@@ -190,47 +192,55 @@ const listenForClients = () => {
 
         // Rooms defined by <ServiceId:Language>
         socket.on('join', (room) => {
-            const { serviceId, language } = parseRoom(room);
-            console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
+            try {
+                const { serviceId, language } = parseRoom(room);
+                console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
 
-            // Make sure sericeId and language are not undefined
-            if (!isRoomValid({ serviceId, language })) return;
+                // Make sure sericeId and language are not undefined
+                if (!isRoomValid({ serviceId, language })) return;
 
-            socket.join(room);
+                socket.join(room);
 
-            console.log(`Client-> ${socket.id} just joined room-> ${room}`);
+                console.log(`Client-> ${socket.id} just joined room-> ${room}`);
 
-            // Add this client to the room
-            let socketId = socket.id;
-            addClientToRoom({ room, socketId });
+                // Add this client to the room
+                let socketId = socket.id;
+                addClientToRoom({ room, socketId });
 
-            // Add this room to the client
-            addRoomToClient({ room, socketId });
+                // Add this room to the client
+                addRoomToClient({ room, socketId });
 
-            const joinData = { serviceId, language, serviceLanguageMap };
-            if (language != "transcript") {
-                addTranslationLanguageToService(joinData);
+                const joinData = { serviceId, language, serviceLanguageMap };
+                if (language != "transcript") {
+                    addTranslationLanguageToService(joinData);
+                }
+            } catch (error) {
+                console.log(`ERROR joining room: ${error}`);
             }
         })
         socket.on('leave', (room) => {
-            const { serviceId, language } = parseRoom(room);
+            try {
+                const { serviceId, language } = parseRoom(room);
 
-            // Make sure sericeId and language are not undefined
-            if (!isRoomValid({ serviceId, language })) return;
+                // Make sure sericeId and language are not undefined
+                if (!isRoomValid({ serviceId, language })) return;
 
-            socket.leave(room);
-            console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
+                socket.leave(room);
+                console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
 
-            // Remove this client from the room
-            const socketId = socket.id;
-            removeClientFromRoom({ room, socketId });
+                // Remove this client from the room
+                const socketId = socket.id;
+                removeClientFromRoom({ room, socketId });
 
-            // Remove this room from the client
-            removeRoomFromClient({ room, socketId });
+                // Remove this room from the client
+                removeRoomFromClient({ room, socketId });
 
-            const leaveData = { serviceId, language, serviceLanguageMap };
-            if (language != "transcript") {
-                removeTranslationLanguageFromService(leaveData);
+                const leaveData = { serviceId, language, serviceLanguageMap };
+                if (language != "transcript") {
+                    removeTranslationLanguageFromService(leaveData);
+                }
+            } catch (error) {
+                console.log(`ERROR in leave room: ${error}`);
             }
         })
     })
