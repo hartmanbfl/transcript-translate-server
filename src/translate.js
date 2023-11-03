@@ -41,6 +41,7 @@ const translateText = async (data) => {
 const distributeTranslation = (data) => {
     const { io, channel, translation } = data;
     try {
+        console.log(`Sending on ${channel}, Cloud translated-> ${translation}`);
         io.to(channel).emit("translation", translation);
     } catch (error) {
         console.log(`Error in distribute translation: ${error}`);

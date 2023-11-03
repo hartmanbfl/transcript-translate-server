@@ -12,7 +12,7 @@ const setupLanguages = () => {
         if (currentLanguage != selectedLanguage) {
             if (currentLanguage === undefined) {
                 console.log(`No unsubscribe required`);
-            } else {
+            } else if (selectedLanguage !== "") {
                 const room = `${id}:${currentLanguage}`;
                 console.log(`Leaving room-> ${room}`);
                 serviceSocket.emit("leave", room);
