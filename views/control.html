@@ -8,58 +8,59 @@
 
 <body style="margin: 20px;">
     <div>
-        <h1>Main Controller</h1>
-        <div class="button-container">
-            <div class="button-box">
-                <h2>Service ID</h2>
-                <p id="serviceId"></p>
-            </div>
-            <div class="button-box" id="qrcode-box">
-                <h2>QR Code</h2>
-            </div>
-            <div class="button-box">
-                <h2>Main Controls</h2>
-                <form id="audioForm">
-                    <label for="key">Church Key</label>
-                    <input type="password" id="key" name="key" />
-                    <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
-                </form>
-                <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
-            </div>
-            <div class="button-box">
-                <h2>Language</h2>
-                <label for="langInputSelect">Select the source language :</label>
-                <select id="langInputSelect" class="drop-down-selector"></select>
-            </div>
-            <div class="button-box">
-                <h2>Audio Select</h2>
-                <label for="audioInputSelect">Select an audio input device:</label>
-                <select id="audioInputSelect" class="drop-down-selector"></select>
-            </div>
-            <div class="button-box">
-                <h2>ProPresenter</h2>
-                <label for="host">Host</label>
-                <input id="host" name="host"/>
-                <label for="port">Port</label>
-                <input id="port" name="port"/>
-                <input type="checkbox" id="propresenterCheckbox" name="Display in ProPropresenter" value="propresenterValue">
-                <label for="finalCheckbox">Display in ProPresenter</label>
-            </div>
-            <!-- For now hide the options box until we have it working -->
-            <div class="button-box" style="display: none;">
-                <h2>Options</h2>
-                <input type="checkbox" id="interimCheckbox" name="Show Interim" value="interimValue">
-                <label for="finalCheckbox">Interim Results</label>
-            </div>
-            <div class="button-box">
-                <h2>Recording</h2>
-                <div id="recording-light" class="status-light recording" style="display: none;"></div>
-            </div>
+        <div class="recording-status" id="recording-status">
+            <span id="recording-light" class="status-light recording"></span>
+            <span id="recording-text">Streaming in progress</span>
         </div>
-        <div class="text-box-large" id="transcript-text-box">
-            <h2>Transcript</h2>
-            <ul id="transcript"></ul>
+    </div>
+    <div class="button-container">
+        <div class="button-box">
+            <h2>Service ID</h2>
+            <p id="serviceId"></p>
         </div>
+        <div class="button-box" id="qrcode-box">
+            <h2>QR Code</h2>
+        </div>
+        <div class="button-box">
+            <h2>Main Control</h2>
+            <form id="audioForm">
+                <label for="key">Church Key</label>
+                <input type="password" id="key" name="key" maxlength="10" size="10" />
+                <button type="submit" class="start-action" id="enableStreaming">Start Streaming</button>
+            </form>
+            <button class="stop-action" id="disableStreaming" style="display: none;">Stop Streaming</button>
+        </div>
+        <div class="button-box">
+            <h2>Language</h2>
+            <label for="langInputSelect">Select the source language :</label>
+            <select id="langInputSelect" class="drop-down-selector"></select>
+        </div>
+        <div class="button-box">
+            <h2>Audio Select</h2>
+            <label for="audioInputSelect">Select an audio input device:</label>
+            <select id="audioInputSelect" class="drop-down-selector"></select>
+        </div>
+        <div class="button-box">
+            <h2>ProPresenter</h2>
+            <label for="host">Host</label>
+            <input id="host" name="host" />
+            <label for="port">Port</label>
+            <input id="port" name="port" />
+            <input type="checkbox" id="propresenterCheckbox" name="Display in ProPropresenter"
+                value="propresenterValue">
+            <label for="finalCheckbox">Display in ProPresenter</label>
+        </div>
+        <!-- For now hide the options box until we have it working -->
+        <div class="button-box" style="display: none;">
+            <h2>Options</h2>
+            <input type="checkbox" id="interimCheckbox" name="Show Interim" value="interimValue">
+            <label for="finalCheckbox">Interim Results</label>
+        </div>
+    </div>
+    <div class="text-box-large" id="transcript-text-box">
+        <h2>Transcript</h2>
+        <ul id="transcript"></ul>
+    </div>
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/common.js"></script>

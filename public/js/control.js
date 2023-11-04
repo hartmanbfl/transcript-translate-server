@@ -77,7 +77,7 @@ const setupDeepgram = () => {
             await closeMicrophone();
             ws.close();
             stopStreaming.style.display = "none";
-            document.getElementById('recording-light').style.display = "none";
+            document.getElementById('recording-status').style.display = "none";
             audioForm.style.display = "block";
         })
     });
@@ -109,7 +109,7 @@ const buildDeepgramUrl = () => {
 
 const startStreamingToDeepgram = () => {
     console.log(`WebSocket to Deepgram opened`);
-    document.getElementById('recording-light').style.display = "block";
+    document.getElementById('recording-status').style.display = "inline-flex";
     mediaRecorder.addEventListener('dataavailable', event => {
         if (event.data.size > 0 && ws.readyState == 1) {
             ws.send(event.data)
