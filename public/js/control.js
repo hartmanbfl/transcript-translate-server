@@ -100,9 +100,11 @@ const getQRCode = async (data) => {
 
 const buildDeepgramUrl = () => {
     const deepgramUrl = `wss://api.deepgram.com/v1/listen`;
-    const locale = `?language=${selectedLocale}`;
+    const locale = `language=${selectedLocale}`;
+    const smartFormat = `smart_format=true`;
+    const aiModel = `model=nova`;
 
-    return `${deepgramUrl}${locale}`; 
+    return `${deepgramUrl}?${locale}&${smartFormat}&aiModel`; 
 }
 
 const startStreamingToDeepgram = () => {
