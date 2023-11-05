@@ -280,8 +280,8 @@ controlIo.on('connection', (socket) => {
             console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(service);
             const room = service;
-            console.log(`Attempting to emit: ${jsonString} to control room: ${room}`);
-            socket.to(room).emit(jsonString);
+            console.log(`Attempting to emit: ${JSON.stringify(jsonString,null,2)} to control room: ${room}`);
+            socket.emit(room,jsonString);
         })
     })
 

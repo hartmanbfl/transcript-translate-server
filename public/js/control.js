@@ -200,7 +200,7 @@ window.addEventListener("load", async () => {
 
     // Listen for subscriber changes
     controlSocket.emit('monitor', serviceCode);
-    controlSocket.on(serviceCode, (json) => {
+    controlSocket.on(`${serviceCode}`, (json) => {
         console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
     })
 
