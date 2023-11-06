@@ -9,7 +9,8 @@ import QRCode from 'qrcode';
 import { Server } from 'socket.io';
 import {
     addTranslationLanguageToService, removeTranslationLanguageFromService,
-    registerForServiceTranscripts
+    registerForServiceTranscripts,
+    printLanguageMap
 } from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
 
@@ -244,7 +245,11 @@ const listenForClients = (controlCallback) => {
 
                 const leaveData = { serviceId, language, serviceLanguageMap };
                 if (language != "transcript") {
-                    removeTranslationLanguageFromService(leaveData);
+                    // If no other subscribers to this language, remove it
+                    const subscribersInRoom = getNumberOfSubscribersInRoom(room);
+                    if (subscribersInRoom == 0) {
+                        removeTranslationLanguageFromService(leaveData);
+                    }
                 }
 
                 // Let subscribers know that something has changed
@@ -320,6 +325,16 @@ const generateQR = async (serviceId) => {
     } catch (err) {
         console.log(`ERROR generating QR code for: ${url}`);
         return null;
+    }
+}
+
+const getNumberOfSubscribersInRoom = (room) => {
+    try {
+        const subscribers = io.sockets.adapter.rooms.get(room).size;
+        return subscribers;
+    } catch (error) {
+        console.log(`Error getting subscribers in room ${room}: ${error}`);
+        return 0;
     }
 }
 
