@@ -189,6 +189,21 @@ window.addEventListener("load", async () => {
     const serviceId = document.getElementById('serviceId');
     const interimCheckbox = document.getElementById('interimCheckbox')
 
+    // When we first load, generate a new Service ID if one isn't already defined
+    if (sessionStorage.getItem('serviceId') === null) {
+        serviceCode = generateRandomPin();
+        sessionStorage.setItem('serviceId', serviceCode);
+    } else {
+        serviceCode = sessionStorage.getItem('serviceId');
+    }
+    serviceId.innerHTML = serviceCode;
+
+    // Listen for subscriber changes
+    controlSocket.emit('monitor', serviceCode);
+    controlSocket.on(serviceCode, (json) => {
+        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
+    })
+
     // Populate the dropdown list of audio input devices
     await getUserAudioDevices();
 
@@ -226,15 +241,6 @@ window.addEventListener("load", async () => {
         }
     })
 
-    // When we first load, generate a new PIN if one isn't already defined
-
-    if (sessionStorage.getItem('serviceId') === null) {
-        serviceCode = generateRandomPin();
-        sessionStorage.setItem('serviceId', serviceCode);
-    } else {
-        serviceCode = sessionStorage.getItem('serviceId');
-    }
-    serviceId.innerHTML = serviceCode;
 
     // Get a QR Code for this service
     const qrcode = await getQRCode({serviceId: serviceCode});
