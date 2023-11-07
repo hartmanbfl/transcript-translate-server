@@ -6,13 +6,16 @@ body {
 
 .button-container {
     display: flex;
+    width: 100%;
+    max-height: 200px;
+    background-color: #f0f0f0;
 }
 
 .button-box {
     border: 1px solid black;
     padding: 10px;
     border-radius: 5px;
-    display: flex;
+    display: flex; 
     flex-direction: column;
     align-items: center;
 }
@@ -45,7 +48,7 @@ select#audioInputSelect {
     padding: 0.5em;
     border-radius: 0.5em;
     border: none;
-    background-color: #f2f2f2;
+    background-color: #ffffff;
     width: 200px;
     overflow: hidden;
 }
@@ -56,7 +59,7 @@ select.drop-down-selector {
     padding: 0.5em;
     border-radius: 0.5em;
     border: none;
-    background-color: #f2f2f2;
+    background-color: #ffffff;
 }
 
 .start-action {
@@ -82,19 +85,6 @@ select.drop-down-selector {
     border: none;
     border-radius: 0.5em;
 }
-
-
-/* #deepConnect {
-    background-color: green;
-    color: white;
-    font-size: 1em;
-    padding: 0.5em;
-    border: none;
-    border-radius: 0.5em;
-}
-#deepConnect.toggled {
-    background-color: red;
-} */
 
 
 .text-box {
@@ -170,4 +160,20 @@ select.drop-down-selector {
 #recording-text {
     color: black;
     margin-left: 10px;
+}
+
+#serviceId {
+    font-size: 1em;
+    font-weight: bold;
+}
+
+#subscriber-box {
+    width: 25%;
+    text-align: left;
+}
+/* Turn off bullets in the list */
+#dynamic-monitor-list {
+    list-style: none;
+    padding-left: 0;
+    font-size: 1em;
 }

@@ -329,20 +329,35 @@ const getActiveLanguages = (serviceId) => {
         languages: []
     };
 
+    // Get the number of subscribers to the transcript
+    const transcriptRoom = `${serviceId}:transcript`;
+    const transcriptRoomObj = io.sockets.adapter.rooms.get(transcriptRoom);
+    const transcriptSubscribers = (transcriptRoomObj == undefined) ? 0 : transcriptRoomObj.size;
+
     // Get the languages currently active 
     const langArray = serviceLanguageMap.get(serviceId);
-    if (langArray.length == 0) {
+    if (langArray.length == 0 && transcriptSubscribers == 0) {
         return { result: "There are no languages currently being subscribed to." };
-    }
+    } 
+
+    // First put in transcript subscribers
+    jsonData.languages.push({
+        name: "Transcript",
+        subscribers: transcriptSubscribers
+    });
 
     // Get the number of subscribers for each of the languages
     for (let language in langArray) {
         const room = `${serviceId}:${langArray[language]}`;
         const clients = io.sockets.adapter.rooms.get(room).size;
-        jsonData.languages.push({ [langArray[language]]: clients });
+        const languageEntry = {
+            name: langArray[language],
+            subscribers: clients
+        };
+        jsonData.languages.push(languageEntry);
     }
-    return (jsonData);
 
+    return (jsonData);
 }
 
 // API Calls for getting information about the subscribers
@@ -363,10 +378,17 @@ app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
 //{
 //  "serviceId": "12345",
 //  "languages": [
-//    "de" : 2,
-//    "es" :1
+//    {
+//      name: "de",
+//      subscribers: 2 
+//    },
+//    {
+//      name: "es",
+//      subscribers: 4 
+//    },
 //  ]
 //}
+
 app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     try {
         const serviceId = req.params.serviceId;
