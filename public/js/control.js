@@ -2,7 +2,7 @@
 const controlSocket = io('/control')
 const url = new URL(location.href)
 const search = new URLSearchParams(url.search)
-const serviceIdentifier = search.get('serviceId')
+const serviceIdentifier = search.get('id')
 
 let serviceCode;
 
