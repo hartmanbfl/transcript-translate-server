@@ -194,6 +194,12 @@ const listenForClients = (controlCallback) => {
             disconnectClientFromAllRooms({ socket })
         });
 
+        socket.on('register', (serviceId) => {
+            console.log(`Client registering for heartbeats for service ${serviceId}`);
+            const hearbeats = `${serviceId}:heartbeat`;
+            socket.join(hearbeats);
+        });
+
         // Rooms defined by <ServiceId:Language>
         socket.on('join', (room) => {
             try {
@@ -264,12 +270,16 @@ const listenForClients = (controlCallback) => {
 
 
 controlIo.on('connection', (socket) => {
+    console.log(`Client ${socket.id} connected to our socket.io control namespace`);
     socket.on('disconnect', () => {
         console.log(`Control io disconnected for client-> ${socket.id}`);
     });
-    console.log(`Client ${socket.id} connected to our socket.io control namespace`);
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
+
+        // Send out a "hearbeat" message that service is active
+//        const hearbeat = `${serviceCode}:heartbeat`;
+//        socket.to(hearbeat).emit('heartbeat');
 
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
@@ -288,6 +298,11 @@ controlIo.on('connection', (socket) => {
             console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
             socket.emit(room, jsonString);
         })
+    })
+    socket.on('heartbeat', (serviceCode) => {
+        // Send the heartbeat out to all subscribers in this service
+        const room = `${serviceCode}:heartbeat`;
+        io.to(room).emit('heartbeat');
     })
 
 });

@@ -4,7 +4,7 @@ const url = new URL(location.href)
 const search = new URLSearchParams(url.search)
 const serviceIdentifier = search.get('id')
 
-let serviceCode;
+let serviceCode = serviceIdentifier;
 
 const languages = [
     {
@@ -118,6 +118,7 @@ const setupDeepgram = () => {
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
             console.log(`WebSocket to Deepgram closed`);
+            stopHeartbeatTimer();
         }
 
         const stopStreaming = document.querySelector(`#disableStreaming`);
@@ -163,6 +164,9 @@ const buildDeepgramUrl = () => {
 
 const startStreamingToDeepgram = () => {
     console.log(`WebSocket to Deepgram opened`);
+    // Start sending hearbeats
+    startHeartbeatTimer();
+
     document.getElementById('recording-status').style.display = "inline-flex";
     mediaRecorder.addEventListener('dataavailable', event => {
         if (event.data.size > 0 && ws.readyState == 1) {
@@ -170,6 +174,16 @@ const startStreamingToDeepgram = () => {
         }
     })
     mediaRecorder.start(250)
+}
+
+let heartbeatTimer;
+const startHeartbeatTimer = () => {
+    heartbeatTimer = setInterval(() => {
+        controlSocket.emit('heartbeat', serviceCode);
+    }, 5000);
+}
+const stopHeartbeatTimer = () => {
+    clearInterval(heartbeatTimer);
 }
 
 let propresenterHost = "localhost";
@@ -247,11 +261,13 @@ window.addEventListener("load", async () => {
 
     // When we first load, generate a new Service ID if one isn't already defined
     if (sessionStorage.getItem('serviceId') === null || serviceIdentifier === null) {
+        console.log(`No session storage and no query parameter, so auto-generating service ID`);
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);
     } else if (serviceIdentifier != null) {
         serviceCode = serviceIdentifier;
     } else {
+        console.log(`Getting service ID from session storage`);
         serviceCode = sessionStorage.getItem('serviceId');
     }
     console.log(`Room ID: ${serviceCode}`);
@@ -261,7 +277,7 @@ window.addEventListener("load", async () => {
     // Listen for subscriber changes
     controlSocket.emit('monitor', serviceCode);
     controlSocket.on(`${serviceCode}`, (json) => {
-//debug        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
+        //debug        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
 
         // Update the list in the monitor, first clear out current entries
         while (dynamicMonitorList.firstChild) {
