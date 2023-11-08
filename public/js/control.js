@@ -2,10 +2,55 @@
 const controlSocket = io('/control')
 let serviceCode;
 
+const languages = [
+    {
+        key: "ar",
+        value: "Arabic"
+    },
+    {
+        key: "de",
+        value: "German",
+    },
+    {
+        key: "es",
+        value: "Spanish",
+    },
+    {
+        key: "fa",
+        value: "Farsi",
+    },
+    {
+        key: "fr",
+        value: "French",
+    },
+    {
+        key: "hi",
+        value: "Hindi",
+    },
+    {
+        key: "ru",
+        value: "Russian",
+    },
+    {
+        key: "tr",
+        value: "Turkish",
+    },
+    {
+        key: "uk",
+        value: "Ukranian",
+    },
+    {
+        key: "zh",
+        value: "Chinese",
+    },
+];
+const languageMap = new Map(languages.map((obj) => [obj.key, obj.value]));
+
+
 // Method to see what audio input devices are available on the PC and populate
 // a drop-down list with these values
 const getUserAudioDevices = async () => {
-    const micPermission = await navigator.permissions.query({name: "microphone"});
+    const micPermission = await navigator.permissions.query({ name: "microphone" });
     if (micPermission.state !== 'granted') {
         await navigator.mediaDevices.getUserMedia({ audio: true });
     }
@@ -84,7 +129,7 @@ const setupDeepgram = () => {
 }
 
 const getQRCode = async (data) => {
-    const serviceId  = data.serviceId;
+    const serviceId = data.serviceId;
 
     // Validate the key with server/Deepgram
     const resp = await fetch('/qrcode', {
@@ -98,13 +143,18 @@ const getQRCode = async (data) => {
     return resp.qrCode;
 }
 
+const getLanguageString = (locale) => {
+    const language = languageMap.get(locale);
+    return (language == undefined) ? locale : language;
+}
+
 const buildDeepgramUrl = () => {
     const deepgramUrl = `wss://api.deepgram.com/v1/listen`;
     const locale = `language=${selectedLocale}`;
     const smartFormat = `smart_format=true`;
     const aiModel = `model=nova`;
 
-    return `${deepgramUrl}?${locale}&${smartFormat}&aiModel`; 
+    return `${deepgramUrl}?${locale}&${smartFormat}&aiModel`;
 }
 
 const startStreamingToDeepgram = () => {
@@ -118,8 +168,8 @@ const startStreamingToDeepgram = () => {
     mediaRecorder.start(250)
 }
 
-let propresenterHost="localhost";
-let propresenterPort="1025";
+let propresenterHost = "localhost";
+let propresenterPort = "1025";
 let previousTranscript = "";
 const handleDeepgramResponse = async (message) => {
     const data = JSON.parse(message.data)
@@ -139,9 +189,9 @@ const handleDeepgramResponse = async (message) => {
             propresenterPort = document.querySelector('#port').value;
             const resp = await fetch(`http://${propresenterHost}:${propresenterPort}/v1/message/Translation/trigger`, {
                 method: 'POST',
-                body: JSON.stringify( [
+                body: JSON.stringify([
                     {
-                    name: "Message",
+                        name: "Message",
                         text: {
                             text: previousTranscript + "\n" + transcript
                         }
@@ -154,7 +204,7 @@ const handleDeepgramResponse = async (message) => {
 
 
         // Send to our server
-        const data = {serviceCode, transcript};
+        const data = { serviceCode, transcript };
         controlSocket.emit('transcriptReady', data)
     }
 }
@@ -188,6 +238,35 @@ let pushToProPresenter = false;
 window.addEventListener("load", async () => {
     const serviceId = document.getElementById('serviceId');
     const interimCheckbox = document.getElementById('interimCheckbox')
+    const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
+
+    // When we first load, generate a new Service ID if one isn't already defined
+    if (sessionStorage.getItem('serviceId') === null) {
+        serviceCode = generateRandomPin();
+        sessionStorage.setItem('serviceId', serviceCode);
+    } else {
+        serviceCode = sessionStorage.getItem('serviceId');
+    }
+    serviceId.innerHTML = serviceCode;
+
+    // Listen for subscriber changes
+    controlSocket.emit('monitor', serviceCode);
+    controlSocket.on(`${serviceCode}`, (json) => {
+//debug        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
+
+        // Update the list in the monitor, first clear out current entries
+        while (dynamicMonitorList.firstChild) {
+            dynamicMonitorList.removeChild(dynamicMonitorList.firstChild);
+        }
+        const languageArray = json.languages;
+        if (languageArray !== undefined) {
+            languageArray.forEach((language) => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `<strong>${getLanguageString(language.name)}:</strong> ${language.subscribers}`;
+                dynamicMonitorList.appendChild(listItem);
+            })
+        }
+    })
 
     // Populate the dropdown list of audio input devices
     await getUserAudioDevices();
@@ -226,18 +305,9 @@ window.addEventListener("load", async () => {
         }
     })
 
-    // When we first load, generate a new PIN if one isn't already defined
-
-    if (sessionStorage.getItem('serviceId') === null) {
-        serviceCode = generateRandomPin();
-        sessionStorage.setItem('serviceId', serviceCode);
-    } else {
-        serviceCode = sessionStorage.getItem('serviceId');
-    }
-    serviceId.innerHTML = serviceCode;
 
     // Get a QR Code for this service
-    const qrcode = await getQRCode({serviceId: serviceCode});
+    const qrcode = await getQRCode({ serviceId: serviceCode });
 
     const qrcodeBox = document.getElementById('qrcode-box');
     const parser = new DOMParser();

@@ -14,11 +14,11 @@
         </div>
     </div>
     <div class="button-container">
-        <div class="button-box">
+        <div class="button-box fixed-box-small">
             <h2>Service ID</h2>
             <p id="serviceId"></p>
         </div>
-        <div class="button-box" id="qrcode-box">
+        <div class="button-box fixed-box-medium" id="qrcode-box">
             <h2>QR Code</h2>
         </div>
         <div class="button-box">
@@ -40,7 +40,7 @@
             <label for="audioInputSelect">Select an audio input device:</label>
             <select id="audioInputSelect" class="drop-down-selector"></select>
         </div>
-        <div class="button-box">
+        <div class="button-box" style="display: none;">
             <h2>ProPresenter</h2>
             <label for="host">Host</label>
             <input id="host" name="host" />
@@ -56,7 +56,12 @@
             <input type="checkbox" id="interimCheckbox" name="Show Interim" value="interimValue">
             <label for="finalCheckbox">Interim Results</label>
         </div>
+        <div class="button-box left-box" id="subscriber-box">
+            <h2>Subscribers</h2>
+            <ul id="dynamic-monitor-list"></ul>
+        </div>
     </div>
+
     <div class="text-box-large" id="transcript-text-box">
         <h2>Transcript</h2>
         <ul id="transcript"></ul>
