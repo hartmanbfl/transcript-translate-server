@@ -330,7 +330,8 @@ const generateQR = async (serviceId) => {
 
 const getNumberOfSubscribersInRoom = (room) => {
     try {
-        const subscribers = io.sockets.adapter.rooms.get(room).size;
+        const subscribers = (io.sockets.adapter.rooms.get(room) == undefined) ? 
+            0 : io.sockets.adapter.rooms.get(room).size;
         return subscribers;
     } catch (error) {
         console.log(`Error getting subscribers in room ${room}: ${error}`);

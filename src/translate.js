@@ -96,7 +96,8 @@ export const registerForServiceTranscripts = (data) => {
         }
 
         // Now iterate over the languages, getting and emitting the translation
-        console.log(`Current languagesForChannel: ${printLanguageMap(serviceLanguageMap)}`);
+        console.log(`Current languagesForChannel: `) 
+        printLanguageMap(serviceLanguageMap);
         languagesForChannel.forEach(async lang => {
 
             if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
