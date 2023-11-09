@@ -1,10 +1,7 @@
 // Use the control namespace to communicate to the server via WSS.
 const controlSocket = io('/control')
-const url = new URL(location.href)
-const search = new URLSearchParams(url.search)
-const serviceIdentifier = search.get('id')
 
-let serviceCode = serviceIdentifier;
+let serviceCode;
 
 const languages = [
     {
@@ -180,7 +177,7 @@ let heartbeatTimer;
 const startHeartbeatTimer = () => {
     heartbeatTimer = setInterval(() => {
         controlSocket.emit('heartbeat', serviceCode);
-    }, 5000);
+    }, 2000);
 }
 const stopHeartbeatTimer = () => {
     clearInterval(heartbeatTimer);
@@ -258,9 +255,14 @@ window.addEventListener("load", async () => {
     const interimCheckbox = document.getElementById('interimCheckbox')
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
 
+    // Get the service code from the query parameter in the URL
+    const url = new URL(location.href)
+    console.log(`URL: ${url}`);
+    const search = new URLSearchParams(url.search)
+    const serviceIdentifier = search.get('id')
 
     // When we first load, generate a new Service ID if one isn't already defined
-    if (sessionStorage.getItem('serviceId') === null || serviceIdentifier === null) {
+    if (sessionStorage.getItem('serviceId') === null && serviceIdentifier === null) {
         console.log(`No session storage and no query parameter, so auto-generating service ID`);
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);

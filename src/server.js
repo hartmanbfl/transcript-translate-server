@@ -184,7 +184,7 @@ const removeRoomFromClient = (data) => {
 // Websocket connection to the client.  Moved this into its own connection in 
 // order to make sure the server is running and connected first before starting
 // to join clients to the stream
-const listenForClients = (controlCallback) => {
+const listenForClients = () => {
     io.on('connection', (socket) => {
         console.log(`Client ${socket.id} / ${socket.handshake.address} / ${socket.handshake.headers['user-agent']} connected to our socket.io public namespace`);
         socket.on('disconnect', () => {
@@ -195,7 +195,7 @@ const listenForClients = (controlCallback) => {
         });
 
         socket.on('register', (serviceId) => {
-            console.log(`Client registering for heartbeats for service ${serviceId}`);
+            console.log(`Client registering for messages for service ${serviceId}`);
             const hearbeats = `${serviceId}:heartbeat`;
             socket.join(hearbeats);
         });
@@ -271,6 +271,9 @@ const listenForClients = (controlCallback) => {
 
 controlIo.on('connection', (socket) => {
     console.log(`Client ${socket.id} connected to our socket.io control namespace`);
+    // Start listening for mobile clients to join
+    listenForClients();
+
     socket.on('disconnect', () => {
         console.log(`Control io disconnected for client-> ${socket.id}`);
     });
@@ -332,9 +335,16 @@ const isAuthenticated = (req, res, next) => {
     }
 }
 
+
+const runOnStartup = (req, res, next) => {
+    console.log(`Got request: method->${req.method}, url->${req.url}`);
+    next();
+}
+
+
 app.use(express.static("public"));
 app.use(express.json());
-
+app.use(runOnStartup);
 
 const generateQR = async (serviceId) => {
     const url = `${clientUrl}?serviceId=${serviceId}`;
@@ -486,7 +496,7 @@ app.post('/auth', async (req, res) => {
         )
 
         // server is ready, start listening for client connections
-        listenForClients();
+        //listenForClients();
         res.json({ deepgramToken: newKey.key })
     } catch (error) {
         console.error(`Caught error in auth: ${error}`);
