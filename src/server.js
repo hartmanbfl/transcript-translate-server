@@ -285,8 +285,8 @@ controlIo.on('connection', (socket) => {
             console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(service);
             const room = service;
-            console.log(`Attempting to emit: ${JSON.stringify(jsonString,null,2)} to control room: ${room}`);
-            socket.emit(room,jsonString);
+            console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
+            socket.emit(room, jsonString);
         })
     })
 
@@ -304,11 +304,16 @@ const firebaseAuth = getAuth(firebaseApp);
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
+    const idParam = req.query.id;
     const user = firebaseAuth.currentUser;
     if (user !== null) {
         next();
     } else {
-        res.redirect('/login');
+        if (idParam != null) {
+            res.redirect(`/login?id=${idParam}`);
+        } else {
+            res.redirect(`/login`);
+        }
     }
 }
 
@@ -330,7 +335,7 @@ const generateQR = async (serviceId) => {
 
 const getNumberOfSubscribersInRoom = (room) => {
     try {
-        const subscribers = (io.sockets.adapter.rooms.get(room) == undefined) ? 
+        const subscribers = (io.sockets.adapter.rooms.get(room) == undefined) ?
             0 : io.sockets.adapter.rooms.get(room).size;
         return subscribers;
     } catch (error) {
@@ -354,7 +359,7 @@ const getActiveLanguages = (serviceId) => {
     const langArray = serviceLanguageMap.get(serviceId);
     if (langArray.length == 0 && transcriptSubscribers == 0) {
         return { result: "There are no languages currently being subscribed to." };
-    } 
+    }
 
     // First put in transcript subscribers
     jsonData.languages.push({
@@ -488,11 +493,14 @@ app.post('/qrcode', async (req, res) => {
 
 // Login handler
 app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
-    const { email, password } = req.body;
-
+    const { id, email, password } = req.body;
     try {
         await signInWithEmailAndPassword(firebaseAuth, email, password);
-        res.redirect('/control');
+        if (id != null) {
+            res.redirect(`/control?serviceId=${id}`);
+        } else {
+            res.redirect(`/control`);
+        }
     } catch (error) {
         console.error(error);
         //      res.status(401).send('Unauthorized');

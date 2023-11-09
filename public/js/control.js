@@ -1,5 +1,9 @@
 // Use the control namespace to communicate to the server via WSS.
 const controlSocket = io('/control')
+const url = new URL(location.href)
+const search = new URLSearchParams(url.search)
+const serviceIdentifier = search.get('serviceId')
+
 let serviceCode;
 
 const languages = [
@@ -240,10 +244,14 @@ window.addEventListener("load", async () => {
     const interimCheckbox = document.getElementById('interimCheckbox')
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
 
+    console.log(`Room ID: ${serviceIdentifier}`);
+
     // When we first load, generate a new Service ID if one isn't already defined
-    if (sessionStorage.getItem('serviceId') === null) {
+    if (sessionStorage.getItem('serviceId') === null || serviceIdentifier === null) {
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);
+    } else if (serviceIdentifier != null) {
+        serviceCode = serviceIdentifier;
     } else {
         serviceCode = sessionStorage.getItem('serviceId');
     }
