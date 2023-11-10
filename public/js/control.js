@@ -244,7 +244,6 @@ window.addEventListener("load", async () => {
     const interimCheckbox = document.getElementById('interimCheckbox')
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
 
-    console.log(`Room ID: ${serviceIdentifier}`);
 
     // When we first load, generate a new Service ID if one isn't already defined
     if (sessionStorage.getItem('serviceId') === null || serviceIdentifier === null) {
@@ -255,6 +254,8 @@ window.addEventListener("load", async () => {
     } else {
         serviceCode = sessionStorage.getItem('serviceId');
     }
+    console.log(`Room ID: ${serviceCode}`);
+    sessionStorage.setItem('serviceId', serviceCode);
     serviceId.innerHTML = serviceCode;
 
     // Listen for subscriber changes
