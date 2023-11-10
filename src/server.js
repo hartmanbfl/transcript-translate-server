@@ -497,7 +497,7 @@ app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) =
     try {
         await signInWithEmailAndPassword(firebaseAuth, email, password);
         if (id != null) {
-            res.redirect(`/control?serviceId=${id}`);
+            res.redirect(`/control?id=${id}`);
         } else {
             res.redirect(`/control`);
         }
