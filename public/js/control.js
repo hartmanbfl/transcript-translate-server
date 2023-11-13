@@ -2,6 +2,7 @@
 const controlSocket = io('/control')
 
 let serviceCode;
+let streamingStatus = "offline";
 
 const languages = [
     {
@@ -115,7 +116,8 @@ const setupDeepgram = () => {
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
             console.log(`WebSocket to Deepgram closed`);
-            stopHeartbeatTimer();
+//            stopHeartbeatTimer();
+            streamingStatus = "offline";
         }
 
         const stopStreaming = document.querySelector(`#disableStreaming`);
@@ -156,13 +158,13 @@ const buildDeepgramUrl = () => {
     const smartFormat = `smart_format=true`;
     const aiModel = `model=nova`;
 
-    return `${deepgramUrl}?${locale}&${smartFormat}&aiModel`;
+    return `${deepgramUrl}?${locale}&${smartFormat}&${aiModel}`;
 }
 
 const startStreamingToDeepgram = () => {
     console.log(`WebSocket to Deepgram opened`);
-    // Start sending hearbeats
-    startHeartbeatTimer();
+    streamingStatus = "livestreaming";
+//    startHeartbeatTimer();
 
     document.getElementById('recording-status').style.display = "inline-flex";
     mediaRecorder.addEventListener('dataavailable', event => {
@@ -176,8 +178,8 @@ const startStreamingToDeepgram = () => {
 let heartbeatTimer;
 const startHeartbeatTimer = () => {
     heartbeatTimer = setInterval(() => {
-        controlSocket.emit('heartbeat', serviceCode);
-    }, 2000);
+        controlSocket.emit('heartbeat', {serviceCode: serviceCode, status: streamingStatus});
+    }, 3000);
 }
 const stopHeartbeatTimer = () => {
     clearInterval(heartbeatTimer);
@@ -275,6 +277,9 @@ window.addEventListener("load", async () => {
     console.log(`Room ID: ${serviceCode}`);
     sessionStorage.setItem('serviceId', serviceCode);
     serviceId.innerHTML = serviceCode;
+
+    // Start sending heartbeats to the server
+    startHeartbeatTimer();
 
     // Listen for subscriber changes
     controlSocket.emit('monitor', serviceCode);

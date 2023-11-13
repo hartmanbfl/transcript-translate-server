@@ -49,6 +49,9 @@ const controlIo = io.of("/control")
 const serviceLanguageMap = new Map();
 const serviceSubscriptionMap = new Map();
 
+// Streaming status per Service
+const streamingStatusMap = new Map();
+
 // Also track the subscriptions per room { Subscriber: Room[] }
 const clientSubscriptionMap = new Map();
 const roomSubscriptionMap = new Map();
@@ -281,8 +284,8 @@ controlIo.on('connection', (socket) => {
         const { serviceCode, transcript } = data;
 
         // Send out a "hearbeat" message that service is active
-//        const hearbeat = `${serviceCode}:heartbeat`;
-//        socket.to(hearbeat).emit('heartbeat');
+        //        const hearbeat = `${serviceCode}:heartbeat`;
+        //        socket.to(hearbeat).emit('heartbeat');
 
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
@@ -302,10 +305,14 @@ controlIo.on('connection', (socket) => {
             socket.emit(room, jsonString);
         })
     })
-    socket.on('heartbeat', (serviceCode) => {
+    socket.on('heartbeat', (data) => {
+        const { serviceCode, status } = data;
+        streamingStatusMap.set(serviceCode, status);
         // Send the heartbeat out to all subscribers in this service
-        const room = `${serviceCode}:heartbeat`;
-        io.to(room).emit('heartbeat');
+        if (status == "livestreaming") {
+            const room = `${serviceCode}:heartbeat`;
+            io.to(room).emit('livestreaming');
+        }
     })
 
 });
@@ -344,7 +351,7 @@ const runOnStartup = (req, res, next) => {
 
 app.use(express.static("public"));
 app.use(express.json());
-app.use(runOnStartup);
+// DEBUG app.use(runOnStartup);
 
 const generateQR = async (serviceId) => {
     const url = `${clientUrl}?serviceId=${serviceId}`;
@@ -445,6 +452,17 @@ app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
         res.json({ result: "Invalid request" });
     }
 });
+
+app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
+    try {
+        const serviceId = req.params.serviceId;
+        const streamingStatus = streamingStatusMap.get(serviceId);
+        res.json({ status: streamingStatus });
+    } catch (error) {
+        console.error(`ERROR getting streaming status: ${error}`);
+        res.json({ error });
+    }
+})
 
 // Get all the subscribers in all the rooms
 app.get('/rooms/subscribers', async (req, res) => {
