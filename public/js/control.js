@@ -116,7 +116,6 @@ const setupDeepgram = () => {
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
             console.log(`WebSocket to Deepgram closed`);
-//            stopHeartbeatTimer();
             streamingStatus = "offline";
         }
 
@@ -164,7 +163,6 @@ const buildDeepgramUrl = () => {
 const startStreamingToDeepgram = () => {
     console.log(`WebSocket to Deepgram opened`);
     streamingStatus = "livestreaming";
-//    startHeartbeatTimer();
 
     document.getElementById('recording-status').style.display = "inline-flex";
     mediaRecorder.addEventListener('dataavailable', event => {
