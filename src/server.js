@@ -534,6 +534,16 @@ app.post('/qrcode', async (req, res) => {
     }
 })
 
+app.get('/churchinfo', async (req, res) => {
+    try {
+        const churchName = process.env.CHURCH_NAME;
+        const churchLogo = process.env.CHURCH_LOGO;
+        res.json( { name: churchName, logo: churchLogo })
+    } catch (error) {
+        res.json({ error });
+    }
+})
+
 // Login handler
 app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
     const { id, email, password } = req.body;
