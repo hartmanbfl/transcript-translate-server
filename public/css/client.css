@@ -22,13 +22,13 @@ body {
 }
 
 .fixed-box-small {
-    flex: 0 0 100px; /* fixed width of 200px */
+    flex: 0 0 100px; /* fixed width of 100px */
 }
 .fixed-box-medium {
     flex: 0 0 200px; /* fixed width of 200px */
 }
 .fixed-box-large {
-    flex: 0 0 300px; /* fixed width of 200px */
+    flex: 0 0 250px; /* fixed width of 250px */
 }
 
 .left-box {
@@ -36,6 +36,7 @@ body {
 }
 
 .button-box h2 {
+    font-family: Arial, Helvetica, sans-serif;
     margin-top: 0;
 }
 

@@ -49,6 +49,9 @@ const controlIo = io.of("/control")
 const serviceLanguageMap = new Map();
 const serviceSubscriptionMap = new Map();
 
+// Streaming status per Service
+const streamingStatusMap = new Map();
+
 // Also track the subscriptions per room { Subscriber: Room[] }
 const clientSubscriptionMap = new Map();
 const roomSubscriptionMap = new Map();
@@ -184,7 +187,7 @@ const removeRoomFromClient = (data) => {
 // Websocket connection to the client.  Moved this into its own connection in 
 // order to make sure the server is running and connected first before starting
 // to join clients to the stream
-const listenForClients = (controlCallback) => {
+const listenForClients = () => {
     io.on('connection', (socket) => {
         console.log(`Client ${socket.id} / ${socket.handshake.address} / ${socket.handshake.headers['user-agent']} connected to our socket.io public namespace`);
         socket.on('disconnect', () => {
@@ -192,6 +195,12 @@ const listenForClients = (controlCallback) => {
 
             // Disconnect all rooms from this client
             disconnectClientFromAllRooms({ socket })
+        });
+
+        socket.on('register', (serviceId) => {
+            console.log(`Client registering for messages for service ${serviceId}`);
+            const hearbeats = `${serviceId}:heartbeat`;
+            socket.join(hearbeats);
         });
 
         // Rooms defined by <ServiceId:Language>
@@ -264,12 +273,19 @@ const listenForClients = (controlCallback) => {
 
 
 controlIo.on('connection', (socket) => {
+    console.log(`Client ${socket.id} connected to our socket.io control namespace`);
+    // Start listening for mobile clients to join
+    listenForClients();
+
     socket.on('disconnect', () => {
         console.log(`Control io disconnected for client-> ${socket.id}`);
     });
-    console.log(`Client ${socket.id} connected to our socket.io control namespace`);
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
+
+        // Send out a "hearbeat" message that service is active
+        //        const hearbeat = `${serviceCode}:heartbeat`;
+        //        socket.to(hearbeat).emit('heartbeat');
 
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
@@ -288,6 +304,15 @@ controlIo.on('connection', (socket) => {
             console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
             socket.emit(room, jsonString);
         })
+    })
+    socket.on('heartbeat', (data) => {
+        const { serviceCode, status } = data;
+        streamingStatusMap.set(serviceCode, status);
+        // Send the heartbeat out to all subscribers in this service
+        if (status == "livestreaming") {
+            const room = `${serviceCode}:heartbeat`;
+            io.to(room).emit('livestreaming');
+        }
     })
 
 });
@@ -317,9 +342,16 @@ const isAuthenticated = (req, res, next) => {
     }
 }
 
+
+const runOnStartup = (req, res, next) => {
+    console.log(`Got request: method->${req.method}, url->${req.url}`);
+    next();
+}
+
+
 app.use(express.static("public"));
 app.use(express.json());
-
+// DEBUG app.use(runOnStartup);
 
 const generateQR = async (serviceId) => {
     const url = `${clientUrl}?serviceId=${serviceId}`;
@@ -421,6 +453,17 @@ app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     }
 });
 
+app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
+    try {
+        const serviceId = req.params.serviceId;
+        const streamingStatus = streamingStatusMap.get(serviceId);
+        res.json({ status: streamingStatus });
+    } catch (error) {
+        console.error(`ERROR getting streaming status: ${error}`);
+        res.json({ error });
+    }
+})
+
 // Get all the subscribers in all the rooms
 app.get('/rooms/subscribers', async (req, res) => {
     try {
@@ -471,7 +514,7 @@ app.post('/auth', async (req, res) => {
         )
 
         // server is ready, start listening for client connections
-        listenForClients();
+        //listenForClients();
         res.json({ deepgramToken: newKey.key })
     } catch (error) {
         console.error(`Caught error in auth: ${error}`);
