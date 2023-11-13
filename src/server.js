@@ -544,6 +544,14 @@ app.get('/churchinfo', async (req, res) => {
     }
 })
 
+app.get('/configuration', async (req, res) => {
+    try {
+        res.json({ serviceTimeout: process.env.SERVICE_TIMEOUT });
+    } catch (error) {
+        res.json({ error })
+    }
+})
+
 // Login handler
 app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
     const { id, email, password } = req.body;

@@ -183,6 +183,15 @@ const stopHeartbeatTimer = () => {
     clearInterval(heartbeatTimer);
 }
 
+let serviceTimer;
+let serviceTimerDuration = 90;
+const startServiceTimer = () => {
+    serviceTimer = setTimer(() => {
+        // Automatically stop the streaming
+        // TBD
+    },  serviceTimerDuration);
+}
+
 let propresenterHost = "localhost";
 let propresenterPort = "1025";
 let previousTranscript = "";
