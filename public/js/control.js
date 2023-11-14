@@ -1,8 +1,11 @@
 // Use the control namespace to communicate to the server via WSS.
 const controlSocket = io('/control')
 
+let selectedLocale = "en-GB";
 let serviceCode;
 let streamingStatus = "offline";
+let serviceTimer;
+let serviceTimerDuration = 90 * 60 * 1000; // default to 90 minutes
 
 const languages = [
     {
@@ -122,6 +125,7 @@ const setupDeepgram = () => {
         const stopStreaming = document.querySelector(`#disableStreaming`);
         stopStreaming.style.display = "block";
         stopStreaming.addEventListener('click', async () => {
+            stopServiceTimer();
             await closeMicrophone();
             ws.close();
             stopStreaming.style.display = "none";
@@ -144,6 +148,24 @@ const getQRCode = async (data) => {
     if (resp.error) return alert(resp.error);
 
     return resp.qrCode;
+}
+
+const processConfigurationProperties = async () => {
+    const resp = await fetch('/configuration', {
+        method: 'GET'
+    }).then(r => r.json())
+    .catch(error => alert(error));
+
+    if (resp.error) {
+        console.log(`Error fetching configuration: ${resp.error}`);
+        return alert(resp.error);
+    }
+
+    console.log(`Response: ${JSON.stringify(resp)}`);
+    const serviceTimeout = resp.serviceTimeout;
+    selectedLocale = resp.hostLanguage;
+    serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
+    console.log(`Setting service timeout to ${serviceTimerDuration} milliseconds and language to ${selectedLocale}.`);
 }
 
 const getLanguageString = (locale) => {
@@ -171,17 +193,40 @@ const startStreamingToDeepgram = () => {
         }
     })
     mediaRecorder.start(250)
+
+    // Start timer to protect from streaming going too long
+    startServiceTimer();
 }
 
 let heartbeatTimer;
 const startHeartbeatTimer = () => {
     heartbeatTimer = setInterval(() => {
-        controlSocket.emit('heartbeat', {serviceCode: serviceCode, status: streamingStatus});
+        controlSocket.emit('heartbeat', { serviceCode: serviceCode, status: streamingStatus });
     }, 3000);
 }
 const stopHeartbeatTimer = () => {
     clearInterval(heartbeatTimer);
 }
+
+const startServiceTimer = () => {
+    clearTimeout(serviceTimer);
+    console.log(`Starting service timer with duration ${serviceTimerDuration}`)
+    serviceTimer = setTimeout(async () => {
+        // Automatically stop the streaming
+        console.log(`Stopping livestream due to timeout.`);
+        const stopStreaming = document.querySelector(`#disableStreaming`);
+        const audioForm = document.getElementById('audioForm');
+        await closeMicrophone();
+        ws.close();
+        stopStreaming.style.display = "none";
+        document.getElementById('recording-status').style.display = "none";
+        audioForm.style.display = "block";
+    }, serviceTimerDuration);
+}
+const stopServiceTimer = () => {
+    clearTimeout(serviceTimer);
+}
+
 
 let propresenterHost = "localhost";
 let propresenterPort = "1025";
@@ -224,7 +269,6 @@ const handleDeepgramResponse = async (message) => {
     }
 }
 
-let selectedLocale = "en-GB";
 const setupSourceLanguage = () => {
     const localeDropDown = document.getElementById('langInputSelect');
     const locales = [
@@ -245,6 +289,10 @@ const setupSourceLanguage = () => {
     localeDropDown.addEventListener("change", () => {
         selectedLocale = localeDropDown.value;
     });
+
+    // select the initial value
+    console.log(`Setting initial locale to ${selectedLocale}`);
+    localeDropDown.value = selectedLocale;
 }
 
 let useInterim = false;
@@ -255,11 +303,15 @@ window.addEventListener("load", async () => {
     const interimCheckbox = document.getElementById('interimCheckbox')
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
 
+    // Get any configuration properties we need to process from the server
+    processConfigurationProperties();
+
     // Get the service code from the query parameter in the URL
     const url = new URL(location.href)
     console.log(`URL: ${url}`);
     const search = new URLSearchParams(url.search)
     const serviceIdentifier = search.get('id')
+
 
     // When we first load, generate a new Service ID if one isn't already defined
     if (sessionStorage.getItem('serviceId') === null && serviceIdentifier === null) {
@@ -335,15 +387,12 @@ window.addEventListener("load", async () => {
         }
     })
 
-
     // Get a QR Code for this service
     const qrcode = await getQRCode({ serviceId: serviceCode });
-
     const qrcodeBox = document.getElementById('qrcode-box');
     const parser = new DOMParser();
     const svgElement = parser.parseFromString(qrcode, 'image/svg+xml').documentElement;
     qrcodeBox.appendChild(svgElement);
-
 
     // Populate the dropdown lists of input languages
     setupSourceLanguage();
