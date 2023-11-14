@@ -538,7 +538,7 @@ app.get('/churchinfo', async (req, res) => {
     try {
         const churchName = process.env.CHURCH_NAME;
         const churchLogo = process.env.CHURCH_LOGO;
-        res.json( { name: churchName, logo: churchLogo })
+        res.json({ name: churchName, logo: churchLogo })
     } catch (error) {
         res.json({ error });
     }
@@ -546,7 +546,12 @@ app.get('/churchinfo', async (req, res) => {
 
 app.get('/configuration', async (req, res) => {
     try {
-        res.json({ serviceTimeout: process.env.SERVICE_TIMEOUT });
+        res.json({
+            serviceTimeout: process.env.SERVICE_TIMEOUT,
+            churchName: process.env.CHURCH_NAME,
+            churchLogo: process.env.CHURCH_LOGO,
+            hostLanguage: process.env.HOST_LANGUAGE
+    });
     } catch (error) {
         res.json({ error })
     }
