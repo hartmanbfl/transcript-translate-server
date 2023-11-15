@@ -534,11 +534,20 @@ app.post('/qrcode', async (req, res) => {
     }
 })
 
+// Used by client devices to get content for the UI
 app.get('/churchinfo', async (req, res) => {
     try {
         const churchName = process.env.CHURCH_NAME;
         const churchLogo = process.env.CHURCH_LOGO;
-        res.json({ name: churchName, logo: churchLogo })
+        const churchGreeting = process.env.CHURCH_GREETING;
+        const churchMessage = process.env.CHURCH_MESSAGE;
+        const churchAdditionalWelcome = process.env.CHURCH_ADDITIONAL_WELCOME;
+        const churchLang = process.env.HOST_LANGUAGE;
+        res.json({
+            name: churchName, logo: churchLogo, greeting: churchGreeting,
+            message: churchMessage, additionalWelcome: churchAdditionalWelcome,
+            language:  churchLang
+        })
     } catch (error) {
         res.json({ error });
     }
@@ -551,7 +560,7 @@ app.get('/configuration', async (req, res) => {
             churchName: process.env.CHURCH_NAME,
             churchLogo: process.env.CHURCH_LOGO,
             hostLanguage: process.env.HOST_LANGUAGE
-    });
+        });
     } catch (error) {
         res.json({ error })
     }
