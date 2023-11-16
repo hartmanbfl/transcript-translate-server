@@ -198,7 +198,7 @@ const listenForClients = () => {
         });
 
         socket.on('register', (serviceId) => {
-            console.log(`Client registering for messages for service ${serviceId}`);
+            console.log(`Client ${socket.id} registering for messages for service ${serviceId}`);
             const hearbeats = `${serviceId}:heartbeat`;
             socket.join(hearbeats);
         });
@@ -210,7 +210,7 @@ const listenForClients = () => {
                 console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
 
                 // Make sure sericeId and language are not undefined
-                if (!isRoomValid({ serviceId, language })) return;
+// test                if (!isRoomValid({ serviceId, language })) return;
 
                 socket.join(room);
 
@@ -240,7 +240,7 @@ const listenForClients = () => {
                 const { serviceId, language } = parseRoom(room);
 
                 // Make sure sericeId and language are not undefined
-                if (!isRoomValid({ serviceId, language })) return;
+//test                if (!isRoomValid({ serviceId, language })) return;
 
                 socket.leave(room);
                 console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
@@ -297,6 +297,10 @@ controlIo.on('connection', (socket) => {
         const room = data;
         console.log(`Control is monitoring ${room}`);
         socket.join(room);
+        // Start up our transcript listerner for this service code
+        const listenerData = { io, serviceId: room, serviceLanguageMap, serviceSubscriptionMap };
+        registerForServiceTranscripts(listenerData);
+
         roomEmitter.on('subscriptionChange', (service) => {
             console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(service);
@@ -503,8 +507,8 @@ app.post('/auth', async (req, res) => {
         }
 
         // Start up our transcript listerner for this service code
-        const data = { io, serviceId, serviceLanguageMap, serviceSubscriptionMap };
-        registerForServiceTranscripts(data);
+//        const data = { io, serviceId, serviceLanguageMap, serviceSubscriptionMap };
+//        registerForServiceTranscripts(data);
 
         const newKey = await deepgram.keys.create(
             process.env.DEEPGRAM_PROJECT,
