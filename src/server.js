@@ -547,10 +547,11 @@ app.get('/churchinfo', async (req, res) => {
         const churchMessage = process.env.CHURCH_MESSAGE;
         const churchAdditionalWelcome = process.env.CHURCH_ADDITIONAL_WELCOME;
         const churchLang = process.env.HOST_LANGUAGE;
+        const translationLanguages = process.env.TRANSLATION_LANGUAGES;
         res.json({
             name: churchName, logo: churchLogo, greeting: churchGreeting,
             message: churchMessage, additionalWelcome: churchAdditionalWelcome,
-            language:  churchLang
+            language:  churchLang, translationLanguages: translationLanguages
         })
     } catch (error) {
         res.json({ error });
