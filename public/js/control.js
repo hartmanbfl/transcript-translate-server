@@ -177,11 +177,7 @@ const buildDeepgramUrl = () => {
     const deepgramUrl = `wss://api.deepgram.com/v1/listen`;
     const locale = `language=${selectedLocale}`;
     const smartFormat = `smart_format=true`;
-    let aiModel = null;
-    if (selectedLocale.startsWith('en'))  {
-        console.log(`Setting model to nova`);
-        aiModel = `&model=nova-2`;
-    }
+    const aiModel = `&model=nova-2`;
 
     return `${deepgramUrl}?${locale}&${smartFormat}${aiModel != null ? aiModel : ""}`;
 }
