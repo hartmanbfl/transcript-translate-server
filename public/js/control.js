@@ -306,7 +306,7 @@ window.addEventListener("load", async () => {
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
 
     // Get any configuration properties we need to process from the server
-    processConfigurationProperties();
+    await processConfigurationProperties();
 
     // Get the service code from the query parameter in the URL
     const url = new URL(location.href)
