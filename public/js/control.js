@@ -322,7 +322,7 @@ window.addEventListener("load", async () => {
         sessionStorage.setItem('serviceId', serviceCode);
     } else if (serviceIdentifier != null) {
         serviceCode = serviceIdentifier;
-    } else if (essionStorage.getItem('serviceId') !== null) {
+    } else if (sessionStorage.getItem('serviceId') !== null) {
         console.log(`Getting service ID from session storage`);
         serviceCode = sessionStorage.getItem('serviceId');
     } else {
