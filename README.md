@@ -74,12 +74,7 @@ Deepgram (https://deepgram.com/) is the service used for generating transcripts.
        It would also be a good idea to save it in a password manager since you cannot access it again.
     - Also get the Project ID seen at the top of the Deepgram Dashboard and use the value for the .env variable `DEEPGRAM_PROJECT`   
 
-## Local Build and Run
-- Make sure .env is in top level directory of project
-- Type `npm install` to install node module dependencies
-- Type `npm run start` to start the server.  Note that this will run on port 3000.  If another port is desired, set 
-  environment variable `PORT` in .env or in current Terminal.
-- Open browser and navigate to localhost:PORT  
+
 
 ## Deployment
 Current hackathon 2023 version is deployed to render at https://debabel-server.onrender.com.  For the render deployment, I added two entries to the environment:
@@ -122,3 +117,13 @@ Prerequisite:  ensure that you have a GitHub account in order to access the DeBa
     name listed near the top of the dashboard.                         
 
 ## Running the Server
+- Navigate the the URL created by Render (typically https://\<render-project-name\>.onrender.com)
+- Login with your credentials that you created during the Firebase setup 
+- Type in the Church Key (should match the value you have in the .env file for `CHURCH_KEY` and click `Start Streaming`)
+
+## Local Build and Run
+- Make sure .env is in top level directory of project
+- Type `npm install` to install node module dependencies
+- Type `npm run start` to start the server.  Note that this will run on port 3000.  If another port is desired, set 
+  environment variable `PORT` in .env or in current Terminal.
+- Open browser and navigate to localhost:PORT/local
