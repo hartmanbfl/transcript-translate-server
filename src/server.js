@@ -597,6 +597,9 @@ app.get('/logout', (req, res) => {
 //// Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
 app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/views/login.html');
+})
+app.get('/local', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
 })
 app.get('/login', (req, res) => {

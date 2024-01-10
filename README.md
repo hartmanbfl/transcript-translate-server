@@ -116,5 +116,9 @@ Prerequisite:  ensure that you have a GitHub account in order to access the DeBa
         - Click `Create Web Service`  
     - **NOTE**: the Secret Files can be added later, so if they aren't ready at this point just ignore the Advanced
           settings.
+    - **NOTE**: I noticed one time that the deployment did not work properly because the `Start Command` did not get saved.
+        To fix this, go to Dashboard->Settings and make sure Start Command is set to `node src/server.js`      
 3.  Once the server is deployed, if everything worked, you should be able to access the server using the domain
-    name listed near the top of the dashboard                         
+    name listed near the top of the dashboard.                         
+
+## Running the Server
