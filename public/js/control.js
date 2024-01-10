@@ -2,6 +2,7 @@
 const controlSocket = io('/control')
 
 let selectedLocale = "en-GB";
+let defaultServiceCode = null;
 let serviceCode;
 let streamingStatus = "offline";
 let serviceTimer;
@@ -164,6 +165,7 @@ const processConfigurationProperties = async () => {
     console.log(`Response: ${JSON.stringify(resp)}`);
     const serviceTimeout = resp.serviceTimeout;
     selectedLocale = resp.hostLanguage;
+    defaultServiceCode = resp.defaultServiceId;
     serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
     console.log(`Setting service timeout to ${serviceTimerDuration} milliseconds and language to ${selectedLocale}.`);
 }
@@ -314,15 +316,18 @@ window.addEventListener("load", async () => {
 
 
     // When we first load, generate a new Service ID if one isn't already defined
-    if (sessionStorage.getItem('serviceId') === null && serviceIdentifier === null) {
+    if (sessionStorage.getItem('serviceId') === null && serviceIdentifier === null && defaultServiceCode == null) {
         console.log(`No session storage and no query parameter, so auto-generating service ID`);
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);
     } else if (serviceIdentifier != null) {
         serviceCode = serviceIdentifier;
-    } else {
+    } else if (essionStorage.getItem('serviceId') !== null) {
         console.log(`Getting service ID from session storage`);
         serviceCode = sessionStorage.getItem('serviceId');
+    } else {
+        console.log(`Using the default service ID of ${defaultServiceCode}`);
+        serviceCode = defaultServiceCode;
     }
     console.log(`Room ID: ${serviceCode}`);
     sessionStorage.setItem('serviceId', serviceCode);

@@ -564,6 +564,7 @@ app.get('/configuration', async (req, res) => {
             serviceTimeout: process.env.SERVICE_TIMEOUT,
             churchName: process.env.CHURCH_NAME,
             churchLogo: process.env.CHURCH_LOGO,
+            defaultServiceId: process.env.DEFAULT_SERVICE_ID,
             hostLanguage: process.env.HOST_LANGUAGE
         });
     } catch (error) {
