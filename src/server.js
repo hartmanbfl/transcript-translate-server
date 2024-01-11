@@ -30,9 +30,6 @@ const clientUrl = process.env.DEBABEL_CLIENT_URL || `localhost:${PORT}`;
 import { createClient} from "@deepgram/sdk";
 const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
 
-const { project, error } = await deepgram.manage.getProjects(process.env.DEEPGRAM_PROJECT);
-console.log(`Project: ${JSON.stringify(project)}`);
-
 const app = express();
 const server = http.createServer(app);
 
@@ -508,34 +505,16 @@ app.post('/auth', async (req, res) => {
             return res.json({ error: 'Key is missing or incorrect' })
         }
 
-        // Start up our transcript listerner for this service code
-//        const data = { io, serviceId, serviceLanguageMap, serviceSubscriptionMap };
-//        registerForServiceTranscripts(data);
-
-//v2        const newKey = await deepgram.keys.create(
-//v2            process.env.DEEPGRAM_PROJECT,
-//v2            'Temporary key - works for 10 secs',
-//v2            ['usage:write'],
-//v2            { timeToLive: 10 }
-//v2        )
-        // List current keys
-        const { currentKeys, listError } = await deepgram.manage.getProjectKeys(process.env.DEEPGRAM_PROJECT);
-        console.log(`Current keys: ${currentKeys}`);
-
-        const { newKey, error } = await deepgram.manage.createProjectKey(process.env.DEEPGRAM_PROJECT, 
+        // Get a Token used for making the Websocket calls in the front end
+        const keyResult = await deepgram.manage.createProjectKey(process.env.DEEPGRAM_PROJECT, 
             { 
                 comment: "Temporary key - works for 10 secs",
                 scopes: ["usage:write"],
                 time_to_live_in_seconds: 10 
             })
-        if (error != null) {
-            console.error(`Error: ${error}`);
-        }
-        console.log(`newKey: ${newKey}`);
+//debug        console.log(`newKey: ${keyResult.result.key}`);
 
-        // server is ready, start listening for client connections
-        //listenForClients();
-        res.json({ deepgramToken: newKey.key })
+        res.json({ deepgramToken: keyResult.result.key })
     } catch (error) {
         console.error(`Caught error in auth: ${error}`);
         res.json({ error })
