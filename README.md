@@ -77,10 +77,6 @@ Deepgram (https://deepgram.com/) is the service used for generating transcripts.
 
 
 ## Deployment
-Current hackathon 2023 version is deployed to render at https://debabel-server.onrender.com.  For the render deployment, I added two entries to the environment:
-- .env file 
-  - Make sure to put the URL of the client web application in the .env file as `DEBABEL_CLIENT_URL`. This is needed to generate the QR code properly.
-- google-api-credentials.json file (rename the JSON file that you generated with the Google Cloud Service Account)
 
 ### Steps for Deploying to Render
 Prerequisite:  ensure that you have a GitHub account in order to access the DeBabel repository
@@ -116,6 +112,27 @@ Prerequisite:  ensure that you have a GitHub account in order to access the DeBa
 3.  Once the server is deployed, if everything worked, you should be able to access the server using the domain
     name listed near the top of the dashboard.                         
 
+### Hackathon deployment
+Current hackathon 2023 version is deployed to render at https://debabel-server.onrender.com.  
+
+
+## Configuring the Server for a Specific Church
+The way that the mobile app will appear is driven by data controlled on the server side.  
+For that reason, you will need to setup some items in the .env file running in Render for your church.
+- **DEFAULT_SERVICE_CODE**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.  
+   The same number can be used all the time as long as there are not two simulataneous services going on using the software.
+- **CHURCH_KEY**: This can be any work, phrase, etc., but it is used by operators to be able to start the streaming service.  
+   I typically choose church name or abbreviation.
+- **CHURCH_LOGO**: TBD - right now this is built into the code, so plan is to make this more configurable. 
+  For now, you can just use logo.png for the DeBabel logo.
+- **CHURCH_GREETING**: Message that appears at top of app
+- **CHURCH_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.  
+- **CHURCH_ADDITIONAL_WELCOME**: Specially thememed message at the bottom of the greeting
+- **TRANSLATION_LANGUAGES**: Which languages you want to appear in the mobile app
+- **DEBABEL_CLIENT_APP**: The URL of the client web app.  This is used for generating the QR code automatically.          
+- **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically 
+  turns off.  This is to avoid the possibility of running unintentionally for a long period of time and costing money.
+
 ## Running the Server
 - Navigate the the URL created by Render (typically https://\<render-project-name\>.onrender.com)
 - Login with your credentials that you created during the Firebase setup 
@@ -123,6 +140,7 @@ Prerequisite:  ensure that you have a GitHub account in order to access the DeBa
 
 ## Local Build and Run
 - Make sure .env is in top level directory of project
+- Set `TEST_MODE=true` to bypass the Firebase authentication
 - Type `npm install` to install node module dependencies
 - Type `npm run start` to start the server.  Note that this will run on port 3000.  If another port is desired, set 
   environment variable `PORT` in .env or in current Terminal.
