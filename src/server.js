@@ -27,9 +27,8 @@ const PORT = process.env.PORT || 3000;
 const clientUrl = process.env.DEBABEL_CLIENT_URL || `localhost:${PORT}`;
 
 // Deepgram needs to be imported as CommonJS
-import pkg from "@deepgram/sdk";
-const { Deepgram } = pkg;
-const deepgram = new Deepgram(process.env.DEEPGRAM_API_KEY);
+import { createClient} from "@deepgram/sdk";
+const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
 
 const app = express();
 const server = http.createServer(app);
@@ -506,20 +505,16 @@ app.post('/auth', async (req, res) => {
             return res.json({ error: 'Key is missing or incorrect' })
         }
 
-        // Start up our transcript listerner for this service code
-//        const data = { io, serviceId, serviceLanguageMap, serviceSubscriptionMap };
-//        registerForServiceTranscripts(data);
+        // Get a Token used for making the Websocket calls in the front end
+        const keyResult = await deepgram.manage.createProjectKey(process.env.DEEPGRAM_PROJECT, 
+            { 
+                comment: "Temporary key - works for 10 secs",
+                scopes: ["usage:write"],
+                time_to_live_in_seconds: 10 
+            })
+//debug        console.log(`newKey: ${keyResult.result.key}`);
 
-        const newKey = await deepgram.keys.create(
-            process.env.DEEPGRAM_PROJECT,
-            'Temporary key - works for 10 secs',
-            ['usage:write'],
-            { timeToLive: 10 }
-        )
-
-        // server is ready, start listening for client connections
-        //listenForClients();
-        res.json({ deepgramToken: newKey.key })
+        res.json({ deepgramToken: keyResult.result.key })
     } catch (error) {
         console.error(`Caught error in auth: ${error}`);
         res.json({ error })
