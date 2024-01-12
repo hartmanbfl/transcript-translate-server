@@ -145,3 +145,40 @@ For that reason, you will need to setup some items in the .env file running in R
 - Type `npm run start` to start the server.  Note that this will run on port 3000.  If another port is desired, set 
   environment variable `PORT` in .env or in current Terminal.
 - Open browser and navigate to localhost:PORT/local
+
+<br/><br/>
+# DeBabel Mobile Web Application
+
+### Setup
+1.  Fork the repository github.com/hartmanbl/debabel into your own github account
+2.  Create an account or login to vercel.com
+    - Click `Sign Up`
+    - Choose `Hobby`, enter your name and click `Continue`
+    - Select `Continue with GitHub`, make sure the correct GitHub identity is shown and then click `Authorize Vercel`.  It 
+      may take several seconds, but should go to main Project dashboard
+3.  Import the DeBabel repository into Vercel
+    - Under **Import Git Repository** click `Install`      
+    - In the Install Vercel dialog page, select `Only select repositories`, select the `debabel` 
+      project from the list and click `Install`
+    - Login with GitHub credentials and click `Confirm`.  You should now see the project under the **Import Git Repository** list
+4.  Configure the debabel project  
+    - Click `Import` next to the debabel repository
+    - Add Environment Variables
+        - **NEXT_PUBLIC_SERVER_NAME**: set this to the domain of the server (e.g. https://debabel-server-example.onrender.com) and click `Save`. 
+          This can be found near the top of the Render.com Dashboard for the server.
+    - Click `Deploy`. This will deploy the web app.  
+    - Click `Continue to Dashboard`
+    - Make note of the Domain URL where it is deployed and use it for the `DEBABEL_CLIENT_APP` environment variable in the server running in Render 
+5.  **NOTE**: if you make any changes to environement variables (e.g. server name), you will need to do a re-deployment
+    - Go to the Deployments page by clicking `Deployments` in the top navigation bar
+    - Click the 3-dat menu to the right of the most recent deployment and select `Redeploy`
+    - Click `Redeploy`
+6.  In your Render account, add the `DEBABEL_CLIENT_APP` environment variable to the .env file and click `Save Changes`.
+    Wait for the service to redeploy (can be seen in Logs) and go back to Vercel    
+
+## Troubleshooting    
+- If the mobile app isn't rendering any data, go to the Render server and make sure it is running.  
+  Since the Render and Vercel deployments are using the free tier, they can be automatically 
+  shutdown during inactivity.
+- I've had cases where I've had to restart the server by clicking `Manual Deploy->Restart Service`    
+ 
