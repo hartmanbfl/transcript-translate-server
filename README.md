@@ -123,8 +123,6 @@ For that reason, you will need to setup some items in the .env file running in R
    The same number can be used all the time as long as there are not two simulataneous services going on using the software.
 - **CHURCH_KEY**: This can be any work, phrase, etc., but it is used by operators to be able to start the streaming service.  
    I typically choose church name or abbreviation.
-- **CHURCH_LOGO**: TBD - right now this is built into the code, so plan is to make this more configurable. 
-  For now, you can just use logo.png for the DeBabel logo.
 - **CHURCH_GREETING**: Message that appears at top of app
 - **CHURCH_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.  
 - **CHURCH_ADDITIONAL_WELCOME**: Specially thememed message at the bottom of the greeting
@@ -132,6 +130,18 @@ For that reason, you will need to setup some items in the .env file running in R
 - **DEBABEL_CLIENT_APP**: The URL of the client web app.  This is used for generating the QR code automatically.          
 - **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically 
   turns off.  This is to avoid the possibility of running unintentionally for a long period of time and costing money.
+
+### Configuring the church logo
+The church logo can now also be configured either in the .env file, or by simply adding a key/value pair to 
+Render environment variables.  Here are the steps for adding it:
+1.  Download a PNG or JPEG version of the church logo and generate a Base 64 date string
+    - This can be done via internet tools such as base64-image.com
+    - Once the image is converted to Base 64, copy the full string (it will start with `data:immage`) 
+2.  Create the environment variable
+    - Go to the server project in Render and click on `Environment`
+    - In the Environment Variables section, add the Key `CHURCH_LOGO_BASE64` and copy the Base 64 string into the Value field.
+    - Click `Save Changes` and wait for the server to redeploy
+3.  Alternatively, you could add `CHURCH_LOGO_BASE64=...` to the .env Secret File        
 
 ## Running the Server
 - Navigate the the URL created by Render (typically https://\<render-project-name\>.onrender.com)

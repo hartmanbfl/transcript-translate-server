@@ -537,14 +537,15 @@ app.post('/qrcode', async (req, res) => {
 app.get('/churchinfo', async (req, res) => {
     try {
         const churchName = process.env.CHURCH_NAME;
-        const churchLogo = process.env.CHURCH_LOGO;
+        const churchLogoBase64 = process.env.CHURCH_LOGO_BASE64;
         const churchGreeting = process.env.CHURCH_GREETING;
         const churchMessage = process.env.CHURCH_MESSAGE;
         const churchAdditionalWelcome = process.env.CHURCH_ADDITIONAL_WELCOME;
         const churchLang = process.env.HOST_LANGUAGE;
         const translationLanguages = process.env.TRANSLATION_LANGUAGES;
         res.json({
-            name: churchName, logo: churchLogo, greeting: churchGreeting,
+            name: churchName, base64Logo: churchLogoBase64, 
+            greeting: churchGreeting,
             message: churchMessage, additionalWelcome: churchAdditionalWelcome,
             language:  churchLang, translationLanguages: translationLanguages
         })
@@ -558,7 +559,6 @@ app.get('/configuration', async (req, res) => {
         res.json({
             serviceTimeout: process.env.SERVICE_TIMEOUT,
             churchName: process.env.CHURCH_NAME,
-            churchLogo: process.env.CHURCH_LOGO,
             defaultServiceId: process.env.DEFAULT_SERVICE_ID,
             hostLanguage: process.env.HOST_LANGUAGE
         });
