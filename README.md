@@ -12,7 +12,11 @@ Note:  you can test with the free version of Google Translate by setting the env
     - At this point you may have to click the `Fork` button again if on the main repository screen.  You 
       want to be on a page that says `Create a new fork`
     - You can accept the default name or give it your own repository name and click `Create fork`  
-2.  Copy env.example to .env.  The next steps will explain how to fill in this file. 
+2.  Create a local .env file
+    - This is just a file that contains environment variables that will determine how the system runs
+    - Create a .env file on your local hardrive and copy the contents from the env.example file in the GitHub project (at top level) into the .env file.
+    - As you proceed through these instructions and receive API keys, etc., you will fill them into this file
+    - In the section for deploying the server to Render, that is where the .env file will be utilized    
 
 ### Firebase Setup
 Firebase is used for the authentication of the control page of the web application.
