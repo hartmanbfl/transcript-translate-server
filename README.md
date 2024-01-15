@@ -16,7 +16,7 @@ Note:  you can test with the free version of Google Translate by setting the env
 
 ### Firebase Setup
 Firebase is used for the authentication of the control page of the web application.
-1.  Go to console.firebase.com and login with a google account  
+1.  Go to console.firebase.google.com and login with a google account  
 2.  Create a new Firebase project with default settings
     - Add project
     - Choose a name for the project and click `Continue`
@@ -121,11 +121,11 @@ The way that the mobile app will appear is driven by data controlled on the serv
 For that reason, you will need to setup some items in the .env file running in Render for your church.
 - **DEFAULT_SERVICE_CODE**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.  
    The same number can be used all the time as long as there are not two simulataneous services going on using the software.
-- **CHURCH_KEY**: This can be any work, phrase, etc., but it is used by operators to be able to start the streaming service.  
+- **CHURCH_KEY**: This can be any word, phrase, etc., but it is used by operators to be able to start the streaming service.  
    I typically choose church name or abbreviation.
 - **CHURCH_GREETING**: Message that appears at top of app
 - **CHURCH_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.  
-- **CHURCH_ADDITIONAL_WELCOME**: Specially thememed message at the bottom of the greeting
+- **CHURCH_ADDITIONAL_WELCOME**: Specially themed message at the bottom of the greeting
 - **TRANSLATION_LANGUAGES**: Which languages you want to appear in the mobile app
 - **DEBABEL_CLIENT_APP**: The URL of the client web app.  This is used for generating the QR code automatically.          
 - **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically 
@@ -160,7 +160,7 @@ Render environment variables.  Here are the steps for adding it:
 # DeBabel Mobile Web Application
 
 ### Setup
-1.  Fork the repository github.com/hartmanbl/debabel into your own github account
+1.  Fork the repository github.com/hartmanbfl/debabel into your own github account
 2.  Create an account or login to vercel.com
     - Click `Sign Up`
     - Choose `Hobby`, enter your name and click `Continue`
