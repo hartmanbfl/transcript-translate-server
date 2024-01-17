@@ -558,7 +558,7 @@ app.get('/churchinfo', async (req, res) => {
 
 app.get('/serviceStatus', async (req, res) => {
     try {
-        const { serviceId } = req.params;
+        const { serviceId } = req.query;
         // See if this service ID exists in the service map
         const active = serviceSubscriptionMap.get(serviceId);
         console.log(`Checking if ${serviceId} exists in the serviceSubscriptionMap: ${active}`);
