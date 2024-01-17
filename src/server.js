@@ -556,6 +556,21 @@ app.get('/churchinfo', async (req, res) => {
     }
 })
 
+app.get('/serviceStatus', async (req, res) => {
+    try {
+        const { serviceId } = req.params;
+        // See if this service ID exists in the service map
+        const active = serviceSubscriptionMap.get(serviceId);
+        if (active === true) {
+            res.json( {active: true});
+        } else {
+            res.json( { active: false});
+        }
+    } catch (error) {
+        res.json( { error });
+    }
+})
+
 app.get('/configuration', async (req, res) => {
     try {
         res.json({
