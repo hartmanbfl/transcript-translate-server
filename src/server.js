@@ -540,6 +540,7 @@ app.get('/churchinfo', async (req, res) => {
         const churchLogoBase64 = process.env.CHURCH_LOGO_BASE64;
         const churchGreeting = process.env.CHURCH_GREETING;
         const churchMessage = process.env.CHURCH_MESSAGE;
+        const churchWaitingMessage = process.env.CHURCH_WAITING_MESSAGE;
         const churchAdditionalWelcome = process.env.CHURCH_ADDITIONAL_WELCOME;
         const churchLang = process.env.HOST_LANGUAGE;
         const defaultServiceId = process.env.DEFAULT_SERVICE_ID;
@@ -547,12 +548,29 @@ app.get('/churchinfo', async (req, res) => {
         res.json({
             name: churchName, defaultServiceId: defaultServiceId, 
             greeting: churchGreeting,
-            message: churchMessage, additionalWelcome: churchAdditionalWelcome,
+            message: churchMessage, additionalWelcome: churchAdditionalWelcome, 
+            waiting: churchWaitingMessage,
             language:  churchLang, translationLanguages: translationLanguages,
             base64Logo: churchLogoBase64
         })
     } catch (error) {
         res.json({ error });
+    }
+})
+
+app.get('/serviceStatus', async (req, res) => {
+    try {
+        const { serviceId } = req.query;
+        // See if this service ID exists in the service map
+        const active = serviceSubscriptionMap.get(serviceId);
+        console.log(`Checking if ${serviceId} exists in the serviceSubscriptionMap: ${active}`);
+        if (active === true) {
+            res.json( {active: true});
+        } else {
+            res.json( { active: false});
+        }
+    } catch (error) {
+        res.json( { error });
     }
 })
 
