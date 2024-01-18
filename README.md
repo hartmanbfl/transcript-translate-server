@@ -130,6 +130,8 @@ For that reason, you will need to setup some items in the .env file running in R
 - **CHURCH_GREETING**: Message that appears at top of app
 - **CHURCH_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.  
 - **CHURCH_ADDITIONAL_WELCOME**: Specially themed message at the bottom of the greeting
+- **CHURCH_LOGO_BASE64**: A Base64 string representing the church logo.  See next section for instructions on creating this string.
+- **CHURCH_WAITING_MESSAGE**: Message that appears at the bottom of the app telling the user that the Translation Service isn't ready yet.
 - **TRANSLATION_LANGUAGES**: Which languages you want to appear in the mobile app
 - **DEBABEL_CLIENT_APP**: The URL of the client web app.  This is used for generating the QR code automatically.          
 - **SERVICE_TIMEOUT**: The amount of time in minutes before the transcription/translation service automatically 
