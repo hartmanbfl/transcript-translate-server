@@ -5,8 +5,11 @@ To run the server, you will need to provide credentials for Deepgram, Firebase a
 Note:  you can test with the free version of Google Translate by setting the environment variable `USE_GOOGLE_TRANSLATE_SUBSCRIPTION` to false in .env.
 
 ## Setup
+**NOTE**: It is possible to create the servers for running the front and backends of DeBabel from the main 
+    GitHub repository that I maintain.  This is the easiest way to setup to run.  If you choose to use this
+    approach, you can skip step 1 of forking/cloning the repository.
 1.  Either Fork or Clone this repository.  Recommend that you use Fork in order to attach 
-   to Render using the instructions later on in this guide.  
+    to Render using the instructions later on in this guide.  
     - Go to https://github.com/hartmanbfl/transcript-translate-server and click `Fork` (button near top right)   
     - Login to GitHub if not already logged in.  In you don't have an account, create one - they are free!
     - At this point you may have to click the `Fork` button again if on the main repository screen.  You 
@@ -91,13 +94,16 @@ Prerequisite:  ensure that you have a GitHub account in order to access the DeBa
 2.  Create the Server Instance
     - Click `New Web Service` in the Render Dashboard 
     - Select `Build and deploy from a Git repository` and click `Next`
-    - Click on `Connect GitHub` 
-    - Enter credentials to sign in to GitHub.  If you don't have a GitHub account, create a free account and return to this step. 
-    - On the next screen click on `Authorize Render`
-    - On the Install Render screen I would recommend selecting `Only select repositories` 
-      and then select the translation repository that we forked at the beginning
-    - Click `Install`  
-    - On the Create a new Web Service screen, click `Connect` next to your forked repository
+    - If you are using the master repository:
+        - Under `Public Git repository` enter https://github.com/hartmanbfl/transcript-translate-server and click `Continue`
+    - If you are using your own fork/clone of the repository:
+        - Click on `Connect GitHub` 
+        - Enter credentials to sign in to GitHub.  If you don't have a GitHub account, create a free account and return to this step. 
+        - On the next screen click on `Authorize Render`
+        - On the Install Render screen I would recommend selecting `Only select repositories` 
+          and then select the translation repository that we forked at the beginning
+        - Click `Install`  
+        - On the Create a new Web Service screen, click `Connect` next to your forked repository
     - Fill out the deployment options (if not specified below, keep the default):
         - Name: choose a unique name for your server (note that this name will be used for the domain name)
         - Region: choose where this server will be running
@@ -170,27 +176,45 @@ Render environment variables.  Here are the steps for adding it:
 2.  Create an account or login to vercel.com
     - Click `Sign Up`
     - Choose `Hobby`, enter your name and click `Continue`
-    - Select `Continue with GitHub`, make sure the correct GitHub identity is shown and then click `Authorize Vercel`.  It 
+    - **If you are using your own Fork of the DeBabel repository**, select `Continue with GitHub`, 
+      make sure the correct GitHub identity is shown and then click `Authorize Vercel`.  It 
       may take several seconds, but should go to main Project dashboard
 3.  Import the DeBabel repository into Vercel
-    - Under **Import Git Repository** click `Install`      
-    - In the Install Vercel dialog page, select `Only select repositories`, select the `debabel` 
-      project from the list and click `Install`
-    - Login with GitHub credentials and click `Confirm`.  You should now see the project under the **Import Git Repository** list
-4.  Configure the debabel project  
-    - Click `Import` next to the debabel repository
-    - Add Environment Variables
-        - **NEXT_PUBLIC_SERVER_NAME**: set this to the domain of the server (e.g. https://debabel-server-example.onrender.com) and click `Save`. 
-          This can be found near the top of the Render.com Dashboard for the server.
-    - Click `Deploy`. This will deploy the web app.  
-    - Click `Continue to Dashboard`
-    - Make note of the Domain URL where it is deployed and use it for the `DEBABEL_CLIENT_APP` environment variable in the server running in Render 
-5.  **NOTE**: if you make any changes to environement variables (e.g. server name), you will need to do a re-deployment
+    - If you are using the main repository:
+        - Under **Import Git Repository** click `Import Third-Party Git Repository`
+        - Enter the URL of the main DeBabel Git Repo:  https://github.com/hartmanbfl/debabel
+        - Although you are pointing to the master repository, Vercel requires you to use a copy in 
+          your own GitHub.  In the popup window, log in to GitHub and for now choose `All repositories` 
+          and then click `Install`
+        - Enter a Repository Name (it can be anything) and click `Create`. This will clone the 
+          master repository into your personal repo.
+        - Click `Continue to Dashboard`  
+        - Make note of the Domain URL where it is deployed and use it for the `DEBABEL_CLIENT_APP` environment variable in the server running in Render  
+        - Click `Settings` in top toolbar
+        - Click `Environment Variables` in left navigation bar
+        - Add the Key `NEXT_PUBLIC_SERVER_NAME` with Value set to the domain of the server (e.g. https://debabel-server-example.onrender.com) and click `Save`.
+        - Click `Deployments` on top bar
+        - Click the 3-dot menu to the right of the most recent deployment and select `Redeploy`
+        - Click `Redeploy`
+    - If you are using your own fork of the repository:
+        - Under **Import Git Repository** click `Install`      
+        - In the Install Vercel dialog page, select `Only select repositories`, select the `debabel` 
+          project from the list and click `Install`
+        - Login with GitHub credentials and click `Confirm`.  You should now see the project under the **Import Git Repository** list
+        - Click `Import` next to the debabel repository
+        - Add Environment Variables
+            - **NEXT_PUBLIC_SERVER_NAME**: set this to the domain of the server (e.g. https://debabel-server-example.onrender.com) and click `Save`. 
+              This can be found near the top of the Render.com Dashboard for the server.
+        - Click `Deploy`. This will deploy the web app.  
+        - Click `Continue to Dashboard`
+        - Make note of the Domain URL where it is deployed and use it for the `DEBABEL_CLIENT_APP` environment variable in the server running in Render 
+4.  **NOTE**: if you make any changes to environement variables (e.g. server name), you will need to do a re-deployment
     - Go to the Deployments page by clicking `Deployments` in the top navigation bar
     - Click the 3-dat menu to the right of the most recent deployment and select `Redeploy`
     - Click `Redeploy`
-6.  In your Render account, add the `DEBABEL_CLIENT_APP` environment variable to the .env file and click `Save Changes`.
+5.  In your Render account, add the `DEBABEL_CLIENT_APP` environment variable to the .env file and click `Save Changes`.
     Wait for the service to redeploy (can be seen in Logs) and go back to Vercel    
+6.  Go to the main domain URL that Vercel created for your app   
 
 ## Troubleshooting    
 - If the mobile app isn't rendering any data, go to the Render server and make sure it is running.  
