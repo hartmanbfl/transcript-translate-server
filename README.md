@@ -222,3 +222,20 @@ Render environment variables.  Here are the steps for adding it:
   shutdown during inactivity.
 - I've had cases where I've had to restart the server by clicking `Manual Deploy->Restart Service`    
  
+
+# Screenshots
+## Login Screen
+ ![login form](/images/login-form.png)
+
+## Server Control Page
+ ![control page](/images/control-page.png)
+
+## Mobile App Main Screen Examples 
+ ![main app screen English](/images/nefc-front.png)
+<br/><br/>
+ ![main app screen German](/images/gdot-front.png)
+<br/><br/>
+ ![display languages](/images/gdot-front-languages.png)
+
+## Translation Screen
+ ![translation live in app](/images/live-translation-app.jpeg)
