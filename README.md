@@ -132,7 +132,7 @@ For that reason, you will need to setup some items in the .env file running in R
 - **DEFAULT_SERVICE_CODE**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.  
    The same number can be used all the time as long as there are not two simulataneous services going on using the software.
 - **CHURCH_KEY**: This can be any word, phrase, etc., but it is used by operators to be able to start the streaming service.  
-   I typically choose church name or abbreviation.
+   I typically choose church name or abbreviation (e.g. NEFC for North Evington Free Church).
 - **CHURCH_GREETING**: Message that appears at top of app
 - **CHURCH_MESSAGE**: Array of messages that appear in front page of app.  Each message string will appear on it's own paragraph.  
 - **CHURCH_ADDITIONAL_WELCOME**: Specially themed message at the bottom of the greeting
