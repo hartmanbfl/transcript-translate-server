@@ -129,7 +129,7 @@ Current hackathon 2023 version is deployed to render at https://debabel-server.o
 ## Configuring the Server for a Specific Church
 The way that the mobile app will appear is driven by data controlled on the server side.  
 For that reason, you will need to setup some items in the .env file running in Render for your church.
-- **DEFAULT_SERVICE_CODE**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.  
+- **DEFAULT_SERVICE_ID**: this can be any number, but it is used in the QR code that is generated to distinguish a particular service.  
    The same number can be used all the time as long as there are not two simulataneous services going on using the software.
 - **CHURCH_KEY**: This can be any word, phrase, etc., but it is used by operators to be able to start the streaming service.  
    I typically choose church name or abbreviation (e.g. NEFC for North Evington Free Church).
