@@ -316,6 +316,9 @@ controlIo.on('connection', (socket) => {
             const room = `${serviceCode}:heartbeat`;
             io.to(room).emit('livestreaming');
         }
+        // Send back the current subscriber list
+        const jsonString = getActiveLanguages(serviceCode);
+        socket.emit('subscribers', jsonString); 
     })
 
 });
@@ -418,6 +421,10 @@ const getActiveLanguages = (serviceId) => {
 
 // API Calls for getting information about the subscribers
 // Get all the subscribers in a specific room (Room = serviceId:lang)
+// Example JSON:
+// {
+//   "clients": 2
+// }
 app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
     try {
         const roomId = req.params.id;
@@ -444,7 +451,6 @@ app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
 //    },
 //  ]
 //}
-
 app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     try {
         const serviceId = req.params.serviceId;
@@ -456,6 +462,11 @@ app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     }
 });
 
+// Return status of the service
+// Example JSON:
+// {
+//   "status": "offline"
+// }
 app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
     try {
         const serviceId = req.params.serviceId;
@@ -467,7 +478,21 @@ app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
     }
 })
 
+
 // Get all the subscribers in all the rooms
+// Example JSON:
+// {
+//   "1234:de": [
+//     "cENBYw_9R2EsjIe_AAAN"
+//   ],
+//   "1234:transcript": [
+//     "cENBYw_9R2EsjIe_AAAN",
+//     "MH_fui-MF6bG4kcdAAAR"
+//   ],
+//   "1234:uk": [
+//     "MH_fui-MF6bG4kcdAAAR"
+//   ]
+// }
 app.get('/rooms/subscribers', async (req, res) => {
     try {
         let subscriberString = {};
@@ -482,6 +507,17 @@ app.get('/rooms/subscribers', async (req, res) => {
 });
 
 // Get all the clients (unique ID) in all the rooms
+// Example JSON:
+// {
+//   "cENBYw_9R2EsjIe_AAAN": [
+//     "1234:de",
+//     "1234:transcript"
+//   ],
+//   "MH_fui-MF6bG4kcdAAAR": [
+//     "1234:uk",
+//     "1234:transcript"
+//   ]
+// }
 app.get('/clients/rooms', async (req, res) => {
     try {
         let subscriberString = {};

@@ -338,9 +338,8 @@ window.addEventListener("load", async () => {
 
     // Listen for subscriber changes
     controlSocket.emit('monitor', serviceCode);
-    controlSocket.on(`${serviceCode}`, (json) => {
-        //debug        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
-
+    controlSocket.on('subscribers', (json) => {
+        console.log(`Received subscriber list: ${JSON.stringify(json, null, 2)}`);
         // Update the list in the monitor, first clear out current entries
         while (dynamicMonitorList.firstChild) {
             dynamicMonitorList.removeChild(dynamicMonitorList.firstChild);
@@ -354,6 +353,22 @@ window.addEventListener("load", async () => {
             })
         }
     })
+//    controlSocket.on(`${serviceCode}`, (json) => {
+//        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
+//
+//        // Update the list in the monitor, first clear out current entries
+//        while (dynamicMonitorList.firstChild) {
+//            dynamicMonitorList.removeChild(dynamicMonitorList.firstChild);
+//        }
+//        const languageArray = json.languages;
+//        if (languageArray !== undefined) {
+//            languageArray.forEach((language) => {
+//                const listItem = document.createElement('li');
+//                listItem.innerHTML = `<strong>${getLanguageString(language.name)}:</strong> ${language.subscribers}`;
+//                dynamicMonitorList.appendChild(listItem);
+//            })
+//        }
+//    })
 
     // Populate the dropdown list of audio input devices
     await getUserAudioDevices();
