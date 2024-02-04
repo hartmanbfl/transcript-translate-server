@@ -395,8 +395,9 @@ const getActiveLanguages = (serviceId) => {
 
     // Get the languages currently active 
     const langArray = serviceLanguageMap.get(serviceId);
-    if (langArray.length == 0 && transcriptSubscribers == 0) {
-        return { result: "There are no languages currently being subscribed to." };
+    if (langArray == undefined || langArray.length == 0 && transcriptSubscribers == 0) {
+//        return { result: "There are no languages currently being subscribed to." };
+        return { jsonData };
     }
 
     // First put in transcript subscribers
