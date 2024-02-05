@@ -35,6 +35,7 @@ const server = http.createServer(app);
 
 app.use(cors());
 const io = new Server(server, {
+    connectionStateRecovery: {},
     path: '/socket.io',
     cors: {
         origin: "*"
@@ -189,6 +190,9 @@ const removeRoomFromClient = (data) => {
 const listenForClients = () => {
     io.on('connection', (socket) => {
         console.log(`Client ${socket.id} / ${socket.handshake.address} / ${socket.handshake.headers['user-agent']} connected to our socket.io public namespace`);
+        if (!socket.recovered) {
+            console.log(`Unable to recover socket connection with ${socket.id}`);
+        }
         socket.on('disconnect', () => {
             console.log(`Client ${socket.id} disconnected`);
 
