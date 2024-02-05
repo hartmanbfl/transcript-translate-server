@@ -35,6 +35,10 @@ const languages = [
         value: "Hindi",
     },
     {
+        key: "it",
+        value: "Italian",
+    },
+    {
         key: "ro",
         value: "Romanian",
     },
