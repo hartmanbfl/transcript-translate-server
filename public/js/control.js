@@ -243,6 +243,7 @@ const startServiceTimer = () => {
 }
 const stopServiceTimer = () => {
     clearTimeout(serviceTimer);
+    clearInterval(serviceInterval);
 }
 
 
