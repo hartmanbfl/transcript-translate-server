@@ -35,6 +35,7 @@ const server = http.createServer(app);
 
 app.use(cors());
 const io = new Server(server, {
+    connectionStateRecovery: {},
     path: '/socket.io',
     cors: {
         origin: "*"
@@ -128,7 +129,7 @@ const removeClientFromRoom = (data) => {
     const { room, socketId } = data;
     //debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
-        console.log(`WARNING, room-> ${room} is already empty`);
+        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from roomSubscriptionMap room-> ${room} since it is now empty`);
     } else {
         // Remove this client from the room
         let subArray = roomSubscriptionMap.get(room);
@@ -157,7 +158,6 @@ const removeClientFromRoom = (data) => {
 }
 const addRoomToClient = (data) => {
     const { room, socketId } = data;
-    //debug    console.log(`addRoomToClient: room-> ${room}, socketId-> ${socketId}`);
     if (clientSubscriptionMap.get(socketId) === undefined) {
         clientSubscriptionMap.set(socketId, [room]);
     } else {
@@ -169,9 +169,8 @@ const addRoomToClient = (data) => {
 }
 const removeRoomFromClient = (data) => {
     const { room, socketId } = data;
-    //debug    console.log(`removeRoomFromClient: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
-        console.log(`WARNING, room-> ${room} is already empty`);
+        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from room-> ${room} since it is already empty`);
     } else {
         // Remove the room from the client
         let roomArray = clientSubscriptionMap.get(socketId);
@@ -189,6 +188,9 @@ const removeRoomFromClient = (data) => {
 const listenForClients = () => {
     io.on('connection', (socket) => {
         console.log(`Client ${socket.id} / ${socket.handshake.address} / ${socket.handshake.headers['user-agent']} connected to our socket.io public namespace`);
+        if (!socket.recovered) {
+            console.log(`Unable to recover socket connection with ${socket.id}`);
+        }
         socket.on('disconnect', () => {
             console.log(`Client ${socket.id} disconnected`);
 
@@ -206,10 +208,6 @@ const listenForClients = () => {
         socket.on('join', (room) => {
             try {
                 const { serviceId, language } = parseRoom(room);
-                console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
-
-                // Make sure sericeId and language are not undefined
-// test                if (!isRoomValid({ serviceId, language })) return;
 
                 socket.join(room);
 
@@ -237,9 +235,6 @@ const listenForClients = () => {
         socket.on('leave', (room) => {
             try {
                 const { serviceId, language } = parseRoom(room);
-
-                // Make sure sericeId and language are not undefined
-//test                if (!isRoomValid({ serviceId, language })) return;
 
                 socket.leave(room);
                 console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
@@ -276,15 +271,11 @@ controlIo.on('connection', (socket) => {
     // Start listening for mobile clients to join
     listenForClients();
 
-    socket.on('disconnect', () => {
-        console.log(`Control io disconnected for client-> ${socket.id}`);
+    socket.on('disconnect', (reason) => {
+        console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
     });
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
-
-        // Send out a "hearbeat" message that service is active
-        //        const hearbeat = `${serviceCode}:heartbeat`;
-        //        socket.to(hearbeat).emit('heartbeat');
 
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
@@ -301,10 +292,11 @@ controlIo.on('connection', (socket) => {
         registerForServiceTranscripts(listenerData);
 
         roomEmitter.on('subscriptionChange', (service) => {
-            console.log(`Detected subscription change for service: ${service}`);
+            if (process.env.EXTRA_DEBUGGING) console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(service);
             const room = service;
-            console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
+            
+            if (process.env.EXTRA_DEBUGGING) console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
             socket.emit(room, jsonString);
         })
     })
@@ -316,6 +308,9 @@ controlIo.on('connection', (socket) => {
             const room = `${serviceCode}:heartbeat`;
             io.to(room).emit('livestreaming');
         }
+        // Send back the current subscriber list
+        const jsonString = getActiveLanguages(serviceCode);
+        socket.emit('subscribers', jsonString); 
     })
 
 });
@@ -392,8 +387,9 @@ const getActiveLanguages = (serviceId) => {
 
     // Get the languages currently active 
     const langArray = serviceLanguageMap.get(serviceId);
-    if (langArray.length == 0 && transcriptSubscribers == 0) {
-        return { result: "There are no languages currently being subscribed to." };
+    if (langArray == undefined || langArray.length == 0 && transcriptSubscribers == 0) {
+//        return { result: "There are no languages currently being subscribed to." };
+        return { jsonData };
     }
 
     // First put in transcript subscribers
@@ -418,6 +414,10 @@ const getActiveLanguages = (serviceId) => {
 
 // API Calls for getting information about the subscribers
 // Get all the subscribers in a specific room (Room = serviceId:lang)
+// Example JSON:
+// {
+//   "clients": 2
+// }
 app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
     try {
         const roomId = req.params.id;
@@ -444,7 +444,6 @@ app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
 //    },
 //  ]
 //}
-
 app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     try {
         const serviceId = req.params.serviceId;
@@ -456,6 +455,11 @@ app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     }
 });
 
+// Return status of the service
+// Example JSON:
+// {
+//   "status": "offline"
+// }
 app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
     try {
         const serviceId = req.params.serviceId;
@@ -467,7 +471,21 @@ app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
     }
 })
 
+
 // Get all the subscribers in all the rooms
+// Example JSON:
+// {
+//   "1234:de": [
+//     "cENBYw_9R2EsjIe_AAAN"
+//   ],
+//   "1234:transcript": [
+//     "cENBYw_9R2EsjIe_AAAN",
+//     "MH_fui-MF6bG4kcdAAAR"
+//   ],
+//   "1234:uk": [
+//     "MH_fui-MF6bG4kcdAAAR"
+//   ]
+// }
 app.get('/rooms/subscribers', async (req, res) => {
     try {
         let subscriberString = {};
@@ -482,6 +500,17 @@ app.get('/rooms/subscribers', async (req, res) => {
 });
 
 // Get all the clients (unique ID) in all the rooms
+// Example JSON:
+// {
+//   "cENBYw_9R2EsjIe_AAAN": [
+//     "1234:de",
+//     "1234:transcript"
+//   ],
+//   "MH_fui-MF6bG4kcdAAAR": [
+//     "1234:uk",
+//     "1234:transcript"
+//   ]
+// }
 app.get('/clients/rooms', async (req, res) => {
     try {
         let subscriberString = {};

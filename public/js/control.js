@@ -1,11 +1,12 @@
 // Use the control namespace to communicate to the server via WSS.
-const controlSocket = io('/control')
+const controlSocket = io('/control', { autoConnect: false });
 
 let selectedLocale = "en-GB";
 let defaultServiceCode = null;
 let serviceCode;
 let streamingStatus = "offline";
 let serviceTimer;
+let serviceInterval;
 let serviceTimerDuration = 90 * 60 * 1000; // default to 90 minutes
 
 const languages = [
@@ -32,6 +33,14 @@ const languages = [
     {
         key: "hi",
         value: "Hindi",
+    },
+    {
+        key: "it",
+        value: "Italian",
+    },
+    {
+        key: "ro",
+        value: "Romanian",
     },
     {
         key: "ru",
@@ -155,7 +164,7 @@ const processConfigurationProperties = async () => {
     const resp = await fetch('/configuration', {
         method: 'GET'
     }).then(r => r.json())
-    .catch(error => alert(error));
+        .catch(error => alert(error));
 
     if (resp.error) {
         console.log(`Error fetching configuration: ${resp.error}`);
@@ -167,7 +176,7 @@ const processConfigurationProperties = async () => {
     selectedLocale = resp.hostLanguage;
     defaultServiceCode = resp.defaultServiceId;
     serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
-    console.log(`Setting service timeout to ${serviceTimerDuration} milliseconds and language to ${selectedLocale}.`);
+    console.log(`Setting service timeout to ${serviceTimerDuration/1000} seconds and language to ${selectedLocale}.`);
 }
 
 const getLanguageString = (locale) => {
@@ -211,8 +220,15 @@ const stopHeartbeatTimer = () => {
 }
 
 const startServiceTimer = () => {
+    const oneMinute = 1 * 60 * 1000;
     clearTimeout(serviceTimer);
-    console.log(`Starting service timer with duration ${serviceTimerDuration}`)
+    clearInterval(serviceInterval);
+    console.log(`Starting service timer with duration ${serviceTimerDuration/1000/60} minutes`)
+    let timeRemaining = serviceTimerDuration / 1000 / 60; // minutes
+    serviceInterval = setInterval(() => {
+        timeRemaining = timeRemaining - 1; 
+        console.log(`Time remaining: ${timeRemaining} minutes`);
+    }, oneMinute); // every minute
     serviceTimer = setTimeout(async () => {
         // Automatically stop the streaming
         console.log(`Stopping livestream due to timeout.`);
@@ -333,14 +349,22 @@ window.addEventListener("load", async () => {
     sessionStorage.setItem('serviceId', serviceCode);
     serviceId.innerHTML = serviceCode;
 
-    // Start sending heartbeats to the server
-    startHeartbeatTimer();
+    // Start communicating via websocket to the server
+    controlSocket.connect();
+
 
     // Listen for subscriber changes
+    controlSocket.on('connect', () => {
+        console.log(`Control page connected to the control socket.io: ${controlSocket.id}`);
+        // Start sending heartbeats to the server
+        startHeartbeatTimer();
+    })
+    controlSocket.on('disconnect', (reason) => {
+        console.log(`Control page disconnected from the control socket.io: ${controlSocket.id}, reason-> ${reason}`);
+    })
     controlSocket.emit('monitor', serviceCode);
-    controlSocket.on(`${serviceCode}`, (json) => {
-        //debug        console.log(`Subscriber change: ${JSON.stringify(json, null, 2)}`);
-
+    controlSocket.on('subscribers', (json) => {
+        //debug        console.log(`Received subscriber list: ${JSON.stringify(json, null, 2)}`);
         // Update the list in the monitor, first clear out current entries
         while (dynamicMonitorList.firstChild) {
             dynamicMonitorList.removeChild(dynamicMonitorList.firstChild);
