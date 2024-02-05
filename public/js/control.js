@@ -343,8 +343,8 @@ window.addEventListener("load", async () => {
         // Start sending heartbeats to the server
         startHeartbeatTimer();
     })
-    controlSocket.on('disconnect', () => {
-        console.log(`Control page disconnected from the control socket.io: ${controlSocket.id}`);
+    controlSocket.on('disconnect', (reason) => {
+        console.log(`Control page disconnected from the control socket.io: ${controlSocket.id}, reason-> ${reason}`);
     })
     controlSocket.emit('monitor', serviceCode);
     controlSocket.on('subscribers', (json) => {
