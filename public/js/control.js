@@ -1,5 +1,5 @@
 // Use the control namespace to communicate to the server via WSS.
-const controlSocket = io('/control')
+const controlSocket = io('/control', { autoConnect: false });
 
 let selectedLocale = "en-GB";
 let defaultServiceCode = null;
@@ -155,7 +155,7 @@ const processConfigurationProperties = async () => {
     const resp = await fetch('/configuration', {
         method: 'GET'
     }).then(r => r.json())
-    .catch(error => alert(error));
+        .catch(error => alert(error));
 
     if (resp.error) {
         console.log(`Error fetching configuration: ${resp.error}`);
@@ -333,13 +333,22 @@ window.addEventListener("load", async () => {
     sessionStorage.setItem('serviceId', serviceCode);
     serviceId.innerHTML = serviceCode;
 
-    // Start sending heartbeats to the server
-    startHeartbeatTimer();
+    // Start communicating via websocket to the server
+    controlSocket.connect();
+
 
     // Listen for subscriber changes
+    controlSocket.on('connect', () => {
+        console.log(`Control page connected to the control socket.io: ${controlSocket.id}`);
+        // Start sending heartbeats to the server
+        startHeartbeatTimer();
+    })
+    controlSocket.on('disconnect', () => {
+        console.log(`Control page disconnected from the control socket.io: ${controlSocket.id}`);
+    })
     controlSocket.emit('monitor', serviceCode);
     controlSocket.on('subscribers', (json) => {
-//debug        console.log(`Received subscriber list: ${JSON.stringify(json, null, 2)}`);
+        //debug        console.log(`Received subscriber list: ${JSON.stringify(json, null, 2)}`);
         // Update the list in the monitor, first clear out current entries
         while (dynamicMonitorList.firstChild) {
             dynamicMonitorList.removeChild(dynamicMonitorList.firstChild);

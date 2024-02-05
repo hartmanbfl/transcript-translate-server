@@ -280,8 +280,8 @@ controlIo.on('connection', (socket) => {
     // Start listening for mobile clients to join
     listenForClients();
 
-    socket.on('disconnect', () => {
-        console.log(`Control io disconnected for client-> ${socket.id}`);
+    socket.on('disconnect', (reason) => {
+        console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
     });
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
