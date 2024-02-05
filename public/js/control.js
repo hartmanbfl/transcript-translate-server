@@ -223,7 +223,7 @@ const startServiceTimer = () => {
     let timeRemaining = serviceTimerDuration / 1000 / 60; // minutes
     serviceInterval = setInterval(() => {
         timeRemaining = timeRemaining - 1; 
-        console.log(`Time remaining: ${timeRemaining}`);
+        console.log(`Time remaining: ${timeRemaining} minutes`);
     }, oneMinute); // every minute
     serviceTimer = setTimeout(async () => {
         // Automatically stop the streaming
