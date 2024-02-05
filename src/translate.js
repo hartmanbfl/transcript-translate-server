@@ -41,7 +41,7 @@ const translateText = async (data) => {
 const distributeTranslation = (data) => {
     const { io, channel, translation } = data;
     try {
-        console.log(`Sending on ${channel}, Cloud translated-> ${translation}`);
+        if (process.env.DEBUG_TRANSLATION) console.log(`Sending on ${channel}, Cloud translated-> ${translation}`);
         io.to(channel).emit("translation", translation);
     } catch (error) {
         console.log(`Error in distribute translation: ${error}`);
@@ -81,7 +81,7 @@ export const registerForServiceTranscripts = (data) => {
     const subscription = transcriptAvailServiceSub.subscribe(async (data) => {
         const { serviceCode, transcript, serviceLanguageMap } = data;
 
-        console.log(`Received transcript: ${serviceCode} ${transcript}`);
+        if (process.env.DEBUG_TRANSCRIPT) console.log(`Received transcript: ${serviceCode} ${transcript}`);
 
         // Send the transcript to any subscribers 
         let channel = `${serviceCode}:transcript`;
@@ -96,8 +96,10 @@ export const registerForServiceTranscripts = (data) => {
         }
 
         // Now iterate over the languages, getting and emitting the translation
-        console.log(`Current languagesForChannel: `) 
-        printLanguageMap(serviceLanguageMap);
+        if (process.env.EXTRA_DEBUGGING) {
+            console.log(`Current languagesForChannel: `)
+            printLanguageMap(serviceLanguageMap);
+        }
         languagesForChannel.forEach(async lang => {
 
             if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {

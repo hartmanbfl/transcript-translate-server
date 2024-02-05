@@ -6,6 +6,7 @@ let defaultServiceCode = null;
 let serviceCode;
 let streamingStatus = "offline";
 let serviceTimer;
+let serviceInterval;
 let serviceTimerDuration = 90 * 60 * 1000; // default to 90 minutes
 
 const languages = [
@@ -167,7 +168,7 @@ const processConfigurationProperties = async () => {
     selectedLocale = resp.hostLanguage;
     defaultServiceCode = resp.defaultServiceId;
     serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
-    console.log(`Setting service timeout to ${serviceTimerDuration} milliseconds and language to ${selectedLocale}.`);
+    console.log(`Setting service timeout to ${serviceTimerDuration/1000} seconds and language to ${selectedLocale}.`);
 }
 
 const getLanguageString = (locale) => {
@@ -211,8 +212,15 @@ const stopHeartbeatTimer = () => {
 }
 
 const startServiceTimer = () => {
+    const oneMinute = 1 * 60 * 1000;
     clearTimeout(serviceTimer);
-    console.log(`Starting service timer with duration ${serviceTimerDuration}`)
+    clearInterval(serviceInterval);
+    console.log(`Starting service timer with duration ${serviceTimerDuration/1000/60} minutes`)
+    let timeRemaining = serviceTimerDuration / 1000 / 60; // minutes
+    serviceInterval = setInterval(() => {
+        timeRemaining = timeRemaining - 1; 
+        console.log(`Time remaining: ${timeRemaining}`);
+    }, oneMinute); // every minute
     serviceTimer = setTimeout(async () => {
         // Automatically stop the streaming
         console.log(`Stopping livestream due to timeout.`);
