@@ -129,7 +129,7 @@ const removeClientFromRoom = (data) => {
     const { room, socketId } = data;
     //debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
-        console.log(`WARNING, room-> ${room} is already empty`);
+        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from roomSubscriptionMap room-> ${room} since it is now empty`);
     } else {
         // Remove this client from the room
         let subArray = roomSubscriptionMap.get(room);
@@ -158,7 +158,6 @@ const removeClientFromRoom = (data) => {
 }
 const addRoomToClient = (data) => {
     const { room, socketId } = data;
-    //debug    console.log(`addRoomToClient: room-> ${room}, socketId-> ${socketId}`);
     if (clientSubscriptionMap.get(socketId) === undefined) {
         clientSubscriptionMap.set(socketId, [room]);
     } else {
@@ -170,9 +169,8 @@ const addRoomToClient = (data) => {
 }
 const removeRoomFromClient = (data) => {
     const { room, socketId } = data;
-    //debug    console.log(`removeRoomFromClient: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
-        console.log(`WARNING, room-> ${room} is already empty`);
+        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from room-> ${room} since it is already empty`);
     } else {
         // Remove the room from the client
         let roomArray = clientSubscriptionMap.get(socketId);
@@ -210,10 +208,6 @@ const listenForClients = () => {
         socket.on('join', (room) => {
             try {
                 const { serviceId, language } = parseRoom(room);
-                console.log(`Joining service-> ${serviceId}, Language-> ${language}`);
-
-                // Make sure sericeId and language are not undefined
-// test                if (!isRoomValid({ serviceId, language })) return;
 
                 socket.join(room);
 
@@ -241,9 +235,6 @@ const listenForClients = () => {
         socket.on('leave', (room) => {
             try {
                 const { serviceId, language } = parseRoom(room);
-
-                // Make sure sericeId and language are not undefined
-//test                if (!isRoomValid({ serviceId, language })) return;
 
                 socket.leave(room);
                 console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
@@ -286,10 +277,6 @@ controlIo.on('connection', (socket) => {
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
 
-        // Send out a "hearbeat" message that service is active
-        //        const hearbeat = `${serviceCode}:heartbeat`;
-        //        socket.to(hearbeat).emit('heartbeat');
-
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
         const transciptData = { serviceCode, transcript, serviceLanguageMap };
@@ -305,7 +292,7 @@ controlIo.on('connection', (socket) => {
         registerForServiceTranscripts(listenerData);
 
         roomEmitter.on('subscriptionChange', (service) => {
-            console.log(`Detected subscription change for service: ${service}`);
+            if (process.env.EXTRA_DEBUGGING) console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(service);
             const room = service;
             
