@@ -79,10 +79,16 @@ const getUserAudioDevices = async () => {
                 option.text = device.label || `Microphone ${audioInputSelect.length + 1}`;
                 audioInputSelect.appendChild(option);
             });
+            if (localStorage.getItem('selectedAudioDevice') != null) {
+                audioInputSelect.value = localStorage.getItem('selectedAudioDevice');
+            }
         })
         .catch((error) => {
             console.error(error);
         });
+    audioInputSelect.addEventListener("change", () => {
+        localStorage.setItem('selectedAudioDevice', audioInputSelect.value);
+    });
 }
 
 let mediaRecorder;
@@ -142,13 +148,16 @@ const setupDeepgram = () => {
             document.getElementById('recording-status').style.display = "none";
             audioForm.style.display = "block";
         })
+
+        // Store values in local storage in case of a refresh
+        localStorage.setItem('churchKey', churchKey);
+
     });
 }
 
 const getQRCode = async (data) => {
     const serviceId = data.serviceId;
 
-    // Validate the key with server/Deepgram
     const resp = await fetch('/qrcode', {
         method: 'POST',
         body: JSON.stringify({ serviceId }),
@@ -307,9 +316,13 @@ const setupSourceLanguage = () => {
 
     localeDropDown.addEventListener("change", () => {
         selectedLocale = localeDropDown.value;
+        localStorage.setItem('selectedLocale', selectedLocale);
     });
 
     // select the initial value
+    if (localStorage.getItem('selectedLocale') != null) {
+        selectedLocale = localStorage.getItem('selectedLocale');
+    }
     console.log(`Setting initial locale to ${selectedLocale}`);
     localeDropDown.value = selectedLocale;
 }
@@ -321,6 +334,10 @@ window.addEventListener("load", async () => {
     const serviceId = document.getElementById('serviceId');
     const interimCheckbox = document.getElementById('interimCheckbox')
     const dynamicMonitorList = document.getElementById('dynamic-monitor-list')
+
+    // Reload from local storage if available
+    document.querySelector('#key').value = localStorage.getItem('churchKey');
+
 
     // Get any configuration properties we need to process from the server
     await processConfigurationProperties();
