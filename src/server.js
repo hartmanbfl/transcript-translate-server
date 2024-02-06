@@ -592,7 +592,7 @@ app.get('/serviceStatus', async (req, res) => {
         const { serviceId } = req.query;
         // See if this service ID exists in the service map
         const active = serviceSubscriptionMap.get(serviceId);
-        console.log(`Checking if ${serviceId} exists in the serviceSubscriptionMap: ${active}`);
+        if (process.env.EXTRA_DEBUGGING) console.log(`Checking if ${serviceId} exists in the serviceSubscriptionMap: ${active}`);
         if (active === true) {
             res.json( {active: true});
         } else {
