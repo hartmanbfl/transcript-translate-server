@@ -1,3 +1,7 @@
+const oneMinute = 1 * 60 * 1000;
+const fiveMinutes = 5 * 60 * 1000;
+
+
 // Use the control namespace to communicate to the server via WSS.
 const controlSocket = io('/control', { autoConnect: false });
 
@@ -7,6 +11,7 @@ let serviceCode;
 let streamingStatus = "offline";
 let serviceTimer;
 let serviceInterval;
+let healthInterval;
 let serviceTimerDuration = 90 * 60 * 1000; // default to 90 minutes
 
 const languages = [
@@ -141,7 +146,7 @@ const setupDeepgram = () => {
         const stopStreaming = document.querySelector(`#disableStreaming`);
         stopStreaming.style.display = "block";
         stopStreaming.addEventListener('click', async () => {
-            stopServiceTimer();
+            stopServiceTimers();
             await closeMicrophone();
             ws.close();
             stopStreaming.style.display = "none";
@@ -185,7 +190,7 @@ const processConfigurationProperties = async () => {
     selectedLocale = resp.hostLanguage;
     defaultServiceCode = resp.defaultServiceId;
     serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
-    console.log(`Setting service timeout to ${serviceTimerDuration/1000} seconds and language to ${selectedLocale}.`);
+    console.log(`Setting service timeout to ${serviceTimerDuration / 1000} seconds and language to ${selectedLocale}.`);
 }
 
 const getLanguageString = (locale) => {
@@ -215,7 +220,7 @@ const startStreamingToDeepgram = () => {
     mediaRecorder.start(250)
 
     // Start timer to protect from streaming going too long
-    startServiceTimer();
+    startServiceTimers();
 }
 
 let heartbeatTimer;
@@ -228,16 +233,14 @@ const stopHeartbeatTimer = () => {
     clearInterval(heartbeatTimer);
 }
 
+const startServiceTimers = () => {
+    stopServiceTimers();
+    startServiceTimer();
+    startServiceInterval();
+    startHealthInterval();
+    console.log(`Starting service timer with duration ${serviceTimerDuration / 1000 / 60} minutes`)
+}
 const startServiceTimer = () => {
-    const oneMinute = 1 * 60 * 1000;
-    clearTimeout(serviceTimer);
-    clearInterval(serviceInterval);
-    console.log(`Starting service timer with duration ${serviceTimerDuration/1000/60} minutes`)
-    let timeRemaining = serviceTimerDuration / 1000 / 60; // minutes
-    serviceInterval = setInterval(() => {
-        timeRemaining = timeRemaining - 1; 
-        console.log(`Time remaining: ${timeRemaining} minutes`);
-    }, oneMinute); // every minute
     serviceTimer = setTimeout(async () => {
         // Automatically stop the streaming
         console.log(`Stopping livestream due to timeout.`);
@@ -248,11 +251,31 @@ const startServiceTimer = () => {
         stopStreaming.style.display = "none";
         document.getElementById('recording-status').style.display = "none";
         audioForm.style.display = "block";
+
+        // Also stop the other intervals 
+        clearInterval(serviceInterval);
+        clearInterval(healthInterval);
     }, serviceTimerDuration);
 }
-const stopServiceTimer = () => {
+const startServiceInterval = () => {
+    let timeRemaining = serviceTimerDuration / 1000 / 60; // minutes
+    serviceInterval = setInterval(() => {
+        timeRemaining = timeRemaining - 1;
+        console.log(`Time remaining: ${timeRemaining} minutes`);
+    }, oneMinute); 
+}
+const startHealthInterval = () => {
+    healthInterval = setInterval(async () => {
+        const health = await fetch('/health', {
+            method: 'GET',
+        });
+    }, oneMinute);
+}
+const stopServiceTimers = () => {
     clearTimeout(serviceTimer);
     clearInterval(serviceInterval);
+    clearInterval(healthInterval);
+    console.log(`Cleared all service timers`);
 }
 
 

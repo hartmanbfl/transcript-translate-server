@@ -657,6 +657,9 @@ app.get('/participant', (req, res) => {
 app.get('/control', isAuthenticated, (req, res) => {
     res.sendFile(__dirname + '/views/control.html');
 })
+app.get('/health', (req, res) => {
+    res.status(200).send('Ok');
+})
 
 server.listen(PORT, () => {
     console.log(`server started on port ${PORT}`);
