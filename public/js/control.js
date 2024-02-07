@@ -107,9 +107,10 @@ const getMicrophone = async () => {
 const closeMicrophone = async () => {
     if (!mediaRecorder) {
         console.log(`Trying to close microphone, but it is currently undefined`);
+    } else {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
     }
-    mediaRecorder.stop();
-    mediaRecorder.stream.getTracks().forEach(track => track.stop());
 }
 
 const setupDeepgram = () => {
@@ -141,6 +142,8 @@ const setupDeepgram = () => {
         ws.onclose = () => {
             console.log(`WebSocket to Deepgram closed`);
             streamingStatus = "offline";
+            console.log(`Stop streaming due to websocket closure`);
+            stopStreamingToDeepgram();
         }
 
         const stopStreaming = document.querySelector(`#disableStreaming`);
@@ -222,6 +225,22 @@ const startStreamingToDeepgram = () => {
     // Start timer to protect from streaming going too long
     startServiceTimers();
 }
+const stopStreamingToDeepgram = async () => {
+    const stopStreaming = document.querySelector(`#disableStreaming`);
+    const audioForm = document.getElementById('audioForm');
+    await closeMicrophone();
+    if (typeof ws !== "undefined") {
+        ws.close();
+    }
+    stopStreaming.style.display = "none";
+    document.getElementById('recording-status').style.display = "none";
+    audioForm.style.display = "block";
+
+    // Also stop the other intervals 
+    clearInterval(serviceInterval);
+    clearInterval(healthInterval);
+
+}
 
 let heartbeatTimer;
 const startHeartbeatTimer = () => {
@@ -244,17 +263,7 @@ const startServiceTimer = () => {
     serviceTimer = setTimeout(async () => {
         // Automatically stop the streaming
         console.log(`Stopping livestream due to timeout.`);
-        const stopStreaming = document.querySelector(`#disableStreaming`);
-        const audioForm = document.getElementById('audioForm');
-        await closeMicrophone();
-        ws.close();
-        stopStreaming.style.display = "none";
-        document.getElementById('recording-status').style.display = "none";
-        audioForm.style.display = "block";
-
-        // Also stop the other intervals 
-        clearInterval(serviceInterval);
-        clearInterval(healthInterval);
+        stopStreamingToDeepgram();
     }, serviceTimerDuration);
 }
 const startServiceInterval = () => {
@@ -262,7 +271,7 @@ const startServiceInterval = () => {
     serviceInterval = setInterval(() => {
         timeRemaining = timeRemaining - 1;
         console.log(`Time remaining: ${timeRemaining} minutes`);
-    }, oneMinute); 
+    }, oneMinute);
 }
 const startHealthInterval = () => {
     healthInterval = setInterval(async () => {
@@ -399,11 +408,14 @@ window.addEventListener("load", async () => {
         console.log(`Control page connected to the control socket.io: ${controlSocket.id}`);
         // Start sending heartbeats to the server
         startHeartbeatTimer();
+        // Register the service Code
+        controlSocket.emit('monitor', serviceCode);
     })
     controlSocket.on('disconnect', (reason) => {
         console.log(`Control page disconnected from the control socket.io: ${controlSocket.id}, reason-> ${reason}`);
+        console.log(`Stop streaming due to control socket disconnection`);
+        stopStreamingToDeepgram();
     })
-    controlSocket.emit('monitor', serviceCode);
     controlSocket.on('subscribers', (json) => {
         //debug        console.log(`Received subscriber list: ${JSON.stringify(json, null, 2)}`);
         // Update the list in the monitor, first clear out current entries
