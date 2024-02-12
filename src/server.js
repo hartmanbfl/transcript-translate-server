@@ -169,8 +169,8 @@ const addRoomToClient = (data) => {
 }
 const removeRoomFromClient = (data) => {
     const { room, socketId } = data;
-    if (roomSubscriptionMap.get(room) === undefined) {
-        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from room-> ${room} since it is already empty`);
+    if (clientSubscriptionMap.get(socketId) === undefined) {
+        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${room} from client-> ${socketId} since it is already empty`);
     } else {
         // Remove the room from the client
         let roomArray = clientSubscriptionMap.get(socketId);
