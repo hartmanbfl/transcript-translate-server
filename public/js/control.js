@@ -287,16 +287,36 @@ const stopServiceTimers = () => {
     console.log(`Cleared all service timers`);
 }
 
-
 let propresenterHost = "localhost";
 let propresenterPort = "1025";
 let previousTranscript = "";
+const pushTranscriptToProPresenter = async (transcript) => {
+    propresenterHost = document.querySelector('#host').value;
+    propresenterPort = document.querySelector('#port').value;
+    const resp = await fetch(`http://${propresenterHost}:${propresenterPort}/v1/message/Translation/trigger`, {
+        method: 'POST',
+        body: JSON.stringify([
+            {
+                name: "Message",
+                text: {
+                    text: previousTranscript + "\n" + transcript
+                }
+            }
+        ]),
+        headers: { 'Content-Type': 'application/json' }
+    }).then(r => r.json()).catch(error => console.log(error))
+    previousTranscript = transcript;
+
+}
+
+
 const handleDeepgramResponse = async (message) => {
     const data = JSON.parse(message.data)
     const transcript = data.channel.alternatives[0].transcript
     const transcriptText = document.getElementById('transcript');
     const transcriptTextBox = document.getElementById('transcript-text-box');
     if (transcript && data.is_final) {
+        if (localStorage.getItem('PRINT_FULL_DEEPGRAM_RESPONSE')) console.log(`DEEPGRAM RESPONSE: ${message.data}`);
         var item = document.createElement('li');
         item.textContent = transcript;
         transcriptText.appendChild(item);
@@ -305,23 +325,8 @@ const handleDeepgramResponse = async (message) => {
 
         // If requested, push latest transcript to ProPresenter
         if (pushToProPresenter) {
-            propresenterHost = document.querySelector('#host').value;
-            propresenterPort = document.querySelector('#port').value;
-            const resp = await fetch(`http://${propresenterHost}:${propresenterPort}/v1/message/Translation/trigger`, {
-                method: 'POST',
-                body: JSON.stringify([
-                    {
-                        name: "Message",
-                        text: {
-                            text: previousTranscript + "\n" + transcript
-                        }
-                    }
-                ]),
-                headers: { 'Content-Type': 'application/json' }
-            }).then(r => r.json()).catch(error => console.log(error))
-            previousTranscript = transcript;
+            await pushTranscriptToProPresenter(transcript);
         }
-
 
         // Send to our server
         const data = { serviceCode, transcript };
