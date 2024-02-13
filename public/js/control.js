@@ -174,7 +174,7 @@ const getQRCode = async (data) => {
 
     if (resp.error) return alert(resp.error);
 
-    return resp.qrCode;
+    return resp.responseObject.qrCode;
 }
 
 const processConfigurationProperties = async () => {

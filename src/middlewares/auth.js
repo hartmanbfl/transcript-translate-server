@@ -1,11 +1,12 @@
 // Firebase
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+import { getFirebaseApiKey } from '../repositories/google.js';
 
 // Firebase auth can be used to restrict access to certain pages of the
 // web app (e.g. the control page)
 const firebaseConfig = {
-    apiKey: process.env.FIREBASE_API_KEY,
+    apiKey: getFirebaseApiKey() 
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const firebaseAuth = getAuth(firebaseApp);

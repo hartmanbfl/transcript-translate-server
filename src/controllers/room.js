@@ -1,5 +1,5 @@
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.js";
-import { parseRoom } from "../utils/room.utils.js";
+import { parseRoom } from "../utils/room.js";
 
 
 // Helper function to make sure room exists for this server

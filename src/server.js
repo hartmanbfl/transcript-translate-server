@@ -5,7 +5,6 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import EventEmitter from 'events';
-//import QRCode from 'qrcode';
 import { Server } from 'socket.io';
 import {
     addTranslationLanguageToService, removeTranslationLanguageFromService,
@@ -14,27 +13,28 @@ import {
 } from './translate.js';
 import { transcriptAvailServiceSub } from "./globals.js";
 
-//// Firebase
-//import { initializeApp } from 'firebase/app';
-//import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-
 // Environment variables
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
 // Get our own URL
-const clientUrl = process.env.DEBABEL_CLIENT_URL || `localhost:${PORT}`;
+const clientUrl = getDebabelClientUrl() || `localhost:${PORT}`;
 
 // Deepgram needs to be imported as CommonJS
 import { createClient} from "@deepgram/sdk";
-import { loginController, logoutController } from './controllers/auth.controller.js';
-import { parseRoom } from './utils/room.utils.js';
-import { isAuthenticated } from './middlewares/auth.middleware.js';
-import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, getRoomsForAllClients, getSubscribersInAllRooms, removeClientFromRoom, removeRoomFromClient } from './controllers/room.controller.js';
-import { qrCodeController } from './controllers/qrcode.controller.js';
-import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from './repositories/index.js';
-const deepgram = createClient(process.env.DEEPGRAM_API_KEY);
+import { loginController, logoutController } from './controllers/auth.js';
+import { parseRoom } from './utils/room.js';
+import { isAuthenticated } from './middlewares/auth.js';
+import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, getRoomsForAllClients, getSubscribersInAllRooms, removeClientFromRoom, removeRoomFromClient } from './controllers/room.js';
+import { qrCodeController } from './controllers/qrcode.js';
+
+// For now have Maps, but this may eventually be DBs for each tenant
+import { getDebabelClientUrl, serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from './repositories/index.js';
+import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchSecretKey, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from './repositories/churchinfo.js';
+import { getDeepgramApiKey, getDeepgramProjectId } from './repositories/deepgram.js';
+
+const deepgram = createClient(getDeepgramApiKey());
 
 const app = express();
 const server = http.createServer(app);
@@ -51,142 +51,8 @@ const io = new Server(server, {
 // Create a control namespace for messages between control page and the server
 const controlIo = io.of("/control")
 
-// Create maps to track the languages per Service
-//const serviceLanguageMap = new Map();
-//const serviceSubscriptionMap = new Map();
-
-// Streaming status per Service
-//const streamingStatusMap = new Map();
-
-// Also track the subscriptions per room { Subscriber: Room[] }
-//const clientSubscriptionMap = new Map();
-//const roomSubscriptionMap = new Map();
-
 // Create an emitter to track changes when clients join/leave rooms
 const roomEmitter = new EventEmitter();
-
-// Helper function to split the room into <serviceId:language>
-//const parseRoom = (room) => {
-//    const roomArray = room.split(":");
-//    const serviceId = roomArray[0];
-//    const language = roomArray[1];
-//    return {
-//        serviceId: serviceId,
-//        language: language
-//    }
-//}
-
-// Helper function to make sure room exists for this server
-//const isRoomValid = (data) => {
-//    const { serviceId, language } = data;
-//    if (typeof serviceId === "undefined") {
-//        console.log(`ERROR: client is attempting to connect to a service that is not currently running on this server.`);
-//        return false;
-//    } else if (typeof language === "undefined") {
-//        console.log(`ERROR: client did not provide a language to subscribe to.`);
-//        return false;
-//    } else if (serviceLanguageMap.get(serviceId) === undefined) {
-//        console.log(`ERROR:  trying to subscribe to a service that isn't currently running.`);
-//        return false;
-//    }
-//    return true;
-//}
-//
-//const disconnectClientFromAllRooms = (data) => {
-//    const { socket } = data;
-//    const client = socket.id;
-//    if (clientSubscriptionMap.get(client) === undefined) {
-//        console.log(`Client ${client} is already disconnected from all rooms.`);
-//    } else {
-//        let subscriberString = {};
-//        for (const [key, value] of clientSubscriptionMap.entries()) {
-//            subscriberString[key] = value;
-//        }
-//        const roomArray = clientSubscriptionMap.get(client);
-//        roomArray.forEach((room) => {
-//            console.log(`CLient ${client} leaving room ${room}`);
-//            socket.leave(room);
-//            removeClientFromRoom({ room, socketId: client });
-//        });
-//        // Remove this client completely
-//        clientSubscriptionMap.set(client, {});
-//        clientSubscriptionMap.delete(client);
-//
-//    }
-//    let subscriberString = {};
-//    for (const [key, value] of clientSubscriptionMap.entries()) {
-//        subscriberString[key] = value;
-//    }
-//}
-//
-//const addClientToRoom = (data) => {
-//    const { room, socketId } = data;
-//    //debug    console.log(`addClientToRoom: room-> ${room}, socketId-> ${socketId}`);
-//    if (roomSubscriptionMap.get(room) === undefined) {
-//        roomSubscriptionMap.set(room, [socketId]);
-//    } else {
-//        let subArray = roomSubscriptionMap.get(room);
-//        if (subArray.indexOf(socketId) === -1) {
-//            subArray.push(socketId);
-//        }
-//    }
-//}
-//const removeClientFromRoom = (data) => {
-//    const { room, socketId } = data;
-//    //debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
-//    if (roomSubscriptionMap.get(room) === undefined) {
-//        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from roomSubscriptionMap room-> ${room} since it is now empty`);
-//    } else {
-//        // Remove this client from the room
-//        let subArray = roomSubscriptionMap.get(room);
-//        const index = subArray.indexOf(socketId);
-//        if (index !== -1) {
-//            subArray.splice(index, 1);
-//        }
-//
-//        // If there are no other clients in this room, delete it
-//        if (subArray.length === 0) {
-//            console.log(`Room ${room} is now empty`);
-//            roomSubscriptionMap.delete(room);
-//
-//            // Also remove this language for this service
-//            const { serviceId, language } = parseRoom(room); 
-//            if (language !== "transcript") {
-//                console.log(`Removing language ${language} from service ${serviceId} in room ${room}`);
-//                const langArray = serviceLanguageMap.get(serviceId);
-//                const langIdx = langArray.indexOf(language);
-//                if (langIdx !== -1) {
-//                    langArray.splice(langIdx, 1);
-//                }
-//            }
-//        }
-//    }
-//}
-//const addRoomToClient = (data) => {
-//    const { room, socketId } = data;
-//    if (clientSubscriptionMap.get(socketId) === undefined) {
-//        clientSubscriptionMap.set(socketId, [room]);
-//    } else {
-//        let subArray = clientSubscriptionMap.get(socketId);
-//        if (subArray.indexOf(room) === -1) {
-//            subArray.push(room);
-//        }
-//    }
-//}
-//const removeRoomFromClient = (data) => {
-//    const { room, socketId } = data;
-//    if (roomSubscriptionMap.get(room) === undefined) {
-//        if (process.env.EXTRA_DEBUGGING) console.log(`Not removing ${socketId} from room-> ${room} since it is already empty`);
-//    } else {
-//        // Remove the room from the client
-//        let roomArray = clientSubscriptionMap.get(socketId);
-//        const roomIdx = roomArray.indexOf(room);
-//        if (roomIdx !== -1) {
-//            roomArray.splice(roomIdx, 1);
-//        }
-//    }
-//}
-
 
 // Websocket connection to the client.  Moved this into its own connection in 
 // order to make sure the server is running and connected first before starting
@@ -322,52 +188,11 @@ controlIo.on('connection', (socket) => {
 });
 
 
-// Firebase auth can be used to restrict access to certain pages of the
-// web app (e.g. the control page)
-//const firebaseConfig = {
-//    apiKey: process.env.FIREBASE_API_KEY,
-//};
-//const firebaseApp = initializeApp(firebaseConfig);
-//const firebaseAuth = getAuth(firebaseApp);
-
-
-//// Middleware to check if user is authenticated
-//const isAuthenticated = (req, res, next) => {
-//    const idParam = req.query.id;
-//    const user = firebaseAuth.currentUser;
-//    if (user !== null || process.env.TEST_MODE === "true") {
-//        next();
-//    } else {
-//        if (idParam != null) {
-//            res.redirect(`/login?id=${idParam}`);
-//        } else {
-//            res.redirect(`/login`);
-//        }
-//    }
-//}
-
-
-const runOnStartup = (req, res, next) => {
-    console.log(`Got request: method->${req.method}, url->${req.url}`);
-    next();
-}
 
 
 app.use(express.static("public"));
 app.use(express.json());
-// DEBUG app.use(runOnStartup);
-
-//const generateQR = async (serviceId) => {
-//    const url = `${clientUrl}?serviceId=${serviceId}`;
-//    try {
-//        // File Test QRCode.toFile(path.join(__dirname, `qrcode-${serviceId}.png`), url);
-//        const qrcode = await QRCode.toString(url, { type: "svg" });
-//        return qrcode;
-//    } catch (err) {
-//        console.log(`ERROR generating QR code for: ${url}`);
-//        return null;
-//    }
-//}
+// DEBUG app.use(logRequests);
 
 const getNumberOfSubscribersInRoom = (room) => {
     try {
@@ -493,18 +318,6 @@ app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
 //   ]
 // }
 app.get('/rooms/subscribers', getSubscribersInAllRooms);
-//app.get('/rooms/subscribers', async (req, res) => {
-//    try {
-//        let subscriberString = {};
-//        for (const [key, value] of roomSubscriptionMap.entries()) {
-//            subscriberString[key] = value;
-//        }
-//        res.json(subscriberString);
-//    } catch (error) {
-//        console.log(`Error getting subscribers: ${error}`);
-//        res.json({ clients: "0" });
-//    }
-//});
 
 // Get all the clients (unique ID) in all the rooms
 // Example JSON:
@@ -519,18 +332,6 @@ app.get('/rooms/subscribers', getSubscribersInAllRooms);
 //   ]
 // }
 app.get('/clients/rooms', getRoomsForAllClients);
-//app.get('/clients/rooms', async (req, res) => {
-//    try {
-//        let subscriberString = {};
-//        for (const [key, value] of clientSubscriptionMap.entries()) {
-//            subscriberString[key] = value;
-//        }
-//        res.json(subscriberString);
-//    } catch (error) {
-//        console.log(`Error getting clients: ${error}`);
-//        res.json({ rooms: "0" });
-//    }
-//});
 
 // Auth handler for keys from deepgram.  This is the method that triggers the server
 // to start listening for client subscriptions.
@@ -538,12 +339,12 @@ app.post('/auth', async (req, res) => {
     try {
         const { serviceId, churchKey } = req.body
         console.log(`The service code is: ${serviceId}`);
-        if (churchKey != process.env.CHURCH_KEY) {
+        if (churchKey != getChurchSecretKey) {
             return res.json({ error: 'Key is missing or incorrect' })
         }
 
         // Get a Token used for making the Websocket calls in the front end
-        const keyResult = await deepgram.manage.createProjectKey(process.env.DEEPGRAM_PROJECT, 
+        const keyResult = await deepgram.manage.createProjectKey(getDeepgramProjectId(),
             { 
                 comment: "Temporary key - works for 10 secs",
                 scopes: ["usage:write"],
@@ -559,30 +360,19 @@ app.post('/auth', async (req, res) => {
 });
 
 app.post('/qrcode', qrCodeController);
-//app.post('/qrcode', async (req, res) => {
-//    try {
-//        const { serviceId } = req.body;
-//        const qrcode = await generateQR(serviceId);
-//        res.json({ qrCode: qrcode });
-//
-//    } catch (error) {
-//        console.error(`ERROR generating QR code: ${error}`);
-//        res.json({ error });
-//    }
-//})
 
 // Used by client devices to get content for the UI
 app.get('/churchinfo', async (req, res) => {
     try {
-        const churchName = process.env.CHURCH_NAME;
-        const churchLogoBase64 = process.env.CHURCH_LOGO_BASE64;
-        const churchGreeting = process.env.CHURCH_GREETING;
-        const churchMessage = process.env.CHURCH_MESSAGE;
-        const churchWaitingMessage = process.env.CHURCH_WAITING_MESSAGE;
-        const churchAdditionalWelcome = process.env.CHURCH_ADDITIONAL_WELCOME;
-        const churchLang = process.env.HOST_LANGUAGE;
-        const defaultServiceId = process.env.DEFAULT_SERVICE_ID;
-        const translationLanguages = process.env.TRANSLATION_LANGUAGES;
+        const churchName = getChurchName();
+        const churchLogoBase64 = getChurchLogoBase64();
+        const churchGreeting = getChurchGreeting();
+        const churchMessage = getChurchMessage();
+        const churchWaitingMessage = getChurchWaitingMessage();
+        const churchAdditionalWelcome = getChurchAdditionalWelcome();
+        const churchLang = getChurchLanguage(); 
+        const defaultServiceId = getChurchDefaultServiceId(); 
+        const translationLanguages = getChurchTranslationLanguages();
         res.json({
             name: churchName, defaultServiceId: defaultServiceId, 
             greeting: churchGreeting,
@@ -615,42 +405,21 @@ app.get('/serviceStatus', async (req, res) => {
 app.get('/configuration', async (req, res) => {
     try {
         res.json({
-            serviceTimeout: process.env.SERVICE_TIMEOUT,
-            churchName: process.env.CHURCH_NAME,
-            defaultServiceId: process.env.DEFAULT_SERVICE_ID,
-            hostLanguage: process.env.HOST_LANGUAGE
+            serviceTimeout: getChurchServiceTimeout(), 
+            churchName: getChurchName(), 
+            defaultServiceId: getChurchDefaultServiceId(),
+            hostLanguage: getChurchLanguage() 
         });
     } catch (error) {
         res.json({ error })
     }
 })
 
-// Login handler
-app.post('/login', bodyParser.urlencoded({ extended: true }), loginController);
-//app.post('/login', bodyParser.urlencoded({ extended: true }), async (req, res) => {
-//    const { id, email, password } = req.body;
-//    try {
-//        await signInWithEmailAndPassword(firebaseAuth, email, password);
-//        if (id != null && id.length > 0) {
-//            res.redirect(`/control?id=${id}`);
-//        } else {
-//            res.redirect(`/control`);
-//        }
-//    } catch (error) {
-//        console.error(error);
-//        //      res.status(401).send('Unauthorized');
-//        res.redirect('/');
-//    }
-//});
+// Define authentication routes
+import authRouter from './routes/auth.js';
+app.use('/auth', authRouter);
 
-// Logout handler
-app.get('/logout', logoutController);
-//app.get('/logout', (req, res) => {
-//    firebaseAuth.signOut();
-//    res.redirect('/login');
-//});
-
-//// Serve the Web Pages
+// Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/views/login.html');
@@ -658,7 +427,7 @@ app.get('/', (req, res) => {
 app.get('/local', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
 })
-app.get('/login', (req, res) => {
+app.get('/loginform', (req, res) => {
     res.sendFile(__dirname + '/views/login.html');
 })
 app.get('/participant', (req, res) => {
