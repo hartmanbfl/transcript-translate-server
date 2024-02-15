@@ -34,3 +34,16 @@ export const getChurchTranslationLanguages = () => {
 export const getChurchServiceTimeout = () => {
     return process.env.SERVICE_TIMEOUT;
 }
+export const getChurchInfo = () => {
+    return {
+        name: getChurchName(), 
+        defaultServiceId: getChurchDefaultServiceId(), 
+        greeting: getChurchGreeting(), 
+        message: getChurchMessage(), 
+        additionalWelcome: getChurchAdditionalWelcome(), 
+        waiting: getChurchWaitingMessage(), 
+        language:  getChurchLanguage() ,
+        translationLanguages: getChurchTranslationLanguages(),
+        base64Logo: getChurchLogoBase64() 
+    }
+}

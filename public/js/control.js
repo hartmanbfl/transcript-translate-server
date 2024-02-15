@@ -124,7 +124,7 @@ const setupDeepgram = () => {
         const serviceId = sessionStorage.getItem('serviceId');
 
         // Validate the key with server/Deepgram
-        const resp = await fetch('/auth', {
+        const resp = await fetch('/deepgram/auth', {
             method: 'POST',
             body: JSON.stringify({ serviceId, churchKey }),
             headers: { 'Content-Type': 'application/json' }
@@ -136,7 +136,7 @@ const setupDeepgram = () => {
         document.querySelector('#audioForm').style.display = "none";
 
         const deepgramUrl = buildDeepgramUrl();
-        ws = new WebSocket(deepgramUrl, ['token', resp.deepgramToken])
+        ws = new WebSocket(deepgramUrl, ['token', resp.responseObject.deepgramToken])
         ws.onopen = startStreamingToDeepgram;
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
@@ -166,7 +166,7 @@ const setupDeepgram = () => {
 const getQRCode = async (data) => {
     const serviceId = data.serviceId;
 
-    const resp = await fetch('/qrcode', {
+    const resp = await fetch('/qrcode/generate', {
         method: 'POST',
         body: JSON.stringify({ serviceId }),
         headers: { 'Content-Type': 'application/json' }
@@ -178,7 +178,7 @@ const getQRCode = async (data) => {
 }
 
 const processConfigurationProperties = async () => {
-    const resp = await fetch('/configuration', {
+    const resp = await fetch('/church/configuration', {
         method: 'GET'
     }).then(r => r.json())
         .catch(error => alert(error));
@@ -189,9 +189,10 @@ const processConfigurationProperties = async () => {
     }
 
     console.log(`Response: ${JSON.stringify(resp)}`);
-    const serviceTimeout = resp.serviceTimeout;
-    selectedLocale = resp.hostLanguage;
-    defaultServiceCode = resp.defaultServiceId;
+    const data = resp.responseObject;
+    const serviceTimeout = data.serviceTimeout;
+    selectedLocale = data.hostLanguage;
+    defaultServiceCode = data.defaultServiceId;
     serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
     console.log(`Setting service timeout to ${serviceTimerDuration / 1000} seconds and language to ${selectedLocale}.`);
 }

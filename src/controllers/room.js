@@ -1,6 +1,25 @@
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.js";
+import { getStreamingStatus, getSubscribersInAllRooms } from "../services/rooms.js";
 import { parseRoom } from "../utils/room.js";
 
+
+export const streamingStatusController = async (req, res) => {
+    const serviceResponse = await getStreamingStatus(req.params.serviceId);
+
+    res.status(serviceResponse.statusCode).json({...serviceResponse});
+}
+
+//TBD export const subscribersInRoomController = async(req, res) => {
+//TBD     const serviceResponse = await getSubscribersInRoom(req.query.id);
+//TBD 
+//TBD     res.status(serviceResponse.statusCode).json({...serviceResponse});
+//TBD }
+
+export const subscribersInAllRoomsController = async (req, res) => {
+    const serviceResponse = await getSubscribersInAllRooms();
+
+    res.status(serviceResponse.statusCode).json({...serviceResponse});
+};
 
 // Helper function to make sure room exists for this server
 export const isRoomValid = (data) => {
@@ -114,32 +133,7 @@ export const removeRoomFromClient = (data) => {
     }
 }
 
-// Get all the subscribers in all the rooms
-// Example JSON:
-// {
-//   "1234:de": [
-//     "cENBYw_9R2EsjIe_AAAN"
-//   ],
-//   "1234:transcript": [
-//     "cENBYw_9R2EsjIe_AAAN",
-//     "MH_fui-MF6bG4kcdAAAR"
-//   ],
-//   "1234:uk": [
-//     "MH_fui-MF6bG4kcdAAAR"
-//   ]
-// }
-export const getSubscribersInAllRooms = async (req, res) => {
-    try {
-        let subscriberString = {};
-        for (const [key, value] of roomSubscriptionMap.entries()) {
-            subscriberString[key] = value;
-        }
-        res.json(subscriberString);
-    } catch (error) {
-        console.log(`Error getting subscribers: ${error}`);
-        res.json({ clients: "0" });
-    }
-};
+
 
 // Get all the clients (unique ID) in all the rooms
 // Example JSON:
@@ -165,3 +159,4 @@ export const getRoomsForAllClients = async (req, res) => {
         res.json({ rooms: "0" });
     }
 };
+

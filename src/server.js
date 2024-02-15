@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
@@ -18,23 +17,12 @@ dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
-// Get our own URL
-const clientUrl = getDebabelClientUrl() || `localhost:${PORT}`;
-
-// Deepgram needs to be imported as CommonJS
-import { createClient} from "@deepgram/sdk";
-import { loginController, logoutController } from './controllers/auth.js';
 import { parseRoom } from './utils/room.js';
 import { isAuthenticated } from './middlewares/auth.js';
-import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, getRoomsForAllClients, getSubscribersInAllRooms, removeClientFromRoom, removeRoomFromClient } from './controllers/room.js';
-import { qrCodeController } from './controllers/qrcode.js';
+import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, getRoomsForAllClients, removeClientFromRoom, removeRoomFromClient } from './controllers/room.js';
 
 // For now have Maps, but this may eventually be DBs for each tenant
-import { getDebabelClientUrl, serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from './repositories/index.js';
-import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchSecretKey, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from './repositories/churchinfo.js';
-import { getDeepgramApiKey, getDeepgramProjectId } from './repositories/deepgram.js';
-
-const deepgram = createClient(getDeepgramApiKey());
+import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from './repositories/index.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -286,38 +274,6 @@ app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
     }
 });
 
-// Return status of the service
-// Example JSON:
-// {
-//   "status": "offline"
-// }
-app.get('/rooms/:serviceId/getStreamingStatus', async (req, res) => {
-    try {
-        const serviceId = req.params.serviceId;
-        const streamingStatus = streamingStatusMap.get(serviceId);
-        res.json({ status: streamingStatus });
-    } catch (error) {
-        console.error(`ERROR getting streaming status: ${error}`);
-        res.json({ error });
-    }
-})
-
-
-// Get all the subscribers in all the rooms
-// Example JSON:
-// {
-//   "1234:de": [
-//     "cENBYw_9R2EsjIe_AAAN"
-//   ],
-//   "1234:transcript": [
-//     "cENBYw_9R2EsjIe_AAAN",
-//     "MH_fui-MF6bG4kcdAAAR"
-//   ],
-//   "1234:uk": [
-//     "MH_fui-MF6bG4kcdAAAR"
-//   ]
-// }
-app.get('/rooms/subscribers', getSubscribersInAllRooms);
 
 // Get all the clients (unique ID) in all the rooms
 // Example JSON:
@@ -333,91 +289,25 @@ app.get('/rooms/subscribers', getSubscribersInAllRooms);
 // }
 app.get('/clients/rooms', getRoomsForAllClients);
 
-// Auth handler for keys from deepgram.  This is the method that triggers the server
-// to start listening for client subscriptions.
-app.post('/auth', async (req, res) => {
-    try {
-        const { serviceId, churchKey } = req.body
-        console.log(`The service code is: ${serviceId}`);
-        if (churchKey != getChurchSecretKey) {
-            return res.json({ error: 'Key is missing or incorrect' })
-        }
-
-        // Get a Token used for making the Websocket calls in the front end
-        const keyResult = await deepgram.manage.createProjectKey(getDeepgramProjectId(),
-            { 
-                comment: "Temporary key - works for 10 secs",
-                scopes: ["usage:write"],
-                time_to_live_in_seconds: 10 
-            })
-//debug        console.log(`newKey: ${keyResult.result.key}`);
-
-        res.json({ deepgramToken: keyResult.result.key })
-    } catch (error) {
-        console.error(`Caught error in auth: ${error}`);
-        res.json({ error })
-    }
-});
-
-app.post('/qrcode', qrCodeController);
-
-// Used by client devices to get content for the UI
-app.get('/churchinfo', async (req, res) => {
-    try {
-        const churchName = getChurchName();
-        const churchLogoBase64 = getChurchLogoBase64();
-        const churchGreeting = getChurchGreeting();
-        const churchMessage = getChurchMessage();
-        const churchWaitingMessage = getChurchWaitingMessage();
-        const churchAdditionalWelcome = getChurchAdditionalWelcome();
-        const churchLang = getChurchLanguage(); 
-        const defaultServiceId = getChurchDefaultServiceId(); 
-        const translationLanguages = getChurchTranslationLanguages();
-        res.json({
-            name: churchName, defaultServiceId: defaultServiceId, 
-            greeting: churchGreeting,
-            message: churchMessage, additionalWelcome: churchAdditionalWelcome, 
-            waiting: churchWaitingMessage,
-            language:  churchLang, translationLanguages: translationLanguages,
-            base64Logo: churchLogoBase64
-        })
-    } catch (error) {
-        res.json({ error });
-    }
-})
-
-app.get('/serviceStatus', async (req, res) => {
-    try {
-        const { serviceId } = req.query;
-        // See if this service ID exists in the service map
-        const active = serviceSubscriptionMap.get(serviceId);
-        if (process.env.EXTRA_DEBUGGING) console.log(`Checking if ${serviceId} exists in the serviceSubscriptionMap: ${active}`);
-        if (active === true) {
-            res.json( {active: true});
-        } else {
-            res.json( { active: false});
-        }
-    } catch (error) {
-        res.json( { error });
-    }
-})
-
-app.get('/configuration', async (req, res) => {
-    try {
-        res.json({
-            serviceTimeout: getChurchServiceTimeout(), 
-            churchName: getChurchName(), 
-            defaultServiceId: getChurchDefaultServiceId(),
-            hostLanguage: getChurchLanguage() 
-        });
-    } catch (error) {
-        res.json({ error })
-    }
-})
-
 // Define authentication routes
 import authRouter from './routes/auth.js';
 app.use('/auth', authRouter);
+
+// Define church routes
+import churchRouter from './routes/church.js';
+app.use('/church', churchRouter);
+
+// Define deepgram routes
+import deepgramRouter from './routes/deepgram.js';
+app.use('/deepgram', deepgramRouter);
+
+// QR Code routes
+import qrCodeRouter from './routes/qrcode.js';
+app.use('/qrcode', qrCodeRouter);
+
+// Rooms routes
+import roomRouter from './routes/rooms.js';
+app.use('/rooms', roomRouter);
 
 // Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
@@ -437,6 +327,8 @@ app.get('/participant', (req, res) => {
 app.get('/control', isAuthenticated, (req, res) => {
     res.sendFile(__dirname + '/views/control.html');
 })
+
+// Health check endpoint
 app.get('/health', (req, res) => {
     res.status(200).send('Ok');
 })
