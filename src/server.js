@@ -19,7 +19,7 @@ const PORT = process.env.PORT || 3000;
 
 import { parseRoom } from './utils/room.js';
 import { isAuthenticated } from './middlewares/auth.js';
-import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, getRoomsForAllClients, removeClientFromRoom, removeRoomFromClient } from './controllers/room.js';
+import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, removeClientFromRoom, removeRoomFromClient } from './services/room.js';
 
 // For now have Maps, but this may eventually be DBs for each tenant
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from './repositories/index.js';
@@ -35,6 +35,10 @@ const io = new Server(server, {
         origin: "*"
     }
 });
+
+app.use(express.static("public"));
+app.use(express.json());
+// DEBUG app.use(logRequests);
 
 // Create a control namespace for messages between control page and the server
 const controlIo = io.of("/control")
@@ -175,13 +179,6 @@ controlIo.on('connection', (socket) => {
 
 });
 
-
-
-
-app.use(express.static("public"));
-app.use(express.json());
-// DEBUG app.use(logRequests);
-
 const getNumberOfSubscribersInRoom = (room) => {
     try {
         const subscribers = (io.sockets.adapter.rooms.get(room) == undefined) ?
@@ -275,20 +272,6 @@ app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
 });
 
 
-// Get all the clients (unique ID) in all the rooms
-// Example JSON:
-// {
-//   "cENBYw_9R2EsjIe_AAAN": [
-//     "1234:de",
-//     "1234:transcript"
-//   ],
-//   "MH_fui-MF6bG4kcdAAAR": [
-//     "1234:uk",
-//     "1234:transcript"
-//   ]
-// }
-app.get('/clients/rooms', getRoomsForAllClients);
-
 // Define authentication routes
 import authRouter from './routes/auth.js';
 app.use('/auth', authRouter);
@@ -306,8 +289,12 @@ import qrCodeRouter from './routes/qrcode.js';
 app.use('/qrcode', qrCodeRouter);
 
 // Rooms routes
-import roomRouter from './routes/rooms.js';
+import roomRouter from './routes/room.js';
 app.use('/rooms', roomRouter);
+
+// Clients (sockets) routes
+import clientRouter from './routes/clients.js';
+app.use('/clients', clientRouter);
 
 // Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));

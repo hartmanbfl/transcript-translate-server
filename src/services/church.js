@@ -1,5 +1,5 @@
 import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchSecretKey, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from '../repositories/church.js';
-import { serviceSubscriptionMap } from '../repositories/index.js';
+import { serviceSubscriptionMap, streamingStatusMap } from '../repositories/index.js';
 
 export const infoService = () => {
     try {
@@ -58,7 +58,7 @@ export const configurationService = () => {
         }
     }
 }
-export const statusService = ({serviceId}) => {
+export const statusService = (serviceId) => {
     try {
         // See if this service ID exists in the service map
         const active = serviceSubscriptionMap.get(serviceId);
@@ -76,6 +76,29 @@ export const statusService = ({serviceId}) => {
             success: false,
             statusCode: 400,
             message: `Error: ${error}`,
+            responseObject: {
+                error: error
+            }
+        }
+    }
+}
+export const getLivestreamStatus = (serviceId) => {
+    try {
+        const streamingStatus = streamingStatusMap.get(serviceId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Streaming Status for service ${serviceId}`,
+            responseObject: {
+                status: streamingStatus
+            }
+        }
+    } catch (error) {
+        console.error(`ERROR getting streaming status: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `Failed to get Streaming Status for service ${serviceId}`,
             responseObject: {
                 error: error
             }

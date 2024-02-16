@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { streamingStatusController, subscribersInAllRoomsController } from "../controllers/room.js";
+import { subscribersInAllRoomsController } from "../controllers/room.js";
 
 const router = Router()
 
@@ -18,7 +18,7 @@ const router = Router()
 // {
 //   "status": "offline"
 // }
-router.get('/:serviceId/getStreamingStatus', streamingStatusController);
+//router.get('/:serviceId/streamingstatus', streamingStatusController);
 
 // Get all the subscribers in all the rooms
 // Example JSON:
