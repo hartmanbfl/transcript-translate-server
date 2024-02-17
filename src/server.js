@@ -89,7 +89,7 @@ app.get('/', (req, res) => {
 app.get('/local', (req, res) => {
     res.sendFile(__dirname + '/views/index.html');
 })
-app.get('/loginform', (req, res) => {
+app.get('/login', (req, res) => {
     res.sendFile(__dirname + '/views/login.html');
 })
 app.get('/participant', (req, res) => {
