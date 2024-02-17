@@ -1,4 +1,4 @@
-import { configurationService, getLivestreamStatus, infoService, statusService } from "../services/church.js"
+import { configurationService, getLanguages, getLivestreamStatus, infoService, statusService } from "../services/church.js"
 
 export const infoController = async (req, res) => {
     const serviceResponse = await infoService();
@@ -17,6 +17,11 @@ export const statusController = async (req, res) => {
 }
 export const livestreamController = async (req, res) => {
     const serviceResponse = await getLivestreamStatus(req.params.serviceId);
+
+    res.status(serviceResponse.statusCode).json({...serviceResponse});
+}
+export const languagesController = async (req, res) => {
+    const serviceResponse = await getLanguages(req.params.serviceId);
 
     res.status(serviceResponse.statusCode).json({...serviceResponse});
 }

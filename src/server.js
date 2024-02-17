@@ -3,14 +3,9 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
-import EventEmitter from 'events';
 import { Server } from 'socket.io';
-import {
-    addTranslationLanguageToService, removeTranslationLanguageFromService,
-    registerForServiceTranscripts,
-    printLanguageMap
-} from './translate.js';
-import { roomEmitter, transcriptAvailServiceSub } from "./globals.js";
+
+import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.js';
 
 // Environment variables
 dotenv.config();
@@ -19,36 +14,33 @@ const PORT = process.env.PORT || 3000;
 
 import { isAuthenticated } from './middlewares/auth.js';
 
-// For now have Maps, but this may eventually be DBs for each tenant
-import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from './repositories/index.js';
-
-// Process the socket io requests
-import { registerControlHandlers } from './controllers/socketio/controlHandler.js';
-import { registerClientHandlers } from './controllers/socketio/clientHandler.js'
 
 const app = express();
 const server = http.createServer(app);
 
 app.use(cors());
-const io = new Server(server, {
-    connectionStateRecovery: {},
-    path: '/socket.io',
-    cors: {
-        origin: "*"
-    }
-});
+//const io = new Server(server, {
+//    connectionStateRecovery: {},
+//    path: '/socket.io',
+//    cors: {
+//        origin: "*"
+//    }
+//});
 
 app.use(express.static("public"));
 app.use(express.json());
 // DEBUG app.use(logRequests);
 
-// Multi tenant support (church-<tenant ID>)
-const clientConnections = io.of(/^\/church-\d+$/); 
-const controlConnections = io.of(/^\/control-\d+$/);
+// Initialize the socket IO
+const { controlIo: controlIo, io: io} = initializeSocketIo(server);
+
+// Process the socket io requests
+import { registerControlHandlers } from './controllers/socketio/controlHandler.js';
+import { registerClientHandlers } from './controllers/socketio/clientHandler.js'
 
 
 // Create a control namespace for messages between control page and the server
-const controlIo = io.of("/control")
+//const controlIo = io.of("/control")
 
 // Create an emitter to track changes when clients join/leave rooms
 //const roomEmitter = new EventEmitter();
@@ -66,99 +58,19 @@ const onClientConnection = (socket) => {
 // to join clients to the stream
 const listenForClients = () => {
     io.on('connection', (socket) => {
+        setClientIoSocket(socket);
         onClientConnection(socket);
     })
 }
 
 controlIo.on('connection', (socket) => {
     console.log(`Client ${socket.id} connected to our socket.io control namespace`);
+    setControlIoSocket(socket);
     onControlConnection(socket);
 
     // Start listening for mobile clients to join
     listenForClients();
-
-//    socket.on('disconnect', (reason) => {
-//        console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
-//    });
-//    socket.on('transcriptReady', (data) => {
-//        const { serviceCode, transcript } = data;
-//
-//        // Let all observers know that a new transcript is available
-//        //        console.log(`Received a transcriptReady message`);
-//        const transciptData = { serviceCode, transcript, serviceLanguageMap };
-//        transcriptAvailServiceSub.next(transciptData);
-//    })
-//    // Listen for changes in the rooms
-//    socket.on('monitor', (data) => {
-//        const room = data;
-//        console.log(`Control is monitoring ${room}`);
-//        socket.join(room);
-//        // Start up our transcript listerner for this service code
-//        const listenerData = { io, serviceId: room, serviceLanguageMap, serviceSubscriptionMap };
-//        registerForServiceTranscripts(listenerData);
-//
-//        roomEmitter.on('subscriptionChange', (service) => {
-//            if (process.env.EXTRA_DEBUGGING) console.log(`Detected subscription change for service: ${service}`);
-//            const jsonString = getActiveLanguages(service);
-//            const room = service;
-//            
-//            if (process.env.EXTRA_DEBUGGING) console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
-//            socket.emit(room, jsonString);
-//        })
-//    })
-//    socket.on('heartbeat', (data) => {
-//        const { serviceCode, status } = data;
-//        streamingStatusMap.set(serviceCode, status);
-//        // Send the heartbeat out to all subscribers in this service
-//        if (status == "livestreaming") {
-//            const room = `${serviceCode}:heartbeat`;
-//            io.to(room).emit('livestreaming');
-//        }
-//        // Send back the current subscriber list
-//        const jsonString = getActiveLanguages(serviceCode);
-//        socket.emit('subscribers', jsonString); 
-//    })
-
 });
-
-
-//const getActiveLanguages = (serviceId) => {
-//    const jsonData = {
-//        serviceId: serviceId,
-//        languages: []
-//    };
-//
-//    // Get the number of subscribers to the transcript
-//    const transcriptRoom = `${serviceId}:transcript`;
-//    const transcriptRoomObj = io.sockets.adapter.rooms.get(transcriptRoom);
-//    const transcriptSubscribers = (transcriptRoomObj == undefined) ? 0 : transcriptRoomObj.size;
-//
-//    // Get the languages currently active 
-//    const langArray = serviceLanguageMap.get(serviceId);
-//    if (langArray == undefined || langArray.length == 0 && transcriptSubscribers == 0) {
-////        return { result: "There are no languages currently being subscribed to." };
-//        return { jsonData };
-//    }
-//
-//    // First put in transcript subscribers
-//    jsonData.languages.push({
-//        name: "Transcript",
-//        subscribers: transcriptSubscribers
-//    });
-//
-//    // Get the number of subscribers for each of the languages
-//    for (let language in langArray) {
-//        const room = `${serviceId}:${langArray[language]}`;
-//        const clients = io.sockets.adapter.rooms.get(room).size;
-//        const languageEntry = {
-//            name: langArray[language],
-//            subscribers: clients
-//        };
-//        jsonData.languages.push(languageEntry);
-//    }
-//
-//    return (jsonData);
-//}
 
 // API Calls for getting information about the subscribers
 // Get all the subscribers in a specific room (Room = serviceId:lang)
@@ -166,16 +78,16 @@ controlIo.on('connection', (socket) => {
 // {
 //   "clients": 2
 // }
-app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
-    try {
-        const roomId = req.params.id;
-        const clients = io.sockets.adapter.rooms.get(roomId).size;
-        res.json({ clients: clients });
-    } catch (error) {
-        console.log(`Error getting subscribers: ${error}`);
-        res.json({ clients: "0" });
-    }
-});
+//app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
+//    try {
+//        const roomId = req.params.id;
+//        const clients = io.sockets.adapter.rooms.get(roomId).size;
+//        res.json({ clients: clients });
+//    } catch (error) {
+//        console.log(`Error getting subscribers: ${error}`);
+//        res.json({ clients: "0" });
+//    }
+//});
 
 // Return a JSON list of languages and subscribers for a service
 // Example JSON:

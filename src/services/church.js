@@ -1,5 +1,6 @@
 import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchSecretKey, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from '../repositories/church.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../repositories/index.js';
+import { getClientIo } from './socketio.js';
 
 export const infoService = () => {
     try {
@@ -105,6 +106,29 @@ export const getLivestreamStatus = (serviceId) => {
         }
     }
 }
+export const getLanguages = (serviceId) => {
+    try {
+        const clientIo = getClientIo();
+        const jsonString = getActiveLanguages(clientIo, serviceId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Successfully obtained languages for service: ${serviceId}`,
+            responseObject: jsonString 
+        }
+    } catch (error) {
+        console.log(`Error getting subscribers for service: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `Error obtaining languages for service: ${serviceId}`,
+            responseObject: {
+                error: error
+            }
+        }
+    }
+}
+
 export const getActiveLanguages = (io, serviceId) => {
     const jsonData = {
         serviceId: serviceId,
@@ -120,7 +144,7 @@ export const getActiveLanguages = (io, serviceId) => {
     const langArray = serviceLanguageMap.get(serviceId);
     if (langArray == undefined || langArray.length == 0 && transcriptSubscribers == 0) {
 //        return { result: "There are no languages currently being subscribed to." };
-        return { jsonData };
+        return (jsonData);
     }
 
     // First put in transcript subscribers

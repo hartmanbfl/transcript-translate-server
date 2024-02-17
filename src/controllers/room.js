@@ -1,11 +1,11 @@
-import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.js";
-import { getSubscribersInAllRooms } from "../services/room.js";
+import { clientSubscriptionMap } from "../repositories/index.js";
+import { getSubscribersInAllRooms, getSubscribersInRoom } from "../services/room.js";
 
-//TBD export const subscribersInRoomController = async(req, res) => {
-//TBD     const serviceResponse = await getSubscribersInRoom(req.query.id);
-//TBD 
-//TBD     res.status(serviceResponse.statusCode).json({...serviceResponse});
-//TBD }
+export const subscribersInRoomController = async(req, res) => {
+    const serviceResponse = await getSubscribersInRoom(req.params.roomId);
+
+    res.status(serviceResponse.statusCode).json({...serviceResponse});
+}
 
 export const subscribersInAllRoomsController = async (req, res) => {
     const serviceResponse = await getSubscribersInAllRooms();

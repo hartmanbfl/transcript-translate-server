@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { subscribersInAllRoomsController } from "../controllers/room.js";
+import { subscribersInAllRoomsController, subscribersInRoomController } from "../controllers/room.js";
 
 const router = Router()
 
@@ -11,14 +11,7 @@ const router = Router()
 // {
 //   "clients": 2
 // }
-//TBD router.get('/:roomId/subscribersInRoom', subscribersInRoomController); 
-
-// Check if a particular service is livestreaming or not
-// Example JSON:
-// {
-//   "status": "offline"
-// }
-//router.get('/:serviceId/streamingstatus', streamingStatusController);
+router.get('/:roomId/subscribers', subscribersInRoomController); 
 
 // Get all the subscribers in all the rooms
 // Example JSON:

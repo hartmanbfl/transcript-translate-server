@@ -1,15 +1,32 @@
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.js";
 import { parseRoom } from "../utils/room.js";
+import { getClientIo } from "./socketio.js";
 
-//tbdexport const getSubscribersInRoom = ({ id: roomId }) => {
-//tbd    try {
-//tbd        const clients = io.sockets.adapter.rooms.get(roomId).size;
-//tbd        res.json({ clients: clients });
-//tbd    } catch (error) {
-//tbd        console.log(`Error getting subscribers: ${error}`);
-//tbd        res.json({ clients: "0" });
-//tbd    }
-//tbd}
+export const getSubscribersInRoom = ( roomId ) => {
+    try {
+        const clientIo= getClientIo();
+        const clients = (clientIo.sockets.adapter.rooms.get(roomId) != undefined ) 
+            ? clientIo.sockets.adapter.rooms.get(roomId).size : 0;
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Subscribers in room ${roomId}`,
+            responseObject: {
+                clients: clients
+            }
+        }
+    } catch (error) {
+        console.log(`Error getting subscribers: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `Error getting subscribers in room ${roomId}`,
+            responseObject: {
+                clients: "0"
+            }
+        }
+    }
+}
 
 export const getSubscribersInAllRooms = () => {
     try {
