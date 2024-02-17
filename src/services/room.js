@@ -2,10 +2,10 @@ import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "
 import { parseRoom } from "../utils/room.js";
 import { getClientIo } from "./socketio.js";
 
-export const getSubscribersInRoom = ( roomId ) => {
+export const getSubscribersInRoom = (roomId) => {
     try {
-        const clientIo= getClientIo();
-        const clients = (clientIo.sockets.adapter.rooms.get(roomId) != undefined ) 
+        const clientIo = getClientIo();
+        const clients = (clientIo.sockets.adapter.rooms.get(roomId) != undefined)
             ? clientIo.sockets.adapter.rooms.get(roomId).size : 0;
         return {
             success: true,
@@ -49,7 +49,34 @@ export const getSubscribersInAllRooms = () => {
             statusCode: 400,
             message: `Error getting subscriber list`,
             responseObject: {
-                subscribers: "0" 
+                subscribers: "0"
+            }
+        }
+    }
+};
+
+export const getRoomsForAllClients = async (req, res) => {
+    try {
+        let subscriberString = {};
+        for (const [key, value] of clientSubscriptionMap.entries()) {
+            subscriberString[key] = value;
+        }
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Getting all rooms for all clients`,
+            responseObject: {
+                subscriberString
+            }
+        }
+    } catch (error) {
+        console.log(`Error getting clients: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `Error getting all rooms for all clients`,
+            responseObject: {
+                rooms: "0"
             }
         }
     }
@@ -113,7 +140,7 @@ export const removeClientFromRoom = (data) => {
             roomSubscriptionMap.delete(room);
 
             // Also remove this language for this service
-            const { serviceId, language } = parseRoom(room); 
+            const { serviceId, language } = parseRoom(room);
             if (language !== "transcript") {
                 console.log(`Removing language ${language} from service ${serviceId} in room ${room}`);
                 const langArray = serviceLanguageMap.get(serviceId);
