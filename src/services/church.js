@@ -1,5 +1,5 @@
 import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchSecretKey, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from '../repositories/church.js';
-import { serviceSubscriptionMap, streamingStatusMap } from '../repositories/index.js';
+import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../repositories/index.js';
 
 export const infoService = () => {
     try {
@@ -104,4 +104,41 @@ export const getLivestreamStatus = (serviceId) => {
             }
         }
     }
+}
+export const getActiveLanguages = (io, serviceId) => {
+    const jsonData = {
+        serviceId: serviceId,
+        languages: []
+    };
+
+    // Get the number of subscribers to the transcript
+    const transcriptRoom = `${serviceId}:transcript`;
+    const transcriptRoomObj = io.sockets.adapter.rooms.get(transcriptRoom);
+    const transcriptSubscribers = (transcriptRoomObj == undefined) ? 0 : transcriptRoomObj.size;
+
+    // Get the languages currently active 
+    const langArray = serviceLanguageMap.get(serviceId);
+    if (langArray == undefined || langArray.length == 0 && transcriptSubscribers == 0) {
+//        return { result: "There are no languages currently being subscribed to." };
+        return { jsonData };
+    }
+
+    // First put in transcript subscribers
+    jsonData.languages.push({
+        name: "Transcript",
+        subscribers: transcriptSubscribers
+    });
+
+    // Get the number of subscribers for each of the languages
+    for (let language in langArray) {
+        const room = `${serviceId}:${langArray[language]}`;
+        const clients = io.sockets.adapter.rooms.get(room).size;
+        const languageEntry = {
+            name: langArray[language],
+            subscribers: clients
+        };
+        jsonData.languages.push(languageEntry);
+    }
+
+    return (jsonData);
 }
