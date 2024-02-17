@@ -3,7 +3,6 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
-import { Server } from 'socket.io';
 
 import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.js';
 
@@ -19,13 +18,6 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(cors());
-//const io = new Server(server, {
-//    connectionStateRecovery: {},
-//    path: '/socket.io',
-//    cors: {
-//        origin: "*"
-//    }
-//});
 
 app.use(express.static("public"));
 app.use(express.json());
@@ -37,13 +29,6 @@ const { controlIo: controlIo, io: io} = initializeSocketIo(server);
 // Process the socket io requests
 import { registerControlHandlers } from './controllers/socketio/controlHandler.js';
 import { registerClientHandlers } from './controllers/socketio/clientHandler.js'
-
-
-// Create a control namespace for messages between control page and the server
-//const controlIo = io.of("/control")
-
-// Create an emitter to track changes when clients join/leave rooms
-//const roomEmitter = new EventEmitter();
 
 // Register for socket request handlers
 const onControlConnection = (socket) => {
@@ -71,50 +56,6 @@ controlIo.on('connection', (socket) => {
     // Start listening for mobile clients to join
     listenForClients();
 });
-
-// API Calls for getting information about the subscribers
-// Get all the subscribers in a specific room (Room = serviceId:lang)
-// Example JSON:
-// {
-//   "clients": 2
-// }
-//app.get('/rooms/:id/subscribersInRoom', async (req, res) => {
-//    try {
-//        const roomId = req.params.id;
-//        const clients = io.sockets.adapter.rooms.get(roomId).size;
-//        res.json({ clients: clients });
-//    } catch (error) {
-//        console.log(`Error getting subscribers: ${error}`);
-//        res.json({ clients: "0" });
-//    }
-//});
-
-// Return a JSON list of languages and subscribers for a service
-// Example JSON:
-//{
-//  "serviceId": "12345",
-//  "languages": [
-//    {
-//      name: "de",
-//      subscribers: 2 
-//    },
-//    {
-//      name: "es",
-//      subscribers: 4 
-//    },
-//  ]
-//}
-app.get('/rooms/:serviceId/getActiveLanguages', async (req, res) => {
-    try {
-        const serviceId = req.params.serviceId;
-        const jsonString = getActiveLanguages(serviceId);
-        res.json(jsonString);
-    } catch (error) {
-        console.log(`Error getting subscribers for service: ${error}`);
-        res.json({ result: "Invalid request" });
-    }
-});
-
 
 // Define authentication routes
 import authRouter from './routes/auth.js';
