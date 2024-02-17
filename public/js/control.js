@@ -165,6 +165,7 @@ const setupDeepgram = () => {
 
 const getQRCode = async (data) => {
     const serviceId = data.serviceId;
+    console.log(`Service ID: ${serviceId}, Data: ${JSON.stringify(data)}`);
 
     const resp = await fetch('/qrcode/generate', {
         method: 'POST',
