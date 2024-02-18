@@ -10,6 +10,7 @@ import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './ser
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
+const MULTI_TENANT = process.env.MULTI_TENANT || false;
 
 import { isAuthenticated } from './middlewares/auth.js';
 
@@ -24,7 +25,7 @@ app.use(express.json());
 // DEBUG app.use(logRequests);
 
 // Initialize the socket IO
-const { controlIo: controlIo, io: io} = initializeSocketIo(server);
+const { controlIo: controlIo, io: io, clientConnections: clientConnections, controlConnections: controlConnections } = initializeSocketIo(server);
 
 // Process the socket io requests
 import { registerControlHandlers } from './controllers/socketio/controlHandler.js';
@@ -35,6 +36,7 @@ const onControlConnection = (socket) => {
     registerControlHandlers(controlIo, io, socket);
 }
 const onClientConnection = (socket) => {
+    // Single tenant
     registerClientHandlers(io, socket);
 }
 
@@ -42,9 +44,14 @@ const onClientConnection = (socket) => {
 // order to make sure the server is running and connected first before starting
 // to join clients to the stream
 const listenForClients = () => {
+    // Single tenant
     io.on('connection', (socket) => {
         setClientIoSocket(socket);
         onClientConnection(socket);
+    })
+    // Multi tenant
+    clientConnections.on('connection', (socket) => {
+        const clientConnection = socket.nsp;
     })
 }
 
@@ -56,6 +63,11 @@ controlIo.on('connection', (socket) => {
     // Start listening for mobile clients to join
     listenForClients();
 });
+controlConnections.on('connection', (socket) => {
+    const controlConnection = socket.nsp;
+    console.log(`Connection to control connection in namespace: ${controlConnection.name}`);
+    onControlConnection(socket);
+})
 
 // Define authentication routes
 import authRouter from './routes/auth.js';

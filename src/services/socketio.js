@@ -22,7 +22,7 @@ export const initializeSocketIo = (server) => {
     clientConnections = io.of(/^\/church-\d+$/);
     controlConnections = io.of(/^\/control-\d+$/);
 
-    return { controlIo, io }
+    return { controlIo, io, clientConnections, controlConnections }
 }
 
 export const getControlIo = () => {
