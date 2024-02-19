@@ -3,7 +3,9 @@ import { subscribersInAllRoomsController, subscribersInRoomController } from "..
 var router = Router();
 // API Calls for getting information about the subscribers
 // Get all the subscribers in a specific room (Room = serviceId:lang)
-// Example JSON:
+// Example query param : 
+//   5555:de or 33:transcript
+// Example Respons JSON:
 // {
 //   "clients": 2
 // }

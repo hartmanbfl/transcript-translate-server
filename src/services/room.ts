@@ -1,12 +1,14 @@
+import { Server } from "socket.io";
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.js";
 import { RoomSocketPayload } from "../types/rooms.js";
 import { parseRoom } from "../utils/room.js";
 import { getClientIo } from "./socketio.js";
 
-export const getSubscribersInRoom = (roomId: string) => {
+export const getSubscribersInRoom = async (roomId: string) => {
     try {
-        const clientIo = getClientIo();
-        const clients: number | undefined = clientIo?.sockets?.adapter?.rooms?.get(roomId)?.size; 
+        const clientIo: Server = getClientIo();
+        const clients: number | undefined = clientIo?.sockets?.adapter?.rooms?.get(roomId)?.size;
+        console.log(`getSubscribersInRoom: roomId-> ${roomId}, clients-> ${clients}`);
         return {
             success: true,
             statusCode: 200,
@@ -57,7 +59,7 @@ export const getSubscribersInAllRooms = () => {
 
 export const getRoomsForAllClients = () => {
     try {
-        let subscriberString:any  = {};
+        let subscriberString: any = {};
         for (const [key, value] of clientSubscriptionMap.entries()) {
             subscriberString[key] = value;
         }
