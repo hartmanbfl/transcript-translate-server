@@ -124,7 +124,7 @@ const setupDeepgram = () => {
         const serviceId = sessionStorage.getItem('serviceId');
 
         // Validate the key with server/Deepgram
-        const resp = await fetch('/auth', {
+        const resp = await fetch('/deepgram/auth', {
             method: 'POST',
             body: JSON.stringify({ serviceId, churchKey }),
             headers: { 'Content-Type': 'application/json' }
@@ -136,7 +136,7 @@ const setupDeepgram = () => {
         document.querySelector('#audioForm').style.display = "none";
 
         const deepgramUrl = buildDeepgramUrl();
-        ws = new WebSocket(deepgramUrl, ['token', resp.deepgramToken])
+        ws = new WebSocket(deepgramUrl, ['token', resp.responseObject.deepgramToken])
         ws.onopen = startStreamingToDeepgram;
         ws.onmessage = handleDeepgramResponse;
         ws.onclose = () => {
@@ -165,8 +165,9 @@ const setupDeepgram = () => {
 
 const getQRCode = async (data) => {
     const serviceId = data.serviceId;
+    console.log(`Service ID: ${serviceId}, Data: ${JSON.stringify(data)}`);
 
-    const resp = await fetch('/qrcode', {
+    const resp = await fetch('/qrcode/generate', {
         method: 'POST',
         body: JSON.stringify({ serviceId }),
         headers: { 'Content-Type': 'application/json' }
@@ -174,11 +175,11 @@ const getQRCode = async (data) => {
 
     if (resp.error) return alert(resp.error);
 
-    return resp.qrCode;
+    return resp.responseObject.qrCode;
 }
 
 const processConfigurationProperties = async () => {
-    const resp = await fetch('/configuration', {
+    const resp = await fetch('/church/configuration', {
         method: 'GET'
     }).then(r => r.json())
         .catch(error => alert(error));
@@ -189,9 +190,10 @@ const processConfigurationProperties = async () => {
     }
 
     console.log(`Response: ${JSON.stringify(resp)}`);
-    const serviceTimeout = resp.serviceTimeout;
-    selectedLocale = resp.hostLanguage;
-    defaultServiceCode = resp.defaultServiceId;
+    const data = resp.responseObject;
+    const serviceTimeout = data.serviceTimeout;
+    selectedLocale = data.hostLanguage;
+    defaultServiceCode = data.defaultServiceId;
     serviceTimerDuration = parseInt(serviceTimeout) * 60 * 1000;
     console.log(`Setting service timeout to ${serviceTimerDuration / 1000} seconds and language to ${selectedLocale}.`);
 }
@@ -287,16 +289,36 @@ const stopServiceTimers = () => {
     console.log(`Cleared all service timers`);
 }
 
-
 let propresenterHost = "localhost";
 let propresenterPort = "1025";
 let previousTranscript = "";
+const pushTranscriptToProPresenter = async (transcript) => {
+    propresenterHost = document.querySelector('#host').value;
+    propresenterPort = document.querySelector('#port').value;
+    const resp = await fetch(`http://${propresenterHost}:${propresenterPort}/v1/message/Translation/trigger`, {
+        method: 'POST',
+        body: JSON.stringify([
+            {
+                name: "Message",
+                text: {
+                    text: previousTranscript + "\n" + transcript
+                }
+            }
+        ]),
+        headers: { 'Content-Type': 'application/json' }
+    }).then(r => r.json()).catch(error => console.log(error))
+    previousTranscript = transcript;
+
+}
+
+
 const handleDeepgramResponse = async (message) => {
     const data = JSON.parse(message.data)
     const transcript = data.channel.alternatives[0].transcript
     const transcriptText = document.getElementById('transcript');
     const transcriptTextBox = document.getElementById('transcript-text-box');
     if (transcript && data.is_final) {
+        if (localStorage.getItem('PRINT_FULL_DEEPGRAM_RESPONSE')) console.log(`DEEPGRAM RESPONSE: ${message.data}`);
         var item = document.createElement('li');
         item.textContent = transcript;
         transcriptText.appendChild(item);
@@ -305,23 +327,8 @@ const handleDeepgramResponse = async (message) => {
 
         // If requested, push latest transcript to ProPresenter
         if (pushToProPresenter) {
-            propresenterHost = document.querySelector('#host').value;
-            propresenterPort = document.querySelector('#port').value;
-            const resp = await fetch(`http://${propresenterHost}:${propresenterPort}/v1/message/Translation/trigger`, {
-                method: 'POST',
-                body: JSON.stringify([
-                    {
-                        name: "Message",
-                        text: {
-                            text: previousTranscript + "\n" + transcript
-                        }
-                    }
-                ]),
-                headers: { 'Content-Type': 'application/json' }
-            }).then(r => r.json()).catch(error => console.log(error))
-            previousTranscript = transcript;
+            await pushTranscriptToProPresenter(transcript);
         }
-
 
         // Send to our server
         const data = { serviceCode, transcript };
