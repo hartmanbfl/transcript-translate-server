@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 
-import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.js';
+import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.service.js';
 
 // Environment variables
 dotenv.config();
@@ -12,7 +12,7 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const MULTI_TENANT = process.env.MULTI_TENANT || false;
 
-import { isAuthenticated } from './middlewares/auth.js';
+import { isAuthenticated } from './middleware/auth.middleware.js';
 
 
 const app = express();
@@ -29,8 +29,8 @@ app.use(express.json());
 const { controlIo: controlIo, io: io, clientConnections: clientConnections, controlConnections: controlConnections } = initializeSocketIo(server);
 
 // Process the socket io requests
-import { registerControlHandlers } from './controllers/socketio/controlHandler.js';
-import { registerClientHandlers } from './controllers/socketio/clientHandler.js'
+import { registerControlHandlers } from './controllers/socketio/controlHandler.controller.js';
+import { registerClientHandlers } from './controllers/socketio/clientHandler.controller.js'
 
 // Register for socket request handlers
 const onControlConnection = (socket: Socket) => {
@@ -71,29 +71,29 @@ controlConnections.on('connection', (socket) => {
 })
 
 // Define authentication routes
-import authRouter from './routes/auth.js';
+import authRouter from './routes/auth.routes.js';
 app.use('/auth', authRouter);
 
 // Define church routes
-import churchRouter from './routes/church.js';
+import churchRouter from './routes/church.routes.js';
 app.use('/church', churchRouter);
 
 // Define deepgram routes
-import deepgramRouter from './routes/deepgram.js';
+import deepgramRouter from './routes/deepgram.routes.js';
 app.use('/deepgram', deepgramRouter);
 
 // QR Code routes
-import qrCodeRouter from './routes/qrcode.js';
+import qrCodeRouter from './routes/qrcode.routes.js';
 app.use('/qrcode', qrCodeRouter);
 
 // Rooms routes
-import roomRouter from './routes/room.js';
+import roomRouter from './routes/room.routes.js';
 app.use('/rooms', roomRouter);
 
 // Clients (sockets) routes
-import clientRouter from './routes/clients.js';
+import clientRouter from './routes/clients.routes.js';
 import { Socket } from 'socket.io';
-import { errorHandler } from './middlewares/error.js';
+import { errorHandler } from './middleware/error.middleware.js';
 import { AppDataSource } from './data-source.js';
 app.use('/clients', clientRouter);
 

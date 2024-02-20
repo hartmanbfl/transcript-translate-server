@@ -2,7 +2,7 @@ import * as dotenv from 'dotenv';
 import { roomEmitter, transcriptAvailServiceSub } from "../../globals.js";
 import { registerForServiceTranscripts } from "../../translate.js";
 import { getActiveLanguages } from '../../services/church.service.js';
-import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.js';
+import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.repository.js';
 // Environment variables
 dotenv.config();
 export const registerControlHandlers = (controlIo, clientIo, socket) => {

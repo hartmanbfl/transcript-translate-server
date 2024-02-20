@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { roomsForAllClientsController } from "../controllers/room.controller.js";
-const router = Router();
+
+const router = Router()
+
 // Get the list of rooms for each client connection (i.e. client socket ID)
 // Example JSON:
 // {
@@ -14,4 +16,5 @@ const router = Router();
 //   ]
 // }
 router.get("/rooms", roomsForAllClientsController);
+
 export default router;

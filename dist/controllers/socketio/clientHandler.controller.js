@@ -1,7 +1,7 @@
 import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, removeClientFromRoom, removeRoomFromClient } from "../../services/room.service.js";
 import { addTranslationLanguageToService, removeTranslationLanguageFromService } from "../../translate.js";
-import { serviceLanguageMap } from '../../repositories/index.js';
-import { parseRoom } from "../../utils/room.js";
+import { serviceLanguageMap } from '../../repositories/index.repository.js';
+import { parseRoom } from "../../utils/room.util.js";
 import { roomEmitter } from "../../globals.js";
 export const registerClientHandlers = (io, socket) => {
     const getNumberOfSubscribersInRoom = (room) => {
