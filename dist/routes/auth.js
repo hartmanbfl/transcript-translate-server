@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { loginController, logoutController } from "../controllers/auth.js";
 import bodyParser from 'body-parser';
-var router = Router();
-router.get("/", function (req, res) {
+const router = Router();
+router.get("/", (req, res) => {
     res.send("OK auth");
 });
 router.post("/login", bodyParser.urlencoded({ extended: true }), loginController);

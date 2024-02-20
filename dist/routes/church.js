@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { configurationController, infoController, languagesController, livestreamController, statusController } from "../controllers/church.js";
-var router = Router();
-router.get("/", function (req, res) {
+const router = Router();
+router.get("/", (req, res) => {
     res.send("OK church");
 });
 router.get("/info", infoController);

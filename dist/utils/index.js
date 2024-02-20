@@ -1,4 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-export var generateUuid4 = function () {
+export const generateUuid4 = () => {
     return uuidv4();
 };

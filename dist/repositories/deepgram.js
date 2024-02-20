@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
-export var getDeepgramApiKey = function () {
+export const getDeepgramApiKey = () => {
     return process.env.DEEPGRAM_API_KEY;
 };
-export var getDeepgramProjectId = function () {
+export const getDeepgramProjectId = () => {
     return process.env.DEEPGRAM_PROJECT;
 };

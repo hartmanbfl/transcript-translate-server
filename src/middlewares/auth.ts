@@ -1,6 +1,6 @@
 // Firebase
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { FirebaseApp, initializeApp } from 'firebase/app';
+import { Auth, User, getAuth } from 'firebase/auth';
 import { getFirebaseApiKey } from '../repositories/google.js';
 import { RequestHandler } from 'express';
 
@@ -9,13 +9,13 @@ import { RequestHandler } from 'express';
 const firebaseConfig = {
     apiKey: getFirebaseApiKey() 
 };
-const firebaseApp = initializeApp(firebaseConfig);
-const firebaseAuth = getAuth(firebaseApp);
+const firebaseApp: FirebaseApp = initializeApp(firebaseConfig);
+const firebaseAuth: Auth = getAuth(firebaseApp);
 
 // Middleware to check if user is authenticated
 export const isAuthenticated: RequestHandler = (req, res, next) => {
     const idParam = req.query.id;
-    const user = firebaseAuth.currentUser;
+    const user: User | null= firebaseAuth.currentUser;
     if (user !== null || process.env.TEST_MODE === "true") {
         next();
     } else {

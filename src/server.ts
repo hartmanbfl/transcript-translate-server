@@ -19,6 +19,7 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(cors());
+app.use(errorHandler);
 
 app.use(express.static("public"));
 app.use(express.json());
@@ -92,6 +93,8 @@ app.use('/rooms', roomRouter);
 // Clients (sockets) routes
 import clientRouter from './routes/clients.js';
 import { Socket } from 'socket.io';
+import { errorHandler } from './middlewares/error.js';
+import { AppDataSource } from './data-source.js';
 app.use('/clients', clientRouter);
 
 // Serve the Web Pages
@@ -117,6 +120,13 @@ app.get('/control', isAuthenticated, (req, res) => {
 app.get('/health', (req, res) => {
     res.status(200).send('Ok');
 })
+
+// Connect to DB
+AppDataSource.initialize()
+  .then(async () => {
+    console.log("Data Source has been initialized");
+  })
+  .catch((error) => console.log(error));
 
 server.listen(PORT, () => {
     console.log(`server started on port ${PORT}`);

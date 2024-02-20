@@ -5,46 +5,46 @@ import { getActiveLanguages } from '../../services/church.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.js';
 // Environment variables
 dotenv.config();
-export var registerControlHandlers = function (controlIo, clientIo, socket) {
-    console.log("Registering ".concat(socket.id, " connected to our socket.io control namespace"));
-    socket.on('disconnect', function (reason) {
-        console.log("Control io disconnected for client-> ".concat(socket.id, ", reason-> ").concat(reason));
+export const registerControlHandlers = (controlIo, clientIo, socket) => {
+    console.log(`Registering ${socket.id} connected to our socket.io control namespace`);
+    socket.on('disconnect', (reason) => {
+        console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
     });
-    socket.on('transcriptReady', function (data) {
-        var serviceCode = data.serviceCode, transcript = data.transcript;
+    socket.on('transcriptReady', (data) => {
+        const { serviceCode, transcript } = data;
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
-        var transciptData = { serviceCode: serviceCode, transcript: transcript, serviceLanguageMap: serviceLanguageMap };
+        const transciptData = { serviceCode, transcript, serviceLanguageMap };
         transcriptAvailServiceSub.next(transciptData);
     });
     // Listen for changes in the rooms
-    socket.on('monitor', function (data) {
-        var room = data;
-        console.log("Control is monitoring ".concat(room));
+    socket.on('monitor', (data) => {
+        const room = data;
+        console.log(`Control is monitoring ${room}`);
         socket.join(room);
         // Start up our transcript listerner for this service code
-        var listenerData = { io: clientIo, serviceId: room, serviceLanguageMap: serviceLanguageMap, serviceSubscriptionMap: serviceSubscriptionMap };
+        const listenerData = { io: clientIo, serviceId: room, serviceLanguageMap, serviceSubscriptionMap };
         registerForServiceTranscripts(listenerData);
-        roomEmitter.on('subscriptionChange', function (service) {
+        roomEmitter.on('subscriptionChange', (service) => {
             if (process.env.EXTRA_DEBUGGING)
-                console.log("Detected subscription change for service: ".concat(service));
-            var jsonString = getActiveLanguages(clientIo, service);
-            var room = service;
+                console.log(`Detected subscription change for service: ${service}`);
+            const jsonString = getActiveLanguages(clientIo, service);
+            const room = service;
             if (process.env.EXTRA_DEBUGGING)
-                console.log("Attempting to emit: ".concat(JSON.stringify(jsonString, null, 2), " to control room: ").concat(room));
+                console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
             socket.emit(room, jsonString);
         });
     });
-    socket.on('heartbeat', function (data) {
-        var serviceCode = data.serviceCode, status = data.status;
+    socket.on('heartbeat', (data) => {
+        const { serviceCode, status } = data;
         streamingStatusMap.set(serviceCode, status);
         // Send the heartbeat out to all subscribers in this service
         if (status == "livestreaming") {
-            var room = "".concat(serviceCode, ":heartbeat");
+            const room = `${serviceCode}:heartbeat`;
             clientIo.to(room).emit('livestreaming');
         }
         // Send back the current subscriber list
-        var jsonString = getActiveLanguages(clientIo, serviceCode);
+        const jsonString = getActiveLanguages(clientIo, serviceCode);
         socket.emit('subscribers', jsonString);
     });
 };

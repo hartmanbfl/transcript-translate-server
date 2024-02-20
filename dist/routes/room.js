@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { subscribersInAllRoomsController, subscribersInRoomController } from "../controllers/room.js";
-var router = Router();
+const router = Router();
 // API Calls for getting information about the subscribers
 // Get all the subscribers in a specific room (Room = serviceId:lang)
 // Example query param : 

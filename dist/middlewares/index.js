@@ -1,4 +1,4 @@
-export var logRequests = function (req, res, next) {
-    console.log("Got request: method->".concat(req.method, ", url->").concat(req.url));
+export const logRequests = (req, res, next) => {
+    console.log(`Got request: method->${req.method}, url->${req.url}`);
     next();
 };

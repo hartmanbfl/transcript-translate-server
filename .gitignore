@@ -1,6 +1,11 @@
-node_modules
+.idea/
+.vscode/
+node_modules/
+build/
+tmp/
+temp/
+.DS_Store*
 .env
 realtimetranslation*.json
 *credentials*.json
 package-lock.json
-.DS_Store
