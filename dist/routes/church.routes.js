@@ -1,19 +1,19 @@
 import { Router } from "express";
-import { configurationController, infoController, languagesController, livestreamController, statusController } from "../controllers/church.controller.js";
+import { ChurchController } from "../controllers/church.controller.js";
 const router = Router();
 router.get("/", (req, res) => {
     res.send("OK church");
 });
-router.get("/info", infoController);
-router.get("/configuration", configurationController);
+router.get("/info", ChurchController.getServiceInfo);
+router.get("/configuration", ChurchController.getConfigration);
 // Check whether the church service with the given ID is available
-router.get("/:serviceId/status", statusController);
+router.get("/:serviceId/status", ChurchController.getStatus);
 // Chech whether the church service with the given ID is livestreaming
 // Example JSON ResponseObject :
 // {
 //   "status": "offline"
 // }
-router.get("/:serviceId/livestreaming", livestreamController);
+router.get("/:serviceId/livestreaming", ChurchController.getLivestreamStatus);
 // Get the current list of subscribed to languages
 // Example JSON ResponsObject:
 // { 
@@ -29,5 +29,5 @@ router.get("/:serviceId/livestreaming", livestreamController);
 //       }
 //    ]
 // }
-router.get("/:serviceId/languages", languagesController);
+router.get("/:serviceId/languages", ChurchController.getLanguages);
 export default router;

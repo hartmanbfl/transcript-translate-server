@@ -1,9 +1,12 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
 
-import * as dotenv from "dotenv";
+import { AppThemingData } from "./entity/AppThemingData.entity.js";
+import { DatabaseFile } from "./entity/DatabaseFile.entity.js";
 import { Tenant } from "./entity/Tenant.entity.js"
+import { User } from "./entity/User.entity.js";
 
+import * as dotenv from "dotenv";
 import path from 'path';
 import {fileURLToPath} from 'url';
 
@@ -23,7 +26,12 @@ export const AppDataSource = new DataSource({
     database: DB_DATABASE,
     synchronize: true,
     logging: false,
-    entities: [Tenant],
+    entities: [
+        AppThemingData,
+        DatabaseFile,
+        Tenant,
+        User
+    ],
     migrations: [__dirname + "migration/*.ts"],
     subscribers: [],
 })

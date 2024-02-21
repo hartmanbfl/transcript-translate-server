@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { subscribersInAllRoomsController, subscribersInRoomController } from "../controllers/room.controller.js";
+import { RoomController } from "../controllers/room.controller.js";
 const router = Router();
 // API Calls for getting information about the subscribers
 // Get all the subscribers in a specific room (Room = serviceId:lang)
@@ -9,7 +9,7 @@ const router = Router();
 // {
 //   "clients": 2
 // }
-router.get('/:roomId/subscribers', subscribersInRoomController);
+router.get('/:roomId/subscribers', RoomController.getSubscribers);
 // Get all the subscribers in all the rooms
 // Example JSON:
 // {
@@ -24,5 +24,5 @@ router.get('/:roomId/subscribers', subscribersInRoomController);
 //     "MH_fui-MF6bG4kcdAAAR"
 //   ]
 // }
-router.get('/subscribers', subscribersInAllRoomsController);
+router.get('/subscribers', RoomController.getSubscribersInAllRooms);
 export default router;

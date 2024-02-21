@@ -8,37 +8,41 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
-let Tenant = class Tenant {
+let User = class User {
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
     __metadata("design:type", String)
-], Tenant.prototype, "id", void 0);
+], User.prototype, "id", void 0);
+__decorate([
+    Column({ nullable: false }),
+    __metadata("design:type", String)
+], User.prototype, "fullname", void 0);
 __decorate([
     Column({ nullable: false, unique: true }),
     __metadata("design:type", String)
-], Tenant.prototype, "name", void 0);
+], User.prototype, "username", void 0);
 __decorate([
     Column({ nullable: true }),
     __metadata("design:type", String)
-], Tenant.prototype, "address", void 0);
+], User.prototype, "email", void 0);
 __decorate([
     Column({ nullable: false }),
     __metadata("design:type", String)
-], Tenant.prototype, "deepgram_api_key", void 0);
+], User.prototype, "password", void 0);
 __decorate([
-    Column({ nullable: false }),
+    Column({ default: "user" }),
     __metadata("design:type", String)
-], Tenant.prototype, "deepgram_project", void 0);
+], User.prototype, "role", void 0);
 __decorate([
     CreateDateColumn(),
     __metadata("design:type", Date)
-], Tenant.prototype, "created_at", void 0);
+], User.prototype, "created_at", void 0);
 __decorate([
     UpdateDateColumn(),
     __metadata("design:type", Date)
-], Tenant.prototype, "updated_at", void 0);
-Tenant = __decorate([
-    Entity({ name: "main_tenant" })
-], Tenant);
-export { Tenant };
+], User.prototype, "updated_at", void 0);
+User = __decorate([
+    Entity({ name: "main_user" })
+], User);
+export { User };

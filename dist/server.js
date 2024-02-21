@@ -4,11 +4,14 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.service.js';
+import { createSuperadminUser } from './services/user.service.js';
+import { errorHandler } from './middleware/error.middleware.js';
+import { AppDataSource } from './data-source.js';
 // Environment variables
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 const MULTI_TENANT = process.env.MULTI_TENANT || false;
-import { isAuthenticated } from './middleware/auth.middleware.js';
+import { isAuthenticated } from './middleware/authentication.middleware.js';
 const app = express();
 const server = http.createServer(app);
 app.use(cors());
@@ -55,9 +58,15 @@ controlConnections.on('connection', (socket) => {
     console.log(`Connection to control connection in namespace: ${controlConnection.name}`);
     onControlConnection(socket);
 });
+// Define tenant routes
+import tenantRouter from './routes/tenants.routes.js';
+app.use('/tenants', tenantRouter);
 // Define authentication routes
 import authRouter from './routes/auth.routes.js';
 app.use('/auth', authRouter);
+// Define API user routes
+import userRouter from './routes/user.routes.js';
+app.use('/users', userRouter);
 // Define church routes
 import churchRouter from './routes/church.routes.js';
 app.use('/church', churchRouter);
@@ -72,8 +81,6 @@ import roomRouter from './routes/room.routes.js';
 app.use('/rooms', roomRouter);
 // Clients (sockets) routes
 import clientRouter from './routes/clients.routes.js';
-import { errorHandler } from './middleware/error.middleware.js';
-import { AppDataSource } from './data-source.js';
 app.use('/clients', clientRouter);
 // Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
@@ -101,6 +108,8 @@ app.get('/health', (req, res) => {
 AppDataSource.initialize()
     .then(async () => {
     console.log("Data Source has been initialized");
+    // Create the admin user
+    await createSuperadminUser();
 })
     .catch((error) => console.log(error));
 server.listen(PORT, () => {

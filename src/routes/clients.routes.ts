@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { roomsForAllClientsController } from "../controllers/room.controller.js";
+import { RoomController } from "../controllers/room.controller.js";
 
 const router = Router()
 
@@ -15,6 +15,6 @@ const router = Router()
 //     "1234:transcript"
 //   ]
 // }
-router.get("/rooms", roomsForAllClientsController);
+router.get("/rooms", RoomController.getRoomsForAllClients);
 
 export default router;
