@@ -6,17 +6,18 @@ import { User } from "../entity/User.entity.js";
 import { encrypt } from "../utils/encrypt.util.js";
 
 
-export const loginController = async (req: Request, res: Response) => {
-    const login: LoginType = req.body;
-    const serviceResponse = await loginService(login);
-    const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path : '/login';
+export class AuthenticationController {
+    static async login(req: Request, res: Response) {
+        const login: LoginType = req.body;
+        const serviceResponse = await loginService(login);
+        const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path : '/login';
 
-    res.redirect(redirectPath);
-}
-
-export const logoutController = async (req: Request, res: Response) => {
-    const serviceResponse = await logoutService();
-    res.redirect("/login");
+        res.redirect(redirectPath);
+    }
+    static async logout(req: Request, res: Response) {
+        const serviceResponse = await logoutService();
+        res.redirect("/login");
+    }
 }
 
 export class ApiAuthController {
@@ -37,7 +38,7 @@ export class ApiAuthController {
 
             // Generate a token
             const token = encrypt.generateToken({ id: user.id });
-            return res.status(200).json({ message: "Login successful", user, token});
+            return res.status(200).json({ message: "Login successful", user, token });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Internal server error" });

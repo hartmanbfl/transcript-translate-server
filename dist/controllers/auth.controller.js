@@ -2,16 +2,18 @@ import { loginService, logoutService } from "../services/auth.service.js";
 import { AppDataSource } from "../data-source.js";
 import { User } from "../entity/User.entity.js";
 import { encrypt } from "../utils/encrypt.util.js";
-export const loginController = async (req, res) => {
-    const login = req.body;
-    const serviceResponse = await loginService(login);
-    const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path : '/login';
-    res.redirect(redirectPath);
-};
-export const logoutController = async (req, res) => {
-    const serviceResponse = await logoutService();
-    res.redirect("/login");
-};
+export class AuthenticationController {
+    static async login(req, res) {
+        const login = req.body;
+        const serviceResponse = await loginService(login);
+        const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path : '/login';
+        res.redirect(redirectPath);
+    }
+    static async logout(req, res) {
+        const serviceResponse = await logoutService();
+        res.redirect("/login");
+    }
+}
 export class ApiAuthController {
     static async login(req, res) {
         try {

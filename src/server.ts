@@ -16,6 +16,8 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const MULTI_TENANT = process.env.MULTI_TENANT || false;
 
+const USE_DATABASE = process.env.USE_DATABSE || false;
+
 import { isAuthenticated } from './middleware/authentication.middleware.js';
 
 
@@ -130,14 +132,16 @@ app.get('/health', (req, res) => {
     res.status(200).send('Ok');
 })
 
-// Connect to DB
-AppDataSource.initialize()
-  .then(async () => {
-    console.log("Data Source has been initialized");
-    // Create the admin user
-    await createSuperadminUser();
-  })
-  .catch((error) => console.log(error));
+// Connect to DB if using
+if (USE_DATABASE) {
+    AppDataSource.initialize()
+        .then(async () => {
+            console.log("Data Source has been initialized");
+            // Create the admin user
+            await createSuperadminUser();
+        })
+        .catch((error) => console.log(error));
+}
 
 server.listen(PORT, () => {
     console.log(`server started on port ${PORT}`);

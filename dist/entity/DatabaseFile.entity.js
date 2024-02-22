@@ -7,13 +7,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Tenant } from "./Tenant.entity.js";
 let DatabaseFile = class DatabaseFile {
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
     __metadata("design:type", String)
 ], DatabaseFile.prototype, "id", void 0);
+__decorate([
+    ManyToOne(() => Tenant),
+    JoinColumn({ name: 'tenant_id' }),
+    __metadata("design:type", Tenant)
+], DatabaseFile.prototype, "tenant", void 0);
 __decorate([
     Column(),
     __metadata("design:type", String)
@@ -23,6 +29,6 @@ __decorate([
     __metadata("design:type", Uint8Array)
 ], DatabaseFile.prototype, "data", void 0);
 DatabaseFile = __decorate([
-    Entity()
+    Entity({ name: "main_database_file" })
 ], DatabaseFile);
 export { DatabaseFile };

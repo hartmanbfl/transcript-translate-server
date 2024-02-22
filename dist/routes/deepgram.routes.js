@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authController } from "../controllers/deepgram.controller.js";
+import { DeepgramController } from "../controllers/deepgram.controller.js";
 const router = Router();
 // Middleware if needed 
 router.use((req, res, next) => {
@@ -10,5 +10,10 @@ router.get("/", (req, res) => {
 });
 // Auth handler for keys from deepgram.  This is the method that triggers the server
 // to start listening for client subscriptions.
-router.post("/auth", authController);
+// Example Payload Body
+//{
+//    "serviceId": "5555",
+//    "churchKey": "NEFC"
+//}
+router.post("/auth", DeepgramController.authorize);
 export default router;
