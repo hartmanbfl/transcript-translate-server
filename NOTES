@@ -18,3 +18,6 @@ Subscribe for a transcript:
 
 Current Issues:
 - stopping and restarting stream creates a duplicate/triplicate, etc. transcript stream
+
+Typescript:
+npm run tsc

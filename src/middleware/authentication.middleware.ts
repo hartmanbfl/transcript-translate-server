@@ -51,6 +51,6 @@ export const authentication = (req: Request, res: Response, next: NextFunction) 
 
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "Unauthenticated" });
     }
 }
