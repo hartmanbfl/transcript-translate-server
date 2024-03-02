@@ -14,6 +14,9 @@ let serviceInterval;
 let healthInterval;
 let serviceTimerDuration = 90 * 60 * 1000; // default to 90 minutes
 
+let use_endpointing = localStorage.getItem('USE_ENDPOINTING') != null ? localStorage.getItem('USE_ENDPOINTING') : false;
+let currentPhrase = [];
+
 const languages = [
     {
         key: "ar",
@@ -317,21 +320,45 @@ const handleDeepgramResponse = async (message) => {
     const transcript = data.channel.alternatives[0].transcript
     const transcriptText = document.getElementById('transcript');
     const transcriptTextBox = document.getElementById('transcript-text-box');
-    if (transcript && data.is_final) {
+
+    // NOTE:  if speech_final is true, is_final will always be true at this point in time
+    //        as well
+    let theEnd = false;
+    let finalTranscript = transcript;
+    if (transcript) {
+        if (!use_endpointing) {
+            if (data.is_final) theEnd = true;
+        // If some of the transcript has been received but the speaker is still speaking
+        } else if (data.is_final && !data.speech_final) {
+            currentPhrase.push(transcript);
+        // Full sentence is captured.  Need to rebuild the transcript    
+        } else if (data.speech_final) {
+            // reconstruct the transcript
+            let tempTranscript = "";
+            currentPhrase.forEach((phrase) => {
+                tempTranscript = tempTranscript + phrase + " ";
+            });
+            finalTranscript = tempTranscript + transcript;
+            currentPhrase = [];
+            theEnd = true;
+        }
+    }
+
+    if (theEnd) {
         if (localStorage.getItem('PRINT_FULL_DEEPGRAM_RESPONSE')) console.log(`DEEPGRAM RESPONSE: ${message.data}`);
         var item = document.createElement('li');
-        item.textContent = transcript;
+        item.textContent = finalTranscript;
         transcriptText.appendChild(item);
         transcriptText.scrollTop = transcriptText.scrollHeight;
         transcriptTextBox.scrollTo(0, transcriptText.scrollHeight);
 
         // If requested, push latest transcript to ProPresenter
         if (pushToProPresenter) {
-            await pushTranscriptToProPresenter(transcript);
+            await pushTranscriptToProPresenter(finalTranscript);
         }
 
         // Send to our server
-        const data = { serviceCode, transcript };
+        const data = { serviceCode, finalTranscript };
         controlSocket.emit('transcriptReady', data)
     }
 }
