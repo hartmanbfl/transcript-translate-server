@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne } from "typeorm";
 import { Tenant } from "./Tenant.entity.js";
 import { DatabaseFile } from "./DatabaseFile.entity.js";
 let AppThemingData = class AppThemingData {
@@ -17,30 +17,31 @@ __decorate([
     __metadata("design:type", String)
 ], AppThemingData.prototype, "id", void 0);
 __decorate([
-    ManyToOne(() => Tenant),
-    JoinColumn({ name: 'tenant_id' }),
+    OneToOne(() => Tenant, (tenant) => tenant.app_theming_data)
+    //    @JoinColumn({ name: 'tenant_id'})  // this will change the following to tenant_id in the DB 
+    ,
     __metadata("design:type", Tenant)
 ], AppThemingData.prototype, "tenant", void 0);
 __decorate([
-    Column(),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], AppThemingData.prototype, "greeting", void 0);
 __decorate([
-    Column(),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], AppThemingData.prototype, "message", void 0);
 __decorate([
-    Column(),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], AppThemingData.prototype, "additional_welcome_message", void 0);
 __decorate([
-    Column(),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], AppThemingData.prototype, "waiting_message", void 0);
 __decorate([
     JoinColumn({ name: 'logoId' }),
     OneToOne(() => DatabaseFile, { nullable: true }),
-    __metadata("design:type", DatabaseFile)
+    __metadata("design:type", Object)
 ], AppThemingData.prototype, "logo", void 0);
 __decorate([
     Column({ nullable: true }),

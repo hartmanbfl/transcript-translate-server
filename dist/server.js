@@ -11,7 +11,7 @@ import { AppDataSource } from './data-source.js';
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 const MULTI_TENANT = process.env.MULTI_TENANT || false;
-const USE_DATABASE = process.env.USE_DATABSE || false;
+const USE_DATABASE = process.env.USE_DATABASE || false;
 import { isAuthenticated } from './middleware/authentication.middleware.js';
 const app = express();
 const server = http.createServer(app);
@@ -62,6 +62,9 @@ controlConnections.on('connection', (socket) => {
 // Define tenant routes
 import tenantRouter from './routes/tenants.routes.js';
 app.use('/tenants', tenantRouter);
+// Define theme routes
+import themeRouter from './routes/themes.routes.js';
+app.use('/themes', themeRouter);
 // Define authentication routes
 import authRouter from './routes/auth.routes.js';
 app.use('/auth', authRouter);
