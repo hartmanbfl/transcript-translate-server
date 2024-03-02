@@ -1,8 +1,6 @@
 import { AppDataSource } from "../data-source.js";
 import { AppThemingData } from "../entity/AppThemingData.entity.js";
-import { DatabaseFile } from "../entity/DatabaseFile.entity.js";
 import { Tenant } from "../entity/Tenant.entity.js";
-import { DatabaseFilesService } from "./databaseFiles.service.js";
 
 export class TenantService {
 
