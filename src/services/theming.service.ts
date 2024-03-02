@@ -1,5 +1,7 @@
 import { AppDataSource } from "../data-source.js";
 import { AppThemingData } from "../entity/AppThemingData.entity.js";
+import { DatabaseFile } from "../entity/DatabaseFile.entity.js";
+import { DatabaseFilesService } from "./databaseFiles.service.js";
 
 export class ThemingService {
     static async getTheme(id: string) {
@@ -57,4 +59,33 @@ export class ThemingService {
             }
         }
     }
+    static async addLogo(themeId: string, imageBuffer: Buffer, filename: string) {
+        try {
+            const themeRepository = AppDataSource.getRepository(AppThemingData);
+            const theme = await themeRepository.findOne({ where: { id: themeId } });
+            
+            const logo: DatabaseFile = await DatabaseFilesService.uploadDatabaseFile(imageBuffer, filename);
+            console.log(`Updating logo for theme: ${themeId}`);
+            await themeRepository.update(themeId, {logoId: logo.id} );
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Logo updated successfully`,
+                responseObject: {
+                    theme: theme
+                }
+            }
+        } catch (error) {
+            console.warn(`Error adding logo: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error adding logo to theme`,
+                responseObject: {
+                    theme: null
+                }
+            }
+        }
+    } 
 }

@@ -1,7 +1,6 @@
 import { AppDataSource } from "../data-source.js";
 import { AppThemingData } from "../entity/AppThemingData.entity.js";
 import { Tenant } from "../entity/Tenant.entity.js";
-import { DatabaseFilesService } from "./databaseFiles.service.js";
 export class TenantService {
     static async addTenant(tenant) {
         try {
@@ -53,34 +52,6 @@ export class TenantService {
                 success: false,
                 statusCode: 400,
                 message: `Error getting tenant`,
-                responseObject: {
-                    tenant: null
-                }
-            };
-        }
-    }
-    static async addLogo(tenantId, imageBuffer, filename) {
-        try {
-            const tenantRepository = AppDataSource.getRepository(Tenant);
-            const tenant = await tenantRepository.findOne({ where: { id: tenantId } });
-            const themingRepository = AppDataSource.getRepository(AppThemingData);
-            const logo = await DatabaseFilesService.uploadDatabaseFile(imageBuffer, filename);
-            //            await themingRepository.update( )
-            return {
-                success: true,
-                statusCode: 200,
-                message: `Tenant found successfully`,
-                responseObject: {
-                    tenant: tenant
-                }
-            };
-        }
-        catch (error) {
-            console.warn(`Error retrieving Tenant: ${error}`);
-            return {
-                success: false,
-                statusCode: 400,
-                message: `Error adding logo to tenant`,
                 responseObject: {
                     tenant: null
                 }

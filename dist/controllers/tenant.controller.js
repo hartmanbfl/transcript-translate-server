@@ -64,13 +64,4 @@ export class TenantController {
         const serviceResponse = await ThemingService.updateTheme(id, newTheme);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
     }
-    static async uploadLogo(req, res) {
-        try {
-            console.log(`Uploaded logo: ${req.file}`);
-            res.status(200).json({ message: "logo uploaded" });
-        }
-        catch (error) {
-            return res.status(400).json({ message: "Unable to upload logo for tenant" });
-        }
-    }
 }

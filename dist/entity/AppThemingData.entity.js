@@ -41,7 +41,7 @@ __decorate([
 __decorate([
     JoinColumn({ name: 'logoId' }),
     OneToOne(() => DatabaseFile, { nullable: true }),
-    __metadata("design:type", DatabaseFile)
+    __metadata("design:type", Object)
 ], AppThemingData.prototype, "logo", void 0);
 __decorate([
     Column({ nullable: true }),

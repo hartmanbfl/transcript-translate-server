@@ -1,5 +1,6 @@
 import { AppDataSource } from "../data-source.js";
 import { AppThemingData } from "../entity/AppThemingData.entity.js";
+import { DatabaseFilesService } from "./databaseFiles.service.js";
 export class ThemingService {
     static async getTheme(id) {
         try {
@@ -50,6 +51,34 @@ export class ThemingService {
                 success: false,
                 statusCode: 400,
                 message: `Theme not set successfully`,
+                responseObject: {
+                    theme: null
+                }
+            };
+        }
+    }
+    static async addLogo(themeId, imageBuffer, filename) {
+        try {
+            const themeRepository = AppDataSource.getRepository(AppThemingData);
+            const theme = await themeRepository.findOne({ where: { id: themeId } });
+            const logo = await DatabaseFilesService.uploadDatabaseFile(imageBuffer, filename);
+            console.log(`Updating logo for theme: ${themeId}`);
+            await themeRepository.update(themeId, { logoId: logo.id });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Logo updated successfully`,
+                responseObject: {
+                    theme: theme
+                }
+            };
+        }
+        catch (error) {
+            console.warn(`Error adding logo: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error adding logo to theme`,
                 responseObject: {
                     theme: null
                 }

@@ -63,34 +63,5 @@ export class TenantService {
             }
         }
     }
-    static async addLogo(tenantId: string, imageBuffer: Buffer, filename: string) {
-        try {
-            const tenantRepository = AppDataSource.getRepository(Tenant);
-            const tenant = await tenantRepository.findOne({ where: { id: tenantId } });
-            const themingRepository = AppDataSource.getRepository(AppThemingData);
-            
-            const logo = await DatabaseFilesService.uploadDatabaseFile(imageBuffer, filename);
-//            await themingRepository.update( )
-
-            return {
-                success: true,
-                statusCode: 200,
-                message: `Tenant found successfully`,
-                responseObject: {
-                    tenant: tenant
-                }
-            }
-        } catch (error) {
-            console.warn(`Error retrieving Tenant: ${error}`);
-            return {
-                success: false,
-                statusCode: 400,
-                message: `Error adding logo to tenant`,
-                responseObject: {
-                    tenant: null
-                }
-            }
-        }
-
-    }
+    
 }

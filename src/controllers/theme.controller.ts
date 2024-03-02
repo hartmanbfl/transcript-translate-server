@@ -27,4 +27,13 @@ export class ThemeController {
         const serviceResponse = await ThemingService.updateTheme(id, theme);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
     }
+    static async uploadLogo(req: Request, res: Response) {
+        const { id } = req.params;
+        console.log(`Uploaded logo: ${req.file?.filename}`);
+        const file = req.file;
+        if (!file) throw new Error("File not defined");
+
+        const serviceResponse = await ThemingService.addLogo(id, file?.buffer, file?.originalname);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
+    }
 }

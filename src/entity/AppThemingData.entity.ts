@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToOne, Relation } from "typeorm";
 import { Tenant } from "./Tenant.entity.js";
 import { DatabaseFile } from "./DatabaseFile.entity.js";
 
@@ -25,7 +25,7 @@ export class AppThemingData {
 
     @JoinColumn({ name: 'logoId' })
     @OneToOne(() => DatabaseFile, { nullable: true })
-    logo?: DatabaseFile;
+    logo?: Relation<DatabaseFile>;
 
     @Column({ nullable: true })
     logoId?: string;

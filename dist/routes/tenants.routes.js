@@ -19,5 +19,4 @@ router.post("/create", authentication, authorization(["admin"]), TenantControlle
 router.post("/getByName", authentication, authorization(["admin"]), TenantController.getTenantIdByName);
 router.post("/:id/theme", authentication, authorization(["admin"]), TenantController.addTheming);
 //router.post("/uploadLogo", authentication, authorization(["user", "admin"]), upload.single('logo'), TenantController.uploadLogo);
-router.post("/uploadLogo", upload.single('logo'), TenantController.uploadLogo);
 export default router;
