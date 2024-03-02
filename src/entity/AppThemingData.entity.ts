@@ -7,20 +7,20 @@ export class AppThemingData {
     @PrimaryGeneratedColumn("uuid")
     id: string;
 
-    @ManyToOne(() => Tenant)
-    @JoinColumn({ name: 'tenant_id' })
-    tenant: Tenant 
+    @OneToOne(() => Tenant, (tenant) => tenant.app_theming_data)
+//    @JoinColumn({ name: 'tenant_id'})  // this will change the following to tenant_id in the DB 
+    tenant: Tenant;
 
-    @Column()
+    @Column({ nullable: true })
     greeting: string;
 
-    @Column()
+    @Column({ nullable: true })
     message: string;
 
-    @Column()
+    @Column({ nullable: true })
     additional_welcome_message: string;
 
-    @Column()
+    @Column({ nullable: true })
     waiting_message: string;
 
     @JoinColumn({ name: 'logoId' })

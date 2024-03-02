@@ -80,6 +80,10 @@ controlConnections.on('connection', (socket) => {
 import tenantRouter from './routes/tenants.routes.js';
 app.use('/tenants', tenantRouter);
 
+// Define theme routes
+import themeRouter from './routes/themes.routes.js';
+app.use('/themes', themeRouter);
+
 // Define authentication routes
 import authRouter from './routes/auth.routes.js';
 app.use('/auth', authRouter);

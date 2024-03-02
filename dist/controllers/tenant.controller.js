@@ -1,6 +1,8 @@
 import { Tenant } from "../entity/Tenant.entity.js";
 import { AppDataSource } from "../data-source.js";
 import { TenantService } from "../services/tenant.service.js";
+import { ThemingService } from "../services/theming.service.js";
+import { AppThemingData } from "../entity/AppThemingData.entity.js";
 export class TenantController {
     static async addTenant(req, res) {
         const { name, address, deepgram_api_key, deepgram_project } = req.body;
@@ -23,6 +25,17 @@ export class TenantController {
         const serviceResponse = await TenantService.getTenant(id);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
     }
+    static async getThemeId(req, res) {
+        try {
+            const { id } = req.params;
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.findOne({ where: { id } });
+            res.status(200).json(tenant === null || tenant === void 0 ? void 0 : tenant.app_theming_data_id);
+        }
+        catch (error) {
+            res.status(400).json({ message: error });
+        }
+    }
     static async getTenantIdByName(req, res) {
         try {
             const { name } = req.body;
@@ -41,6 +54,15 @@ export class TenantController {
             console.warn(`Error getting Tenant by name: ${error}`);
             return res.status(400).json({ message: "Unable to get Id for Tenant" });
         }
+    }
+    static async addTheming(req, res) {
+        const { id } = req.params;
+        const { greeting, additional_welcome_message } = req.body;
+        const newTheme = new AppThemingData();
+        newTheme.greeting = greeting;
+        newTheme.additional_welcome_message = additional_welcome_message;
+        const serviceResponse = await ThemingService.updateTheme(id, newTheme);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
     }
     static async uploadLogo(req, res) {
         try {

@@ -19,10 +19,13 @@ router.use(async (req, res, next) => {
 });
 
 router.get("/:id", authentication, authorization(["admin"]), TenantController.getTenant);
+router.get("/:id/themeId", authentication, authorization(["admin"]), TenantController.getThemeId);
 
 router.post("/create", authentication, authorization(["admin"]), TenantController.addTenant);
 
 router.post("/getByName", authentication, authorization(["admin"]), TenantController.getTenantIdByName);
+
+router.post("/:id/theme", authentication, authorization(["admin"]), TenantController.addTheming);
 
 //router.post("/uploadLogo", authentication, authorization(["user", "admin"]), upload.single('logo'), TenantController.uploadLogo);
 router.post("/uploadLogo", upload.single('logo'), TenantController.uploadLogo);

@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, Relation } from "typeorm";
+import { AppThemingData } from "./AppThemingData.entity.js";
 
 @Entity({ name: "main_tenant" })
 export class Tenant {
@@ -22,4 +23,11 @@ export class Tenant {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToOne(() => AppThemingData, (app_theming_data) => app_theming_data.tenant, { cascade: true })
+  @JoinColumn({name: "app_theming_data_id"})
+  app_theming_data: Relation<AppThemingData>;
+
+  @Column()
+  app_theming_data_id: string;
 }

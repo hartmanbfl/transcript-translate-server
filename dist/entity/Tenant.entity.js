@@ -7,7 +7,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn } from "typeorm";
+import { AppThemingData } from "./AppThemingData.entity.js";
 let Tenant = class Tenant {
 };
 __decorate([
@@ -38,6 +39,15 @@ __decorate([
     UpdateDateColumn(),
     __metadata("design:type", Date)
 ], Tenant.prototype, "updated_at", void 0);
+__decorate([
+    OneToOne(() => AppThemingData, (app_theming_data) => app_theming_data.tenant, { cascade: true }),
+    JoinColumn({ name: "app_theming_data_id" }),
+    __metadata("design:type", Object)
+], Tenant.prototype, "app_theming_data", void 0);
+__decorate([
+    Column(),
+    __metadata("design:type", String)
+], Tenant.prototype, "app_theming_data_id", void 0);
 Tenant = __decorate([
     Entity({ name: "main_tenant" })
 ], Tenant);
