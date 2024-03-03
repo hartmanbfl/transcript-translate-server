@@ -13,7 +13,7 @@ export const registerControlHandlers = (controlIo, clientIo, socket) => {
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
         // Let all observers know that a new transcript is available
-        console.log(`Received a transcriptReady message: ${transcript}`);
+        if (process.env.EXTRA_DEBUGGING) console.log(`Received a transcriptReady message: ${transcript}`);
         const transciptData = { serviceCode, transcript, serviceLanguageMap };
         transcriptAvailServiceSub.next(transciptData);
     });
