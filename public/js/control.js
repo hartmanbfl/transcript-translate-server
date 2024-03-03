@@ -358,7 +358,8 @@ const handleDeepgramResponse = async (message) => {
         }
 
         // Send to our server
-        const data = { serviceCode, finalTranscript };
+        const data = { serviceCode, transcript: finalTranscript };
+        console.log(`Emitting transcript ready: ${data.transcript}`);
         controlSocket.emit('transcriptReady', data)
     }
 }
