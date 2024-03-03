@@ -4,6 +4,9 @@ import { registerForServiceTranscripts } from "../../translate.js";
 import { getActiveLanguages } from '../../services/church.service.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.repository.js';
 import { Namespace, Server, Socket } from 'socket.io';
+import { TranscriptService } from '../../services/transcript.service.js';
+import { TenantService } from '../../services/tenant.service.js';
+import { Tenant } from '../../entity/Tenant.entity.js';
 
 // Environment variables
 dotenv.config();
@@ -11,6 +14,20 @@ dotenv.config();
 export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, socket: Socket) => {
     
     console.log(`Registering ${socket.id} connected to our socket.io control namespace`);
+
+    socket.on('recordingStarted', async (data) => {
+        const { serviceCode } = data;
+        console.log(`Recording started for ${serviceCode}`)
+
+        // start a new transcript
+        const tenant: Tenant | null = (await TenantService.getTenant("847feb43-7faf-4a82-affd-6efb72f45f86")).responseObject.tenant;
+        const transcriptId = await TranscriptService.startTranscript(tenant!);
+
+    });
+    socket.on('recordingStopped', (data) => {
+        const { serviceCode } = data;
+        console.log(`Recording stopped for ${serviceCode}`)
+    });
 
     socket.on('disconnect', (reason) => {
         console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);

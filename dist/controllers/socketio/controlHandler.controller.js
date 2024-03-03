@@ -7,13 +7,21 @@ import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '
 dotenv.config();
 export const registerControlHandlers = (controlIo, clientIo, socket) => {
     console.log(`Registering ${socket.id} connected to our socket.io control namespace`);
+    socket.on('recordingStarted', (data) => {
+        const { serviceCode } = data;
+        console.log(`Recording started for ${serviceCode}`);
+    });
+    socket.on('recordingStopped', (data) => {
+        const { serviceCode } = data;
+        console.log(`Recording stopped for ${serviceCode}`);
+    });
     socket.on('disconnect', (reason) => {
         console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
     });
     socket.on('transcriptReady', (data) => {
         const { serviceCode, transcript } = data;
         // Let all observers know that a new transcript is available
-        if (process.env.EXTRA_DEBUGGING) console.log(`Received a transcriptReady message: ${transcript}`);
+        //        console.log(`Received a transcriptReady message`);
         const transciptData = { serviceCode, transcript, serviceLanguageMap };
         transcriptAvailServiceSub.next(transciptData);
     });

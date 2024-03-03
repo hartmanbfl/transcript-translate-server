@@ -17,8 +17,8 @@ __decorate([
     __metadata("design:type", String)
 ], AppThemingData.prototype, "id", void 0);
 __decorate([
-    OneToOne(() => Tenant, (tenant) => tenant.app_theming_data)
-    //    @JoinColumn({ name: 'tenant_id'})  // this will change the following to tenant_id in the DB 
+    OneToOne(() => Tenant, (tenant) => tenant.app_theming_data),
+    JoinColumn({ name: 'tenant_id' }) // this will change the following to tenant_id in the DB 
     ,
     __metadata("design:type", Tenant)
 ], AppThemingData.prototype, "tenant", void 0);

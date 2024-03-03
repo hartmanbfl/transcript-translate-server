@@ -9,6 +9,8 @@ import { User } from "./entity/User.entity.js";
 import * as dotenv from "dotenv";
 import path from 'path';
 import {fileURLToPath} from 'url';
+import { Phrase } from "./entity/Phrase.entity.js";
+import { Transcript } from "./entity/Transcript.entity.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,7 +31,9 @@ export const AppDataSource = new DataSource({
     entities: [
         AppThemingData,
         DatabaseFile,
+        Phrase,
         Tenant,
+        Transcript,
         User
     ],
     migrations: [__dirname + "migration/*.ts"],

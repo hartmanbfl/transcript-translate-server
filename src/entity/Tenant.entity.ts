@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, Relation } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, Relation, OneToMany } from "typeorm";
 import { AppThemingData } from "./AppThemingData.entity.js";
+import { Transcript} from "./Transcript.entity.js";
 
 @Entity({ name: "main_tenant" })
 export class Tenant {
@@ -25,9 +26,12 @@ export class Tenant {
   updated_at: Date;
 
   @OneToOne(() => AppThemingData, (app_theming_data) => app_theming_data.tenant, { cascade: true })
-  @JoinColumn({name: "app_theming_data_id"})
+//  @JoinColumn({name: "app_theming_data_id"})
   app_theming_data: Relation<AppThemingData>;
 
-  @Column()
+  @Column({nullable: false})
   app_theming_data_id: string;
+
+  @OneToMany(() => Transcript, (transcript) => transcript.tenant)
+  transcripts: Transcript[]
 }

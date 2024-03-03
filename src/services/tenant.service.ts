@@ -7,10 +7,16 @@ export class TenantService {
     static async addTenant(tenant: Tenant) {
         try {
             const tenantRepository = AppDataSource.getRepository(Tenant);
+            const themeRepository = AppDataSource.getRepository(AppThemingData);
 
             // Create a blank theming reference 
             const theming: AppThemingData = new AppThemingData();
-            tenant.app_theming_data = theming;
+            theming.greeting = "hello";
+            const newTheme = await themeRepository.save(theming); 
+            console.log(`New theme: ${newTheme.id}`);
+
+            tenant.app_theming_data = newTheme;
+            tenant.app_theming_data_id = newTheme.id;
 
 //            await tenantRepository.upsert(tenant, ['name']);
             await tenantRepository.save(tenant);

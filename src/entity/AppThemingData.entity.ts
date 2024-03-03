@@ -8,7 +8,7 @@ export class AppThemingData {
     id: string;
 
     @OneToOne(() => Tenant, (tenant) => tenant.app_theming_data)
-//    @JoinColumn({ name: 'tenant_id'})  // this will change the following to tenant_id in the DB 
+    @JoinColumn({ name: 'tenant_id'})  // this will change the following to tenant_id in the DB 
     tenant: Tenant;
 
     @Column({ nullable: true })

@@ -136,6 +136,9 @@ const setupDeepgram = () => {
         if (resp.error) return alert(resp.error);
 
 
+        controlSocket.emit("recordingStarted", { serviceCode: serviceId});
+
+
         document.querySelector('#audioForm').style.display = "none";
 
         const deepgramUrl = buildDeepgramUrl();
@@ -158,6 +161,7 @@ const setupDeepgram = () => {
             stopStreaming.style.display = "none";
             document.getElementById('recording-status').style.display = "none";
             audioForm.style.display = "block";
+            controlSocket.emit("recordingStopped", { serviceCode: serviceId});
         })
 
         // Store values in local storage in case of a refresh
