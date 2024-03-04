@@ -3,13 +3,18 @@ import { roomEmitter, transcriptAvailServiceSub } from "../../globals.js";
 import { registerForServiceTranscripts } from "../../translate.js";
 import { getActiveLanguages } from '../../services/church.service.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.repository.js';
+import { TranscriptService } from '../../services/transcript.service.js';
+import { TenantService } from '../../services/tenant.service.js';
 // Environment variables
 dotenv.config();
 export const registerControlHandlers = (controlIo, clientIo, socket) => {
     console.log(`Registering ${socket.id} connected to our socket.io control namespace`);
-    socket.on('recordingStarted', (data) => {
+    socket.on('recordingStarted', async (data) => {
         const { serviceCode } = data;
         console.log(`Recording started for ${serviceCode}`);
+        // start a new transcript
+        const tenant = (await TenantService.getTenant("847feb43-7faf-4a82-affd-6efb72f45f86")).responseObject.tenant;
+        const transcriptId = await TranscriptService.startTranscript(tenant);
     });
     socket.on('recordingStopped', (data) => {
         const { serviceCode } = data;

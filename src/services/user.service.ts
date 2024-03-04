@@ -2,26 +2,85 @@ import * as dotenv from "dotenv"
 import { encrypt } from "../utils/encrypt.util.js";
 import { User } from "../entity/User.entity.js";
 import { AppDataSource } from "../data-source.js";
+import { Tenant } from "../entity/Tenant.entity.js";
 
 dotenv.config();
 
 const { ADMIN_USERNAME, ADMIN_PASSWORD } = process.env;
 
-export const createSuperadminUser = async () => {
-    try {
-        if (!ADMIN_USERNAME || !ADMIN_PASSWORD) throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD must be defined");
+export class UserService {
 
-        const user = new User();
-        const encryptedPassword = await encrypt.encryptPassword(ADMIN_PASSWORD)
-        user.fullname = "System Admin"
-        user.username = ADMIN_USERNAME;
-        user.password = encryptedPassword;
-        user.role = "admin";
+    static createSuperadminUser = async (tenantId: string) => {
+        try {
+            if (!ADMIN_USERNAME || !ADMIN_PASSWORD) throw new Error("ADMIN_USERNAME and ADMIN_PASSWORD must be defined");
 
-        const userRepository = AppDataSource.getRepository(User);
-        await userRepository.upsert(user, ["username"]);
+            const user = new User();
+            const encryptedPassword = await encrypt.encryptPassword(ADMIN_PASSWORD)
+            user.fullname = "System Admin"
+            user.username = ADMIN_USERNAME;
+            user.password = encryptedPassword;
+            user.role = "superadmin";
 
-    } catch (error) {
-        console.error(`Unable to create admin user in DB: ${error}`);
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.findOne({ where: { id: tenantId } });
+
+            if (!tenant) throw new Error("Tenant not found");
+
+            user.tenant = tenant;
+
+            const userRepository = AppDataSource.getRepository(User);
+            await userRepository.upsert(user, ["username"]);
+
+        } catch (error) {
+            console.error(`Unable to create admin user in DB: ${error}`);
+        }
+    }
+    static createUser = async (user: User, tenant_id: string) => {
+
+        const { username, password, role, fullname, email } = user;
+        try {
+
+            if (!username || !password) throw new Error("Must have username and password");
+
+            const newUser = new User();
+            const encryptedPassword = await encrypt.encryptPassword(password);
+            if (role) newUser.role = role;
+            newUser.fullname = fullname;
+            newUser.username = username;
+            newUser.password = encryptedPassword;
+            newUser.email = email;
+
+            // Assign to a tenant
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.findOne({ where: { id: tenant_id } });
+            if (!tenant) throw new Error(`Tenant not found for this tenant ID`);
+
+            newUser.tenant = tenant;
+
+            const userRepository = AppDataSource.getRepository(User);
+            await userRepository.upsert(newUser, ["username"]);
+
+            const token = encrypt.generateToken({ id: newUser.id });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `User created successfully`,
+                responseObject: {
+                    user: newUser,
+                    token: token
+                }
+            }
+
+        } catch (error) {
+            console.warn(`Error creating ${username}.  ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `User not created successfully`,
+                responseObject: {
+                    user: null,
+                }
+            }
+        }
     }
 }

@@ -20,7 +20,7 @@ __decorate([
     OneToOne(() => Tenant, (tenant) => tenant.app_theming_data),
     JoinColumn({ name: 'tenant_id' }) // this will change the following to tenant_id in the DB 
     ,
-    __metadata("design:type", Tenant)
+    __metadata("design:type", Object)
 ], AppThemingData.prototype, "tenant", void 0);
 __decorate([
     Column({ nullable: true }),

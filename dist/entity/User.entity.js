@@ -7,13 +7,19 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Tenant } from "./Tenant.entity.js";
 let User = class User {
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
+__decorate([
+    ManyToOne(() => Tenant, (tenant) => tenant.users),
+    JoinColumn({ name: 'tenant_id' }),
+    __metadata("design:type", Tenant)
+], User.prototype, "tenant", void 0);
 __decorate([
     Column({ nullable: false }),
     __metadata("design:type", String)

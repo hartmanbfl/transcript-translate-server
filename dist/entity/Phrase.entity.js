@@ -28,7 +28,7 @@ __decorate([
     __metadata("design:type", Object)
 ], Phrase.prototype, "transcript", void 0);
 __decorate([
-    Column(),
+    Column("text"),
     __metadata("design:type", String)
 ], Phrase.prototype, "phrase_text", void 0);
 __decorate([

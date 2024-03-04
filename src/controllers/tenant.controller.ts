@@ -7,7 +7,7 @@ import { AppThemingData } from "../entity/AppThemingData.entity.js";
 
 export class TenantController {
     static async addTenant(req: Request, res: Response) {
-        const { name, address, deepgram_api_key, deepgram_project } = req.body;
+        const { name, address, church_key, deepgram_api_key, deepgram_project } = req.body;
 
         // TBD - Validate inputs
         if (!name) {
@@ -18,6 +18,7 @@ export class TenantController {
             tenant.name = name;
             tenant.deepgram_api_key = deepgram_api_key;
             tenant.deepgram_project = deepgram_project;
+            tenant.church_key = church_key; 
             const serviceResponse = await TenantService.addTenant(tenant);
 
             res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
@@ -28,33 +29,21 @@ export class TenantController {
         const serviceResponse = await TenantService.getTenant(id);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
     }
-    static async getThemeId(req: Request, res: Response) {
-        try {
-
-            const { id } = req.params;
-            const tenantRepository = AppDataSource.getRepository(Tenant);
-            const tenant = await tenantRepository.findOne({ where: { id } });
-            res.status(200).json(tenant?.app_theming_data_id);
-        } catch (error) {
-            res.status(400).json({message: error})
-        }
+    static async getAllTenants(req: Request, res: Response) {
+        const serviceResponse = await TenantService.getAllTenants()
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
     }
     static async getTenantIdByName(req: Request, res: Response) {
-        try {
-            const { name } = req.body;
-            if (!name) throw new Error("Must include a name in the payload")
-
-            const tenantRepository = AppDataSource.getRepository(Tenant);
-            const tenant = await tenantRepository.findOne({ where: { name } });
-            if (tenant) {
-                res.status(200).json({ tenant });
-            } else {
-                res.status(200).json({});
-            }
-        } catch (error) {
-            console.warn(`Error getting Tenant by name: ${error}`);
-            return res.status(400).json({ message: "Unable to get Id for Tenant" });
-        }
+        const { name } = req.body;
+        if (!name) throw new Error("Must include a name in the payload")
+        const serviceResponse = await TenantService.getTenantFromName(name);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
+    }
+    static async getTenantIdByKey(req: Request, res: Response) {
+        const { church_key } = req.body;
+        if (!church_key) throw new Error("Must include a key in the payload")
+        const serviceResponse = await TenantService.getTenantFromChurchKey(church_key);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
     }
     static async addTheming(req: Request, res: Response) {
         const { id } = req.params;
@@ -65,5 +54,16 @@ export class TenantController {
         const serviceResponse = await ThemingService.updateTheme(id, newTheme);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
     }
-    
+
+    static async getThemeId(req: Request, res: Response) {
+        try {
+
+            const { id } = req.params;
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.findOne({ where: { id } });
+            res.status(200).json(tenant?.app_theming_data_id);
+        } catch (error) {
+            res.status(400).json({ message: error })
+        }
+    }
 }

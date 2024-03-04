@@ -22,7 +22,7 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         // start a new transcript
         const tenant: Tenant | null = (await TenantService.getTenant("847feb43-7faf-4a82-affd-6efb72f45f86")).responseObject.tenant;
         const transcriptId = await TranscriptService.startTranscript(tenant!);
-
+        
     });
     socket.on('recordingStopped', (data) => {
         const { serviceCode } = data;

@@ -135,8 +135,13 @@ const setupDeepgram = () => {
 
         if (resp.error) return alert(resp.error);
 
+        // Successfully logged in.  Now retrieve our tenant ID using the church key
+//TBD        const token = await fetch('/users/login', {
+//TBD            method: 'POST',
+//TBD            body: JSON.stringify({ })
+//TBD        })
 
-        controlSocket.emit("recordingStarted", { serviceCode: serviceId});
+//        controlSocket.emit("recordingStarted", { serviceCode: serviceId});
 
 
         document.querySelector('#audioForm').style.display = "none";

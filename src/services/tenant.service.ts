@@ -4,6 +4,24 @@ import { Tenant } from "../entity/Tenant.entity.js";
 
 export class TenantService {
 
+    static async createDefaultTenant(): Promise<string|null> {
+        try {
+            const tenant = new Tenant();
+            tenant.name = "System Default";
+            tenant.church_key = "$y$temDefau!t";
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            await tenantRepository.upsert(tenant, ["name"]);
+            const updatedTenant = await tenantRepository.findOne({where: {
+                church_key: tenant.church_key
+            }});
+            if (!updatedTenant) throw new Error("Could not find default tenant")
+            return updatedTenant?.id;
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return null;
+        }
+    }
+
     static async addTenant(tenant: Tenant) {
         try {
             const tenantRepository = AppDataSource.getRepository(Tenant);
@@ -12,13 +30,13 @@ export class TenantService {
             // Create a blank theming reference 
             const theming: AppThemingData = new AppThemingData();
             theming.greeting = "hello";
-            const newTheme = await themeRepository.save(theming); 
+            const newTheme = await themeRepository.save(theming);
             console.log(`New theme: ${newTheme.id}`);
 
             tenant.app_theming_data = newTheme;
             tenant.app_theming_data_id = newTheme.id;
 
-//            await tenantRepository.upsert(tenant, ['name']);
+            //            await tenantRepository.upsert(tenant, ['name']);
             await tenantRepository.save(tenant);
 
             return {
@@ -67,5 +85,90 @@ export class TenantService {
             }
         }
     }
-    
+    static async getAllTenants() {
+        try {
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.find()
+            if (!tenant) throw new Error("Tenant not found in DB");
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Tenant list found successfully`,
+                responseObject: {
+                    tenant: tenant
+                }
+            }
+
+        } catch (error) {
+            console.warn(`Error retrieving Tenant: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error getting tenant`,
+                responseObject: {
+                    tenant: null
+                }
+            }
+        }
+    }
+    static async getTenantFromName(name: string) {
+        try {
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.findOne({
+                where: {
+                    church_key: name
+                }
+            });
+            if (!tenant) throw new Error("Tenant with this name not found in DB");
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Tenant found successfully`,
+                responseObject: {
+                    tenant: tenant
+                }
+            }
+
+        } catch (error) {
+            console.warn(`Error retrieving Tenant: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error getting tenant`,
+                responseObject: {
+                    tenant: null
+                }
+            }
+        }
+    }
+    static async getTenantFromChurchKey(key: string) {
+        try {
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const tenant = await tenantRepository.findOne({
+                where: {
+                    church_key: key
+                }
+            });
+            if (!tenant) throw new Error("Tenant with this church key not found in DB");
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Tenant found successfully`,
+                responseObject: {
+                    tenant: tenant
+                }
+            }
+
+        } catch (error) {
+            console.warn(`Error retrieving Tenant: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error getting tenant`,
+                responseObject: {
+                    tenant: null
+                }
+            }
+        }
+    }
 }

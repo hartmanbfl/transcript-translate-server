@@ -15,7 +15,7 @@ export class Phrase {
     @ManyToOne(() => Transcript, (transcript) => transcript.phrases)
     transcript: Relation<Transcript>;
 
-    @Column()
+    @Column("text")
     phrase_text: string;
 
     @Column()

@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import http from 'http';
 import path from 'path';
 import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.service.js';
-import { createSuperadminUser } from './services/user.service.js';
+import { UserService } from './services/user.service.js';
 import { errorHandler } from './middleware/error.middleware.js';
 import { AppDataSource } from './data-source.js';
 // Environment variables
@@ -85,6 +85,7 @@ import roomRouter from './routes/room.routes.js';
 app.use('/rooms', roomRouter);
 // Clients (sockets) routes
 import clientRouter from './routes/clients.routes.js';
+import { TenantService } from './services/tenant.service.js';
 app.use('/clients', clientRouter);
 // Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
@@ -113,8 +114,11 @@ if (USE_DATABASE) {
     AppDataSource.initialize()
         .then(async () => {
         console.log("Data Source has been initialized");
-        // Create the admin user
-        await createSuperadminUser();
+        // Create the default tenant and superadmin user
+        const tenantId = await TenantService.createDefaultTenant();
+        if (!tenantId)
+            throw new Error("Tenant ID not found");
+        await UserService.createSuperadminUser(tenantId);
     })
         .catch((error) => console.log(error));
 }

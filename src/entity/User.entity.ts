@@ -1,9 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, Relation, JoinColumn } from "typeorm";
+import { Tenant } from "./Tenant.entity.js";
 
 @Entity({ name: "main_user" })
 export class User {
     @PrimaryGeneratedColumn("uuid")
     id: string;
+
+    @ManyToOne(() => Tenant, (tenant) => tenant.users)
+    @JoinColumn({name: 'tenant_id'})
+    tenant: Tenant;
 
     @Column({ nullable: false })
     fullname: string;

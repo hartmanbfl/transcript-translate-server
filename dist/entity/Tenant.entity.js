@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, OneToMany } from "typeorm";
 import { AppThemingData } from "./AppThemingData.entity.js";
 import { Transcript } from "./Transcript.entity.js";
+import { User } from "./User.entity.js";
 let Tenant = class Tenant {
 };
 __decorate([
@@ -21,15 +22,19 @@ __decorate([
     __metadata("design:type", String)
 ], Tenant.prototype, "name", void 0);
 __decorate([
+    Column({ nullable: false, unique: true }),
+    __metadata("design:type", String)
+], Tenant.prototype, "church_key", void 0);
+__decorate([
     Column({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "address", void 0);
 __decorate([
-    Column({ nullable: false }),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "deepgram_api_key", void 0);
 __decorate([
-    Column({ nullable: false }),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "deepgram_project", void 0);
 __decorate([
@@ -47,13 +52,17 @@ __decorate([
     __metadata("design:type", Object)
 ], Tenant.prototype, "app_theming_data", void 0);
 __decorate([
-    Column({ nullable: false }),
+    Column({ nullable: true }),
     __metadata("design:type", String)
 ], Tenant.prototype, "app_theming_data_id", void 0);
 __decorate([
     OneToMany(() => Transcript, (transcript) => transcript.tenant),
     __metadata("design:type", Array)
 ], Tenant.prototype, "transcripts", void 0);
+__decorate([
+    OneToMany(() => User, (user) => user.tenant),
+    __metadata("design:type", Array)
+], Tenant.prototype, "users", void 0);
 Tenant = __decorate([
     Entity({ name: "main_tenant" })
 ], Tenant);

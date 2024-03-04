@@ -1,7 +1,7 @@
-import { AppDataSource } from "../data-source";
-import { Phrase } from "../entity/Phrase.entity";
-import { Tenant } from "../entity/Tenant.entity";
-import { Transcript } from "../entity/Transcript.entity";
+import { AppDataSource } from "../data-source.js";
+import { Phrase } from "../entity/Phrase.entity.js";
+import { Tenant } from "../entity/Tenant.entity.js";
+import { Transcript } from "../entity/Transcript.entity.js";
 
 export class TranscriptService {
     static async addPhrase(transcript_id: string, phrase_text: string ) {

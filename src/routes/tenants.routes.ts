@@ -9,24 +9,21 @@ const router = Router();
 const storage = multer.memoryStorage();
 const upload = multer({storage});
 
-router.get("/", (req, res) => {
-    res.send("OK tenants");
-})
 
 // Authenticate and authorize all requests
 router.use(async (req, res, next) => {
     next();
 });
 
-router.get("/:id", authentication, authorization(["admin"]), TenantController.getTenant);
-router.get("/:id/themeId", authentication, authorization(["admin"]), TenantController.getThemeId);
+router.get("/", authentication, authorization(["superadmin"]), TenantController.getAllTenants);
+router.get("/:id", authentication, authorization(["superadmin","admin"]), TenantController.getTenant);
+router.get("/:id/themeId", authentication, authorization(["superadmin","admin"]), TenantController.getThemeId);
 
-router.post("/create", authentication, authorization(["admin"]), TenantController.addTenant);
+router.post("/create", authentication, authorization(["superadmin"]), TenantController.addTenant);
 
-router.post("/getByName", authentication, authorization(["admin"]), TenantController.getTenantIdByName);
+router.post("/getByName", authentication, authorization(["superadmin"]), TenantController.getTenantIdByName);
+router.post("/getByKey", authentication, authorization(["superadmin","admin"]), TenantController.getTenantIdByKey);
 
-router.post("/:id/theme", authentication, authorization(["admin"]), TenantController.addTheming);
-
-//router.post("/uploadLogo", authentication, authorization(["user", "admin"]), upload.single('logo'), TenantController.uploadLogo);
+router.post("/:id/theme", authentication, authorization(["superamdin","admin"]), TenantController.addTheming);
 
 export default router;
