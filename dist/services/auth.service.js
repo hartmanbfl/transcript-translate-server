@@ -24,7 +24,12 @@ export class ApiAuthService {
                 throw new Error(`Username and password are required`);
             }
             const userRepository = AppDataSource.getRepository(User);
-            const user = await userRepository.findOne({ where: { username } });
+            const user = await userRepository.findOne({
+                relations: {
+                    tenant: true
+                },
+                where: { username }
+            });
             if (!user)
                 throw new Error("User not found");
             const isPasswordValid = await encrypt.comparePassword(user.password, password);
@@ -33,7 +38,8 @@ export class ApiAuthService {
             }
             // Generate a token
             //            const token = encrypt.generateToken({ id: user.id });
-            const token = jwt.sign(({ id: user.id, role: user.role }), SECRET_KEY);
+            const payload = { id: user.id, role: user.role, tenantId: user.tenant.id };
+            const token = jwt.sign(payload, SECRET_KEY);
             return {
                 success: true,
                 statusCode: 200,

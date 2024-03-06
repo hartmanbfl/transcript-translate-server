@@ -9,6 +9,7 @@ import { AppDataSource } from '../data-source.js';
 import { User } from '../entity/User.entity.js';
 import { encrypt } from '../utils/encrypt.util.js';
 import jwt from 'jsonwebtoken';
+import { TokenInterface } from '../types/token.types.js';
 
 // Firebase auth can be used to restrict access to certain pages of the
 // web app (e.g. the control page)
@@ -29,7 +30,13 @@ export class ApiAuthService {
                 throw new Error(`Username and password are required`)
             }
             const userRepository = AppDataSource.getRepository(User);
-            const user = await userRepository.findOne({ where: { username } });
+            const user = await userRepository.findOne(
+                {
+                    relations: {
+                        tenant: true
+                    }, 
+                    where: { username } 
+                });
             if (!user) throw new Error("User not found");
 
             const isPasswordValid = await encrypt.comparePassword(user.password, password);
@@ -38,8 +45,8 @@ export class ApiAuthService {
             }
 
             // Generate a token
-//            const token = encrypt.generateToken({ id: user.id });
-            const token = jwt.sign(( {id: user.id, role: user.role}), SECRET_KEY);
+            const payload: TokenInterface = {id: user.id, role: user.role, tenantId: user.tenant.id};
+            const token = jwt.sign(payload, SECRET_KEY);
             return {
                 success: true,
                 statusCode: 200,
