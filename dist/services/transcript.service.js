@@ -86,4 +86,40 @@ export class TranscriptService {
             return 0;
         }
     }
+    static async generateFullTranscript(transcriptId) {
+        try {
+            const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const transcript = await transcriptRepository.findOne({
+                relations: {
+                    phrases: true
+                },
+                where: {
+                    id: transcriptId
+                }
+            });
+            if (!transcript)
+                throw new Error(`Transcript not found with this ID`);
+            // Sort the phrases and then add them to a string 
+            const sortedPhrases = transcript.phrases.sort((a, b) => (a.phrase_number < b.phrase_number ? -1 : 1));
+            let fullTranscript = "";
+            sortedPhrases.forEach(phrase => {
+                fullTranscript = fullTranscript + phrase.phrase_text + " ";
+            });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Full transcript obtained successfully`,
+                responseObject: fullTranscript
+            };
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: ""
+            };
+        }
+    }
 }

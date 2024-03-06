@@ -2,6 +2,7 @@ import { AppDataSource } from "../data-source.js";
 import { Phrase } from "../entity/Phrase.entity.js";
 import { Tenant } from "../entity/Tenant.entity.js";
 import { Transcript } from "../entity/Transcript.entity.js";
+import { ApiResponseType } from "../types/apiResonse.types.js";
 
 export class TranscriptService {
     static async addPhrase(transcript: Transcript, phrase_text: string, tenant_id: string ) {
@@ -79,6 +80,44 @@ export class TranscriptService {
         } catch (error) {
             console.log(`Error: ${error}`);
             return 0;
+        }
+    }
+    static async generateFullTranscript(transcriptId: string) : Promise<ApiResponseType<string>> {
+        try {
+            const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const transcript = await transcriptRepository.findOne(
+                {
+                    relations: {
+                        phrases: true
+                    },
+                    where: {
+                        id: transcriptId
+                    }
+                }
+            )
+            if (!transcript) throw new Error(`Transcript not found with this ID`);
+
+            // Sort the phrases and then add them to a string 
+            const sortedPhrases = transcript.phrases.sort((a, b) => (a.phrase_number < b.phrase_number ? -1 : 1));
+            let fullTranscript: string = "";
+            sortedPhrases.forEach(phrase => {
+                fullTranscript = fullTranscript + phrase.phrase_text + " ";
+            });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Full transcript obtained successfully`,
+                responseObject: fullTranscript
+            };
+
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: ""
+            };
         }
     }
 }

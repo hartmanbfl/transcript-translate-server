@@ -90,6 +90,9 @@ app.use('/rooms', roomRouter);
 import clientRouter from './routes/clients.routes.js';
 import { TenantService } from './services/tenant.service.js';
 app.use('/clients', clientRouter);
+// Define API transcript routes
+import transcriptRouter from './routes/transcript.routes.js';
+app.use('/transcripts', transcriptRouter);
 // Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
 app.get('/', (req, res) => {

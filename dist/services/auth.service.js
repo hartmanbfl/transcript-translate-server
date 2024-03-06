@@ -37,7 +37,6 @@ export class ApiAuthService {
                 throw new Error(`Invalid credentials`);
             }
             // Generate a token
-            //            const token = encrypt.generateToken({ id: user.id });
             const payload = { id: user.id, role: user.role, tenantId: user.tenant.id };
             const token = jwt.sign(payload, SECRET_KEY);
             return {

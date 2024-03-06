@@ -6,13 +6,9 @@ import { NextFunction, Request, Response, RequestHandler } from 'express';
 
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 import * as dotenv from "dotenv";
-import { TokenInterface } from '../types/token.types.js';
+import { CustomRequest, TokenInterface } from '../types/token.types.js';
 dotenv.config();
 
-// Allow expansion of express Request type
-export interface CustomRequest extends Request {
-    token: string | JwtPayload;
-}
 
 // Firebase auth can be used to restrict access to certain pages of the
 // web app (e.g. the control page)
@@ -61,7 +57,7 @@ export const authentication = (req: Request, res: Response, next: NextFunction) 
         //debug console.log(`token: id-> ${id}, role-> ${role}`);
 
         // Add it to the request for other middlewares
-        (req as CustomRequest).token = decoded;
+        (req as CustomRequest).token = decoded as TokenInterface;
 
         next();
     } catch (error) {
