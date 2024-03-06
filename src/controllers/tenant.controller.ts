@@ -36,13 +36,13 @@ export class TenantController {
     static async getTenantIdByName(req: Request, res: Response) {
         const { name } = req.body;
         if (!name) throw new Error("Must include a name in the payload")
-        const serviceResponse = await TenantService.getTenantFromName(name);
+        const serviceResponse = await TenantService.getTenantByName(name);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
     }
     static async getTenantIdByKey(req: Request, res: Response) {
         const { church_key } = req.body;
         if (!church_key) throw new Error("Must include a key in the payload")
-        const serviceResponse = await TenantService.getTenantFromChurchKey(church_key);
+        const serviceResponse = await TenantService.getTenantByChurchKey(church_key);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.tenant);
     }
     static async addTheming(req: Request, res: Response) {

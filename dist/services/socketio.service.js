@@ -14,6 +14,17 @@ export const initializeSocketIo = (server) => {
         }
     });
     controlIo = io.of("/control");
+    //TBD JWT    io.engine.use((req: {
+    //TBD JWT        headers: any, 
+    //TBD JWT        _query: Record<string, string> 
+    //TBD JWT    }, res: Response, next: Function) => {
+    //TBD JWT        const isHandshake = req._query.sid === undefined;
+    //TBD JWT        if (!isHandshake) {
+    //TBD JWT            return next();
+    //TBD JWT        }
+    //TBD JWT
+    //TBD JWT        const header = req.headers["authorization"];
+    //TBD JWT    })
     // Multi tenant support (church-<tenant ID>)
     clientConnections = io.of(/^\/church-\d+$/);
     controlConnections = io.of(/^\/control-\d+$/);

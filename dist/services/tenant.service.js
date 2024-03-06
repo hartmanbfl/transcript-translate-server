@@ -109,12 +109,12 @@ export class TenantService {
             };
         }
     }
-    static async getTenantFromName(name) {
+    static async getTenantByName(name) {
         try {
             const tenantRepository = AppDataSource.getRepository(Tenant);
             const tenant = await tenantRepository.findOne({
                 where: {
-                    church_key: name
+                    name: name
                 }
             });
             if (!tenant)
@@ -140,7 +140,7 @@ export class TenantService {
             };
         }
     }
-    static async getTenantFromChurchKey(key) {
+    static async getTenantByChurchKey(key) {
         try {
             const tenantRepository = AppDataSource.getRepository(Tenant);
             const tenant = await tenantRepository.findOne({

@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
@@ -17,6 +18,8 @@ const app = express();
 const server = http.createServer(app);
 app.use(cors());
 app.use(errorHandler);
+// Add the cookies to the Requests so that we can parse them
+app.use(cookieParser());
 app.use(express.static("public"));
 app.use(express.json());
 // DEBUG app.use(logRequests);

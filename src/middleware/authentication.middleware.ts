@@ -6,6 +6,7 @@ import { NextFunction, Request, Response, RequestHandler } from 'express';
 
 import jwt, { Secret, JwtPayload } from "jsonwebtoken";
 import * as dotenv from "dotenv";
+import { TokenInterface } from '../types/token.types.js';
 dotenv.config();
 
 // Allow expansion of express Request type
@@ -39,14 +40,27 @@ export const isAuthenticated: RequestHandler = (req, res, next) => {
 // Local authentication for API calls 
 export const authentication = (req: Request, res: Response, next: NextFunction) => {
     try {
+        let token;
         const SECRET_KEY: Secret = process.env.JWT_SECRET!;
-        const token = req.header('Authorization')?.replace('Bearer ', '');
+        const USE_COOKIE_AUTHENTICATION = process.env.USE_COOKIE_AUTHENTICATION;
+
+
+        if (USE_COOKIE_AUTHENTICATION) {
+            token = req.cookies.access_token;
+        } else {
+            token = req.header('Authorization')?.replace('Bearer ', '');
+        }
 
         if (!token) {
-            throw new Error(); 
+            throw new Error();
         }
 
         const decoded = jwt.verify(token, SECRET_KEY);
+        const id = (decoded as TokenInterface).id;
+        const role = (decoded as TokenInterface).role;
+        //debug console.log(`token: id-> ${id}, role-> ${role}`);
+
+        // Add it to the request for other middlewares
         (req as CustomRequest).token = decoded;
 
         next();

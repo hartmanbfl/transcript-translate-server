@@ -111,12 +111,12 @@ export class TenantService {
             }
         }
     }
-    static async getTenantFromName(name: string) {
+    static async getTenantByName(name: string) {
         try {
             const tenantRepository = AppDataSource.getRepository(Tenant);
             const tenant = await tenantRepository.findOne({
                 where: {
-                    church_key: name
+                    name: name
                 }
             });
             if (!tenant) throw new Error("Tenant with this name not found in DB");
@@ -141,7 +141,7 @@ export class TenantService {
             }
         }
     }
-    static async getTenantFromChurchKey(key: string) {
+    static async getTenantByChurchKey(key: string) {
         try {
             const tenantRepository = AppDataSource.getRepository(Tenant);
             const tenant = await tenantRepository.findOne({

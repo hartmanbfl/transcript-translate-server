@@ -15,6 +15,15 @@ export class Transcript{
     @OneToMany(() => Phrase, (phrase) => phrase.transcript)
     phrases: Phrase[];
 
+    @Column({nullable: true})
+    message_count: number;
+
+    @Column({nullable: false})
+    service_id: string;
+
+    @Column({nullable: true})
+    status: string;
+
     @CreateDateColumn()
     created_at: Date;
 

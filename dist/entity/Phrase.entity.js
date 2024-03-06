@@ -7,7 +7,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Column, CreateDateColumn, Entity, Generated, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Transcript } from "./Transcript.entity.js";
 let Phrase = class Phrase {
 };
@@ -32,8 +32,9 @@ __decorate([
     __metadata("design:type", String)
 ], Phrase.prototype, "phrase_text", void 0);
 __decorate([
-    Column(),
-    Generated('increment'),
+    Column()
+    //    @Generated('increment')
+    ,
     __metadata("design:type", Number)
 ], Phrase.prototype, "phrase_number", void 0);
 __decorate([

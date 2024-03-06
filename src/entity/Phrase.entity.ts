@@ -19,7 +19,7 @@ export class Phrase {
     phrase_text: string;
 
     @Column()
-    @Generated('increment')
+//    @Generated('increment')
     phrase_number: number;
 
     @CreateDateColumn()

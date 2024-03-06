@@ -75,3 +75,15 @@ UserService.createUser = async (user, tenant_id) => {
         };
     }
 };
+UserService.getUserByEmail = async (email) => {
+    try {
+        const userRepository = AppDataSource.getRepository(User);
+        const user = await userRepository.findOne({ where: { email } });
+        if (!user)
+            throw new Error(`User not found`);
+        return user;
+    }
+    catch (error) {
+        return null;
+    }
+};

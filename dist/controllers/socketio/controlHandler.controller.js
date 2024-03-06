@@ -13,22 +13,49 @@ export const registerControlHandlers = (controlIo, clientIo, socket) => {
         const { serviceCode } = data;
         console.log(`Recording started for ${serviceCode}`);
         // start a new transcript
-        const tenant = (await TenantService.getTenant("847feb43-7faf-4a82-affd-6efb72f45f86")).responseObject.tenant;
-        const transcriptId = await TranscriptService.startTranscript(tenant);
+        const tenant = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+        const transcriptId = await TranscriptService.startTranscript(tenant, serviceCode);
     });
-    socket.on('recordingStopped', (data) => {
+    socket.on('recordingStopped', async (data) => {
         const { serviceCode } = data;
         console.log(`Recording stopped for ${serviceCode}`);
+        // stop transcript
+        try {
+            const tenant = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+            if (!tenant)
+                throw new Error(`Tenant not found for this church key`);
+            const transcript = await TranscriptService.getActiveTranscript(tenant, serviceCode);
+            if (!transcript)
+                throw new Error(`No active transcript found`);
+            await TranscriptService.stopTranscript(transcript.id);
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+        }
     });
     socket.on('disconnect', (reason) => {
         console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
     });
-    socket.on('transcriptReady', (data) => {
+    socket.on('transcriptReady', async (data) => {
         const { serviceCode, transcript } = data;
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
         const transciptData = { serviceCode, transcript, serviceLanguageMap };
         transcriptAvailServiceSub.next(transciptData);
+        try {
+            // write it to the DB
+            const tenant = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+            if (!tenant)
+                throw new Error(`Tenant not found for this church key`);
+            const transcriptEntity = await TranscriptService.getActiveTranscript(tenant, serviceCode);
+            if (!transcriptEntity)
+                throw new Error(`No active transcript found`);
+            const messageCount = await TranscriptService.incrementMessageCount(transcriptEntity.id);
+            await TranscriptService.addPhrase(transcriptEntity, transcript, tenant.id);
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+        }
     });
     // Listen for changes in the rooms
     socket.on('monitor', (data) => {

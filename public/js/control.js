@@ -3,7 +3,8 @@ const fiveMinutes = 5 * 60 * 1000;
 
 
 // Use the control namespace to communicate to the server via WSS.
-const controlSocket = io('/control', { autoConnect: false });
+//const controlSocket = io('/control', { autoConnect: false });
+let controlSocket;
 
 let selectedLocale = "en-GB";
 let defaultServiceCode = null;
@@ -135,13 +136,15 @@ const setupDeepgram = () => {
 
         if (resp.error) return alert(resp.error);
 
+        console.log(`Logged in with response: ${JSON.stringify(resp)}`);
+
         // Successfully logged in.  Now retrieve our tenant ID using the church key
 //TBD        const token = await fetch('/users/login', {
 //TBD            method: 'POST',
 //TBD            body: JSON.stringify({ })
 //TBD        })
 
-//        controlSocket.emit("recordingStarted", { serviceCode: serviceId});
+        controlSocket.emit("recordingStarted", { serviceCode: serviceId});
 
 
         document.querySelector('#audioForm').style.display = "none";
@@ -155,6 +158,7 @@ const setupDeepgram = () => {
             streamingStatus = "offline";
             console.log(`Stop streaming due to websocket closure`);
             stopStreamingToDeepgram();
+            controlSocket.emit("recordingStopped", { serviceCode: serviceId});
         }
 
         const stopStreaming = document.querySelector(`#disableStreaming`);
@@ -166,7 +170,6 @@ const setupDeepgram = () => {
             stopStreaming.style.display = "none";
             document.getElementById('recording-status').style.display = "none";
             audioForm.style.display = "block";
-            controlSocket.emit("recordingStopped", { serviceCode: serviceId});
         })
 
         // Store values in local storage in case of a refresh
@@ -424,6 +427,21 @@ window.addEventListener("load", async () => {
     const search = new URLSearchParams(url.search)
     const serviceIdentifier = search.get('id')
 
+    // Get the JWT from the URL
+    const token = search.get('token')
+
+    if (token) {
+        console.log(`Initializing socket io with token: ${token}`);
+        controlSocket = io('/control', {
+            extraHeaders: {
+                authorization: `${token}`
+            },
+            autoConnect: false
+        })
+    } else {
+        controlSocket = io('/control', { autoConnect: false });
+    }
+
 
     // When we first load, generate a new Service ID if one isn't already defined
     if (sessionStorage.getItem('serviceId') === null && serviceIdentifier === null && defaultServiceCode == null) {
@@ -431,6 +449,7 @@ window.addEventListener("load", async () => {
         serviceCode = generateRandomPin();
         sessionStorage.setItem('serviceId', serviceCode);
     } else if (serviceIdentifier != null) {
+        console.log(`Getting the service identifier from the query parameter`);
         serviceCode = serviceIdentifier;
     } else if (sessionStorage.getItem('serviceId') !== null) {
         console.log(`Getting service ID from session storage`);

@@ -83,4 +83,14 @@ export class UserService {
             }
         }
     }
+    static getUserByEmail = async (email: string) => {
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+            const user = await userRepository.findOne({where: {email}});
+            if (!user) throw new Error(`User not found`)
+            return user; 
+        } catch (error) {
+            return null;
+        }
+    }
 }

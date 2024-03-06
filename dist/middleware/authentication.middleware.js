@@ -32,12 +32,23 @@ export const isAuthenticated = (req, res, next) => {
 export const authentication = (req, res, next) => {
     var _a;
     try {
+        let token;
         const SECRET_KEY = process.env.JWT_SECRET;
-        const token = (_a = req.header('Authorization')) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+        const USE_COOKIE_AUTHENTICATION = process.env.USE_COOKIE_AUTHENTICATION;
+        if (USE_COOKIE_AUTHENTICATION) {
+            token = req.cookies.access_token;
+        }
+        else {
+            token = (_a = req.header('Authorization')) === null || _a === void 0 ? void 0 : _a.replace('Bearer ', '');
+        }
         if (!token) {
             throw new Error();
         }
         const decoded = jwt.verify(token, SECRET_KEY);
+        const id = decoded.id;
+        const role = decoded.role;
+        //debug console.log(`token: id-> ${id}, role-> ${role}`);
+        // Add it to the request for other middlewares
         req.token = decoded;
         next();
     }

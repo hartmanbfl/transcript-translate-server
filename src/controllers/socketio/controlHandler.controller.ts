@@ -7,12 +7,13 @@ import { Namespace, Server, Socket } from 'socket.io';
 import { TranscriptService } from '../../services/transcript.service.js';
 import { TenantService } from '../../services/tenant.service.js';
 import { Tenant } from '../../entity/Tenant.entity.js';
+import { Transcript } from '../../entity/Transcript.entity.js';
 
 // Environment variables
 dotenv.config();
 
 export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, socket: Socket) => {
-    
+
     console.log(`Registering ${socket.id} connected to our socket.io control namespace`);
 
     socket.on('recordingStarted', async (data) => {
@@ -20,25 +21,50 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         console.log(`Recording started for ${serviceCode}`)
 
         // start a new transcript
-        const tenant: Tenant | null = (await TenantService.getTenant("847feb43-7faf-4a82-affd-6efb72f45f86")).responseObject.tenant;
-        const transcriptId = await TranscriptService.startTranscript(tenant!);
-        
+        const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+        const transcriptId = await TranscriptService.startTranscript(tenant!, serviceCode);
+
     });
-    socket.on('recordingStopped', (data) => {
+    socket.on('recordingStopped', async (data) => {
         const { serviceCode } = data;
         console.log(`Recording stopped for ${serviceCode}`)
+
+        // stop transcript
+        try {
+            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+            if (!tenant) throw new Error(`Tenant not found for this church key`);
+            const transcript: Transcript | null = await TranscriptService.getActiveTranscript(tenant, serviceCode);
+            if (!transcript) throw new Error(`No active transcript found`);
+
+            await TranscriptService.stopTranscript(transcript.id);
+        } catch (error) {
+            console.log(`Error: ${error}`);
+        }
     });
 
     socket.on('disconnect', (reason) => {
         console.log(`Control io disconnected for client-> ${socket.id}, reason-> ${reason}`);
     });
-    socket.on('transcriptReady', (data) => {
+    socket.on('transcriptReady', async (data) => {
         const { serviceCode, transcript } = data;
 
         // Let all observers know that a new transcript is available
         //        console.log(`Received a transcriptReady message`);
         const transciptData = { serviceCode, transcript, serviceLanguageMap };
         transcriptAvailServiceSub.next(transciptData);
+
+        try {
+            // write it to the DB
+            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+            if (!tenant)  throw new Error(`Tenant not found for this church key`);
+            const transcriptEntity = await TranscriptService.getActiveTranscript(tenant, serviceCode);
+            if (!transcriptEntity) throw new Error(`No active transcript found`);
+
+            const messageCount = await TranscriptService.incrementMessageCount(transcriptEntity.id);
+            await TranscriptService.addPhrase(transcriptEntity, transcript, tenant.id);
+        } catch (error) {
+            console.log(`Error: ${error}`);
+        }
     });
     // Listen for changes in the rooms
     socket.on('monitor', (data) => {
@@ -53,7 +79,7 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
             if (process.env.EXTRA_DEBUGGING) console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(clientIo, service);
             const room = service;
-            
+
             if (process.env.EXTRA_DEBUGGING) console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
             socket.emit(room, jsonString);
         })
@@ -68,6 +94,6 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         }
         // Send back the current subscriber list
         const jsonString = getActiveLanguages(clientIo, serviceCode);
-        socket.emit('subscribers', jsonString); 
+        socket.emit('subscribers', jsonString);
     })
 }
