@@ -1,10 +1,5 @@
 import { NextFunction, Request, Response } from "express"
-import { TokenInterface } from "../types/token.types.js";
-
-// Allow expansion of express Request type
-export interface CustomRequest extends Request {
-    token: string | TokenInterface;
-}
+import { CustomRequest, TokenInterface } from "../types/token.types.js";
 
 export const tenantCheck = (tenantId: string) => {
     return async (req: Request, res: Response, next: NextFunction) => {

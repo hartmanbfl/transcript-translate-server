@@ -87,3 +87,28 @@ UserService.getUserByEmail = async (email) => {
         return null;
     }
 };
+UserService.getAllTenantUsers = async (tenantId) => {
+    try {
+        const userRepository = AppDataSource.getRepository(User);
+        const users = await userRepository
+            .createQueryBuilder('user')
+            .innerJoinAndSelect('user.tenant', 'tenant')
+            .where('tenant.id = :tenantId', { tenantId })
+            .getMany();
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Successfully obtained users`,
+            responseObject: users
+        };
+    }
+    catch (error) {
+        console.log(`Error: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `${error}`,
+            responseObject: []
+        };
+    }
+};

@@ -21,7 +21,7 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         console.log(`Recording started for ${serviceCode}`)
 
         // start a new transcript
-        const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+        const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("NEFC")).responseObject.tenant;
         const transcriptId = await TranscriptService.startTranscript(tenant!, serviceCode);
 
     });
@@ -31,7 +31,7 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
 
         // stop transcript
         try {
-            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("NEFC")).responseObject.tenant;
             if (!tenant) throw new Error(`Tenant not found for this church key`);
             const transcript: Transcript | null = await TranscriptService.getActiveTranscript(tenant, serviceCode);
             if (!transcript) throw new Error(`No active transcript found`);

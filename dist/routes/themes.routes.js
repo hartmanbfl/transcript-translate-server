@@ -8,7 +8,7 @@ const router = Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 router.get('/:id', ThemeController.getTheme);
-router.put('/:id', authentication, authorization(["admin"]), ThemeController.update);
+router.put('/:id', authentication, authorization(["superadmin", "admin"]), ThemeController.update);
 // Church logo calls
 router.post("/:id/uploadLogo", upload.single('logo'), ThemeController.uploadLogo);
 export default router;

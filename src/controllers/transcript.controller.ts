@@ -9,4 +9,23 @@ export class TranscriptController {
         const serviceResponse = await TranscriptService.generateFullTranscript(id);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
     }    
+    static async getLastTranscript(req: Request, res: Response) {
+        const jwt = (req as CustomRequest).token as TokenInterface;
+        const serviceResponse = await TranscriptService.getLastTranscript(jwt.tenantId);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
+    }    
+    static async search(req: Request, res: Response) {
+        const jwt = (req as CustomRequest).token as TokenInterface;
+
+        try {
+            const partialQuery: TranscriptSearchCriteria = req.body;
+            console.log(`partial query: ${partialQuery}`);
+            const serviceResponse = await TranscriptService.search(jwt.tenantId, partialQuery);
+            res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            res.status(400).json({ error: 'Error processing request'});
+        }
+        
+    }
 } 

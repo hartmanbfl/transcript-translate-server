@@ -1,8 +1,10 @@
+import { createQueryBuilder } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import { Phrase } from "../entity/Phrase.entity.js";
 import { Tenant } from "../entity/Tenant.entity.js";
 import { Transcript } from "../entity/Transcript.entity.js";
 import { ApiResponseType } from "../types/apiResonse.types.js";
+import { DbService } from "./db.service.js";
 
 export class TranscriptService {
     static async addPhrase(transcript: Transcript, phrase_text: string, tenant_id: string ) {
@@ -120,4 +122,61 @@ export class TranscriptService {
             };
         }
     }
+    static async getLastTranscript(tenantId: string) : Promise<ApiResponseType<Transcript[]>> {
+        try {
+            console.log(`TenantID: ${tenantId}`);
+            const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const transcripts = await transcriptRepository
+                .createQueryBuilder('transcript')
+                .innerJoinAndSelect('transcript.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .orderBy('transcript.created_at', 'DESC')
+                .limit(1)
+                .getMany();
+
+            transcripts.forEach(transcript => {
+                console.log(`Found transcript with ID: ${transcript.id} and message count: ${transcript.message_count}`);
+            });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully obtained transcripts`,
+                responseObject: transcripts
+            }    
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: [] 
+            };
+
+        }
+    }
+
+    static async search(tenantId: string, searchCriteria: Partial<Transcript>): Promise<ApiResponseType<Transcript[]>> {
+        try {
+            console.log(`TenantID: ${tenantId}`);
+            const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const searchResults: Transcript[] = await DbService.searchRecordsWithDateRange(tenantId, transcriptRepository, searchCriteria);
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully obtained transcripts`,
+                responseObject: searchResults
+            }    
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: [] 
+            };
+
+        }
+
+    }
+    
 }

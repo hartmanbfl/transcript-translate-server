@@ -3,6 +3,7 @@ import { encrypt } from "../utils/encrypt.util.js";
 import { User } from "../entity/User.entity.js";
 import { AppDataSource } from "../data-source.js";
 import { Tenant } from "../entity/Tenant.entity.js";
+import { ApiResponseType } from "../types/apiResonse.types.js";
 
 dotenv.config();
 
@@ -91,6 +92,33 @@ export class UserService {
             return user; 
         } catch (error) {
             return null;
+        }
+    }
+
+    static getAllTenantUsers = async (tenantId: string) : Promise<ApiResponseType<User[]>> => {
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+            const users = await userRepository
+                .createQueryBuilder('user')
+                .innerJoinAndSelect('user.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getMany();
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully obtained users`,
+                responseObject: users
+            }    
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: []
+            };
+
         }
     }
 }

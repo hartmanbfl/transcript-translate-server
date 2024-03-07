@@ -13,7 +13,7 @@ export const registerControlHandlers = (controlIo, clientIo, socket) => {
         const { serviceCode } = data;
         console.log(`Recording started for ${serviceCode}`);
         // start a new transcript
-        const tenant = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+        const tenant = (await TenantService.getTenantByChurchKey("NEFC")).responseObject.tenant;
         const transcriptId = await TranscriptService.startTranscript(tenant, serviceCode);
     });
     socket.on('recordingStopped', async (data) => {
@@ -21,7 +21,7 @@ export const registerControlHandlers = (controlIo, clientIo, socket) => {
         console.log(`Recording stopped for ${serviceCode}`);
         // stop transcript
         try {
-            const tenant = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+            const tenant = (await TenantService.getTenantByChurchKey("NEFC")).responseObject.tenant;
             if (!tenant)
                 throw new Error(`Tenant not found for this church key`);
             const transcript = await TranscriptService.getActiveTranscript(tenant, serviceCode);

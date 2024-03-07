@@ -2,14 +2,20 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '../data-source.js';
 import { User } from '../entity/User.entity.js';
 import { UserService } from '../services/user.service.js';
+import { CustomRequest, TokenInterface } from '../types/token.types.js';
 
 export class UserController {
     static async getUsers(req: Request, res: Response) {
-        console.log(`Getting user from DB`);
         const userRepository = AppDataSource.getRepository(User);
         const users = await userRepository.find();
 
         return res.status(200).json({ data: users });
+    }
+    static async getUsersForTenant(req: Request, res: Response) {
+        const jwt = (req as CustomRequest).token as TokenInterface;
+        const serviceResponse = await UserService.getAllTenantUsers(jwt.tenantId);
+
+        return res.status(serviceResponse.statusCode).json( serviceResponse.responseObject );
     }
 
     static async createUser(req: Request, res: Response) {
