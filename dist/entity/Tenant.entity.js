@@ -11,6 +11,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { AppThemingData } from "./AppThemingData.entity.js";
 import { Transcript } from "./Transcript.entity.js";
 import { User } from "./User.entity.js";
+import { ChurchProperties } from "./ChurchProperties.entity.js";
 let Tenant = class Tenant {
 };
 __decorate([
@@ -30,7 +31,7 @@ __decorate([
     __metadata("design:type", String)
 ], Tenant.prototype, "address", void 0);
 __decorate([
-    Column({ nullable: true }),
+    Column({ nullable: true, select: false }),
     __metadata("design:type", String)
 ], Tenant.prototype, "deepgram_api_key", void 0);
 __decorate([
@@ -46,11 +47,13 @@ __decorate([
     __metadata("design:type", Date)
 ], Tenant.prototype, "updated_at", void 0);
 __decorate([
-    OneToOne(() => AppThemingData, (app_theming_data) => app_theming_data.tenant, { cascade: true })
-    //  @JoinColumn({name: "app_theming_data_id"})
-    ,
+    OneToOne(() => AppThemingData, (app_theming_data) => app_theming_data.tenant, { cascade: true }),
     __metadata("design:type", Object)
 ], Tenant.prototype, "app_theming_data", void 0);
+__decorate([
+    OneToOne(() => ChurchProperties, (church_properties) => church_properties.tenant, { cascade: true }),
+    __metadata("design:type", Object)
+], Tenant.prototype, "church_properties", void 0);
 __decorate([
     Column({ nullable: true }),
     __metadata("design:type", String)

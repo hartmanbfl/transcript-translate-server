@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AppThemingData } from "../entity/AppThemingData.entity.js";
 import { ThemingService } from "../services/theming.service.js";
+import { CustomRequest, TokenInterface } from "../types/token.types.js";
 
 export class ThemeController {
     static async getTheme(req: Request, res: Response) {
@@ -10,6 +11,11 @@ export class ThemeController {
         const serviceResponse = await ThemingService.getTheme(id);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
 
+    }
+    static async getTenantTheme(req: Request, res: Response) {
+        const jwt = (req as CustomRequest).token as TokenInterface;
+        const serviceResponse = await ThemingService.getTenantTheme(jwt.tenantId);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);    
     }
     static async update(req: Request, res: Response) {
         const { id } = req.params;

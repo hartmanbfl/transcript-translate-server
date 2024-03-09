@@ -29,6 +29,32 @@ export class ThemingService {
             };
         }
     }
+    static async getTenantTheme(tenantId) {
+        try {
+            const themeRepository = AppDataSource.getRepository(AppThemingData);
+            const theme = await themeRepository
+                .createQueryBuilder('theme')
+                .innerJoin('theme.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .limit(1)
+                .getMany();
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Theme for tenant obtained successfully`,
+                responseObject: theme[0]
+            };
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Could not obtain theme data for this tenant`,
+                responseObject: null
+            };
+        }
+    }
     static async updateTheme(id, newTheme) {
         try {
             const themeRepository = AppDataSource.getRepository(AppThemingData);

@@ -4,8 +4,136 @@ import { ChurchActiveLanguages, ChurchInfo, LanguageEntry } from '../types/churc
 import { ApiResponseType } from '../types/apiResonse.types.js';
 import { getClientIo } from './socketio.service.js';
 import { Server } from 'socket.io';
+import { AppDataSource } from '../data-source.js';
+import { AppThemingData } from '../entity/AppThemingData.entity.js';
+import { ChurchProperties } from '../entity/ChurchProperties.entity.js';
+import { DatabaseFilesService } from './databaseFiles.service.js';
+import { Tenant } from '../entity/Tenant.entity.js';
 
-export const infoService = () : ApiResponseType<ChurchInfo> => {
+export class ChurchService {
+    static async getChurchInfo(tenantId: string): Promise<ApiResponseType<ChurchInfo>> {
+        try {
+            console.log(`Attempting to get the themes`);
+            const theme = await AppDataSource
+                .getRepository(AppThemingData)
+                .createQueryBuilder('theme')
+                .innerJoinAndSelect('theme.tenant', 'tenant')
+                .innerJoinAndSelect('theme.logo', 'logo')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getOne();
+            if (!theme) throw new Error(`No theme defined for this tenant`);    
+
+            console.log(`Retrieved theme for ${theme.tenant.name}`);
+
+            const properties = await AppDataSource
+                .getRepository(ChurchProperties)
+                .createQueryBuilder('properties')
+                .innerJoin('properties.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getOne();
+            if (!properties) throw new Error(`No properties defined for this tenant`);   
+
+            const base64Logo: string = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : "";
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Info generated successfully`,
+                responseObject: {
+                    name: theme.tenant.name,
+                    defaultServiceId: properties.defaultServiceId.toString(),
+                    greeting: theme.greeting,
+                    message: theme.message,
+                    additionalWelcome: theme.additional_welcome_message,
+                    waiting: theme.waiting_message,
+                    language: properties.defaultLanguage,
+                    translationLanguages: properties.translationLanguages,
+                    base64Logo: base64Logo
+                }
+            }
+        } catch (error) {
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error getting church info: ${error}`,
+                responseObject: null
+            }
+        }
+    }
+    static async getChurchConfiguration(tenantId: string ) {
+        try {
+            const configuration = await AppDataSource
+                .getRepository(ChurchProperties)
+                .createQueryBuilder('configuration')
+                .innerJoinAndSelect('configuration.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getOne();
+            if (!configuration) throw new Error(`No configuration found for this tenant`);
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Configuration generated successfully`,
+                responseObject: {
+                    serviceTimeout: configuration.serviceTimeoutInMin,
+                    churchName: configuration.tenant.name,
+                    defaultServiceId: configuration.defaultServiceId,
+                    hostLanguage: configuration.defaultLanguage
+                }
+            }
+        } catch (error) {
+            console.log(`Error: ${error}`)
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Properties not retrieved successfully`,
+                responseObject: null 
+            }
+        }
+    }
+    static async setChurchProperties(tenantId: string, info: Partial<ChurchProperties>) {
+        try {
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const propsRepository = AppDataSource.getRepository(ChurchProperties);
+
+            // Get the tenant
+            const tenant = await tenantRepository.findOne({where: {id: tenantId}});
+            if (!tenant) throw new Error(`setChurchProperties: Tenant not found for this tenant ID`);
+
+            // Check if properties already exists for this tenant
+            let churchProps = await propsRepository.findOne({ where: { tenant: { id: tenantId} }});
+
+            if (!churchProps) {
+                churchProps = propsRepository.create(info);
+                churchProps.tenant = tenant; 
+            } else {
+                // update existing props with new data
+                propsRepository.merge(churchProps, info);
+            }
+
+            // Save the change in DB
+            await propsRepository.save(churchProps);
+
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Properties set successfully`,
+                responseObject: churchProps 
+            }
+        } catch (error) {
+            console.log(`Error: ${error}`)
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Properties not set successfully`,
+                responseObject: null 
+            }
+        }
+    }
+}
+
+export const infoService = (): ApiResponseType<ChurchInfo> => {
     try {
         const churchName = getChurchName();
         const churchLogoBase64 = getChurchLogoBase64();
@@ -117,7 +245,7 @@ export const getLanguages = (serviceId: string) => {
             success: true,
             statusCode: 200,
             message: `Successfully obtained languages for service: ${serviceId}`,
-            responseObject: jsonString 
+            responseObject: jsonString
         }
     } catch (error) {
         console.log(`Error getting subscribers for service: ${error}`);
@@ -133,10 +261,10 @@ export const getLanguages = (serviceId: string) => {
 }
 
 export const getActiveLanguages = (io: Server, serviceId: string) => {
-//    const jsonData = {
-//        serviceId: serviceId,
-//        languages: []
-//    };
+    //    const jsonData = {
+    //        serviceId: serviceId,
+    //        languages: []
+    //    };
     const activeLanguages: ChurchActiveLanguages = {
         serviceId: serviceId,
         languages: []
@@ -150,7 +278,7 @@ export const getActiveLanguages = (io: Server, serviceId: string) => {
     // Get the languages currently active 
     const langArray = serviceLanguageMap.get(serviceId);
     if (langArray == undefined || langArray.length == 0 && transcriptSubscribers == 0) {
-//        return { result: "There are no languages currently being subscribed to." };
+        //        return { result: "There are no languages currently being subscribed to." };
         return (activeLanguages);
     }
 

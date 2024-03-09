@@ -23,13 +23,21 @@ export class ApiAuthService {
             if (!username || !password) {
                 throw new Error(`Username and password are required`);
             }
-            const userRepository = AppDataSource.getRepository(User);
-            const user = await userRepository.findOne({
-                relations: {
-                    tenant: true
-                },
-                where: { username }
-            });
+            const user = await AppDataSource
+                .getRepository(User)
+                .createQueryBuilder('user')
+                .addSelect('user.password')
+                .leftJoinAndSelect('user.tenant', 'tenant')
+                .where('user.username = :username', { username })
+                .getOne();
+            //            const user = await userRepository.findOne(
+            //                {
+            //                    relations: {
+            //                        tenant: true
+            //                    }, 
+            //                    select: ['password'],
+            //                    where: { username } 
+            //                });
             if (!user)
                 throw new Error("User not found");
             const isPasswordValid = await encrypt.comparePassword(user.password, password);

@@ -12,6 +12,7 @@ const storage = multer.memoryStorage();
 const upload = multer({storage});
 
 
+router.get('/', authentication, authorization(["admin"]), ThemeController.getTenantTheme);
 router.get('/:id', ThemeController.getTheme);
 router.put('/:id', authentication, authorization(["superadmin","admin"]),ThemeController.update);
 

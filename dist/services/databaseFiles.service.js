@@ -18,4 +18,8 @@ export class DatabaseFilesService {
         }
         return file;
     }
+    static convertByteaToBase64(bytea) {
+        const encodedStr = Buffer.from(bytea).toString("base64");
+        return encodedStr;
+    }
 }

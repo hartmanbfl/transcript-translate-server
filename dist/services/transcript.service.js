@@ -158,13 +158,7 @@ export class TranscriptService {
         try {
             console.log(`TenantID: ${tenantId}`);
             const transcriptRepository = AppDataSource.getRepository(Transcript);
-            //            const testSearch: Partial<Transcript> = {
-            //                service_id: "5555"
-            //            }
             const searchResults = await DbService.searchRecordsWithDateRange(tenantId, transcriptRepository, searchCriteria);
-            searchResults.forEach(transcript => {
-                console.log(`Found transcript with ID: ${transcript.id} and message count: ${transcript.message_count}`);
-            });
             return {
                 success: true,
                 statusCode: 200,

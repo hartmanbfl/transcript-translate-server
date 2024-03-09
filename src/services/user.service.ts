@@ -87,15 +87,65 @@ export class UserService {
     static getUserByEmail = async (email: string) => {
         try {
             const userRepository = AppDataSource.getRepository(User);
-            const user = await userRepository.findOne({where: {email}});
+            const user = await userRepository.findOne({ where: { email } });
             if (!user) throw new Error(`User not found`)
-            return user; 
+            return user;
         } catch (error) {
             return null;
         }
     }
 
-    static getAllTenantUsers = async (tenantId: string) : Promise<ApiResponseType<User[]>> => {
+    static getCurrentUser = async (userId: string): Promise<ApiResponseType<User>> => {
+        try {
+            const user = await AppDataSource
+                .getRepository(User) 
+                .createQueryBuilder('user')
+                .where('user.id = :userId', { userId })
+                .getOne();
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully obtained users`,
+                responseObject: user
+            }
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: null
+            };
+        }
+    }
+
+    static getAllUsers = async (): Promise<ApiResponseType<User[]>> => {
+        try {
+            const userRepository = AppDataSource.getRepository(User);
+            const users = await userRepository
+                .createQueryBuilder('user')
+                .innerJoinAndSelect('user.tenant', 'tenant')
+                .getMany();
+
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully obtained users`,
+                responseObject: users
+            }
+        } catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: []
+            };
+
+        }
+    }
+    static getAllTenantUsers = async (tenantId: string): Promise<ApiResponseType<User[]>> => {
         try {
             const userRepository = AppDataSource.getRepository(User);
             const users = await userRepository
@@ -109,7 +159,7 @@ export class UserService {
                 statusCode: 200,
                 message: `Successfully obtained users`,
                 responseObject: users
-            }    
+            }
         } catch (error) {
             console.log(`Error: ${error}`);
             return {

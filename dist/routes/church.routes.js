@@ -1,11 +1,13 @@
 import { Router } from "express";
 import { ChurchController } from "../controllers/church.controller.js";
+import { authentication } from "../middleware/authentication.middleware.js";
+import { authorization } from "../middleware/authorization.middleware.js";
 const router = Router();
 router.get("/", (req, res) => {
     res.send("OK church");
 });
-router.get("/info", ChurchController.getServiceInfo);
-router.get("/configuration", ChurchController.getConfigration);
+router.get("/info", authentication, ChurchController.getServiceInfo);
+router.get("/configuration", authentication, ChurchController.getConfigration);
 // Check whether the church service with the given ID is available
 router.get("/:serviceId/status", ChurchController.getStatus);
 // Chech whether the church service with the given ID is livestreaming
@@ -30,4 +32,5 @@ router.get("/:serviceId/livestreaming", ChurchController.getLivestreamStatus);
 //    ]
 // }
 router.get("/:serviceId/languages", ChurchController.getLanguages);
+router.post("/configuration", authentication, authorization(["admin"]), ChurchController.setConfiguration);
 export default router;

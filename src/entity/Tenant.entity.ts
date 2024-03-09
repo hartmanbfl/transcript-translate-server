@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { AppThemingData } from "./AppThemingData.entity.js";
 import { Transcript} from "./Transcript.entity.js";
 import { User } from "./User.entity.js";
+import { ChurchProperties } from "./ChurchProperties.entity.js";
 
 @Entity({ name: "main_tenant" })
 export class Tenant {
@@ -17,7 +18,7 @@ export class Tenant {
   @Column({ nullable: true })
   address: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, select: false })
   deepgram_api_key: string;
 
   @Column({ nullable: true })
@@ -30,8 +31,10 @@ export class Tenant {
   updated_at: Date;
 
   @OneToOne(() => AppThemingData, (app_theming_data) => app_theming_data.tenant, { cascade: true })
-//  @JoinColumn({name: "app_theming_data_id"})
   app_theming_data: Relation<AppThemingData>;
+
+  @OneToOne(() => ChurchProperties, (church_properties) => church_properties.tenant, { cascade: true })
+  church_properties: Relation<ChurchProperties>;
 
   @Column({nullable: true})
   app_theming_data_id: string;

@@ -1,6 +1,133 @@
 import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from '../repositories/church.repository.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../repositories/index.repository.js';
 import { getClientIo } from './socketio.service.js';
+import { AppDataSource } from '../data-source.js';
+import { AppThemingData } from '../entity/AppThemingData.entity.js';
+import { ChurchProperties } from '../entity/ChurchProperties.entity.js';
+import { DatabaseFilesService } from './databaseFiles.service.js';
+import { Tenant } from '../entity/Tenant.entity.js';
+export class ChurchService {
+    static async getChurchInfo(tenantId) {
+        try {
+            console.log(`Attempting to get the themes`);
+            const theme = await AppDataSource
+                .getRepository(AppThemingData)
+                .createQueryBuilder('theme')
+                .innerJoinAndSelect('theme.tenant', 'tenant')
+                .innerJoinAndSelect('theme.logo', 'logo')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getOne();
+            if (!theme)
+                throw new Error(`No theme defined for this tenant`);
+            console.log(`Retrieved theme for ${theme.tenant.name}`);
+            const properties = await AppDataSource
+                .getRepository(ChurchProperties)
+                .createQueryBuilder('properties')
+                .innerJoin('properties.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getOne();
+            if (!properties)
+                throw new Error(`No properties defined for this tenant`);
+            const base64Logo = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : "";
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Info generated successfully`,
+                responseObject: {
+                    name: theme.tenant.name,
+                    defaultServiceId: properties.defaultServiceId.toString(),
+                    greeting: theme.greeting,
+                    message: theme.message,
+                    additionalWelcome: theme.additional_welcome_message,
+                    waiting: theme.waiting_message,
+                    language: properties.defaultLanguage,
+                    translationLanguages: properties.translationLanguages,
+                    base64Logo: base64Logo
+                }
+            };
+        }
+        catch (error) {
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Error getting church info: ${error}`,
+                responseObject: null
+            };
+        }
+    }
+    static async getChurchConfiguration(tenantId) {
+        try {
+            const configuration = await AppDataSource
+                .getRepository(ChurchProperties)
+                .createQueryBuilder('configuration')
+                .innerJoinAndSelect('configuration.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .getOne();
+            if (!configuration)
+                throw new Error(`No configuration found for this tenant`);
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Configuration generated successfully`,
+                responseObject: {
+                    serviceTimeout: configuration.serviceTimeoutInMin,
+                    churchName: configuration.tenant.name,
+                    defaultServiceId: configuration.defaultServiceId,
+                    hostLanguage: configuration.defaultLanguage
+                }
+            };
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Properties not retrieved successfully`,
+                responseObject: null
+            };
+        }
+    }
+    static async setChurchProperties(tenantId, info) {
+        try {
+            const tenantRepository = AppDataSource.getRepository(Tenant);
+            const propsRepository = AppDataSource.getRepository(ChurchProperties);
+            // Get the tenant
+            const tenant = await tenantRepository.findOne({ where: { id: tenantId } });
+            if (!tenant)
+                throw new Error(`setChurchProperties: Tenant not found for this tenant ID`);
+            // Check if properties already exists for this tenant
+            console.log(`Seeing if tenant ${tenant.id} is already defined in properties table`);
+            let churchProps = await propsRepository.findOne({ where: { tenant: { id: tenantId } } });
+            if (!churchProps) {
+                console.log(`Configuration not found so creating new row`);
+                churchProps = propsRepository.create(info);
+                churchProps.tenant = tenant;
+            }
+            else {
+                // update existing props with new data
+                console.log(`Configuration found so updating existing row`);
+                propsRepository.merge(churchProps, info);
+            }
+            // Save the change in DB
+            await propsRepository.save(churchProps);
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Properties set successfully`,
+                responseObject: churchProps
+            };
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `Properties not set successfully`,
+                responseObject: null
+            };
+        }
+    }
+}
 export const infoService = () => {
     try {
         const churchName = getChurchName();

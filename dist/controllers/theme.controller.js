@@ -8,6 +8,11 @@ export class ThemeController {
         const serviceResponse = await ThemingService.getTheme(id);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject.theme);
     }
+    static async getTenantTheme(req, res) {
+        const jwt = req.token;
+        const serviceResponse = await ThemingService.getTenantTheme(jwt.tenantId);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
+    }
     static async update(req, res) {
         const { id } = req.params;
         const { greeting, message, additional_welcome_message, waiting_message } = req.body;

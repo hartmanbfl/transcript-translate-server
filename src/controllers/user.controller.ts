@@ -6,14 +6,19 @@ import { CustomRequest, TokenInterface } from '../types/token.types.js';
 
 export class UserController {
     static async getUsers(req: Request, res: Response) {
-        const userRepository = AppDataSource.getRepository(User);
-        const users = await userRepository.find();
+        const serviceResponse = await UserService.getAllUsers();
 
-        return res.status(200).json({ data: users });
+        return res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
     }
     static async getUsersForTenant(req: Request, res: Response) {
         const jwt = (req as CustomRequest).token as TokenInterface;
         const serviceResponse = await UserService.getAllTenantUsers(jwt.tenantId);
+
+        return res.status(serviceResponse.statusCode).json( serviceResponse.responseObject );
+    }
+    static async getCurrentUser(req: Request, res: Response) {
+        const jwt = (req as CustomRequest).token as TokenInterface;
+        const serviceResponse = await UserService.getCurrentUser(jwt.id);
 
         return res.status(serviceResponse.statusCode).json( serviceResponse.responseObject );
     }

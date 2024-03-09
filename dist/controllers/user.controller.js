@@ -3,13 +3,17 @@ import { User } from '../entity/User.entity.js';
 import { UserService } from '../services/user.service.js';
 export class UserController {
     static async getUsers(req, res) {
-        const userRepository = AppDataSource.getRepository(User);
-        const users = await userRepository.find();
-        return res.status(200).json({ data: users });
+        const serviceResponse = await UserService.getAllUsers();
+        return res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
     }
     static async getUsersForTenant(req, res) {
         const jwt = req.token;
         const serviceResponse = await UserService.getAllTenantUsers(jwt.tenantId);
+        return res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
+    }
+    static async getCurrentUser(req, res) {
+        const jwt = req.token;
+        const serviceResponse = await UserService.getCurrentUser(jwt.id);
         return res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
     }
     static async createUser(req, res) {

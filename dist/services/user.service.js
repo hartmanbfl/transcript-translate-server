@@ -87,6 +87,54 @@ UserService.getUserByEmail = async (email) => {
         return null;
     }
 };
+UserService.getCurrentUser = async (userId) => {
+    try {
+        const user = await AppDataSource
+            .getRepository(User)
+            .createQueryBuilder('user')
+            .where('user.id = :userId', { userId })
+            .getOne();
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Successfully obtained users`,
+            responseObject: user
+        };
+    }
+    catch (error) {
+        console.log(`Error: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `${error}`,
+            responseObject: null
+        };
+    }
+};
+UserService.getAllUsers = async () => {
+    try {
+        const userRepository = AppDataSource.getRepository(User);
+        const users = await userRepository
+            .createQueryBuilder('user')
+            .innerJoinAndSelect('user.tenant', 'tenant')
+            .getMany();
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Successfully obtained users`,
+            responseObject: users
+        };
+    }
+    catch (error) {
+        console.log(`Error: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `${error}`,
+            responseObject: []
+        };
+    }
+};
 UserService.getAllTenantUsers = async (tenantId) => {
     try {
         const userRepository = AppDataSource.getRepository(User);

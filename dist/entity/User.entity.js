@@ -33,7 +33,7 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    Column({ nullable: false }),
+    Column({ nullable: false, select: false }),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
