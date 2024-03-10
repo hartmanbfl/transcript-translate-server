@@ -5,7 +5,8 @@ export class AuthenticationController {
         var _a;
         const login = req.body;
         const serviceResponse = await loginService(login);
-        const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path + "?token=" + serviceResponse.responseObject.token : '/login';
+        //token in query string        const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path + "?token=" + serviceResponse.responseObject.token : '/login';
+        const redirectPath = serviceResponse.responseObject != null ? serviceResponse.responseObject.path : '/login';
         return res
             .cookie("access_token", (_a = serviceResponse.responseObject) === null || _a === void 0 ? void 0 : _a.token, {
             httpOnly: true,

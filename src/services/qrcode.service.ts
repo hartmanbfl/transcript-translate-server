@@ -4,8 +4,8 @@ import { getDebabelClientUrl } from '../repositories/index.repository.js';
 // Get the URL of the app
 const clientUrl = getDebabelClientUrl(); 
 
-export const generateQR = async (serviceId: string) => {
-    const url = `${clientUrl}?serviceId=${serviceId}`;
+export const generateQR = async (serviceId: string, tenantId: string) => {
+    const url = `${clientUrl}?serviceId=${serviceId}&tenantId=${tenantId}`;
     try {
         // File Test QRCode.toFile(path.join(__dirname, `qrcode-${serviceId}.png`), url);
         const qrcode = await QRCode.toString(url, { type: "svg" });

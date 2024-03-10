@@ -9,6 +9,7 @@ import { AppThemingData } from '../entity/AppThemingData.entity.js';
 import { ChurchProperties } from '../entity/ChurchProperties.entity.js';
 import { DatabaseFilesService } from './databaseFiles.service.js';
 import { Tenant } from '../entity/Tenant.entity.js';
+import { fileTypeFromBuffer } from 'file-type';
 
 export class ChurchService {
     static async getChurchInfo(tenantId: string): Promise<ApiResponseType<ChurchInfo>> {
@@ -33,7 +34,18 @@ export class ChurchService {
                 .getOne();
             if (!properties) throw new Error(`No properties defined for this tenant`);   
 
-            const base64Logo: string = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : "";
+            const base64String: string | null = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : null; 
+
+            let base64Logo: string = "";
+            if (base64String) {
+                const b64buffer = Buffer.from(base64String, "base64");
+                const fileInfo = await fileTypeFromBuffer(b64buffer);
+                const extType = fileInfo?.ext;
+                const mimeType = fileInfo?.mime;
+                // Append the base64 data string
+                base64Logo = `data:${mimeType};base64,${base64String}`;
+            }
+
 
             return {
                 success: true,

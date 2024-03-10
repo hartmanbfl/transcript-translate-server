@@ -6,6 +6,7 @@ import { AppThemingData } from '../entity/AppThemingData.entity.js';
 import { ChurchProperties } from '../entity/ChurchProperties.entity.js';
 import { DatabaseFilesService } from './databaseFiles.service.js';
 import { Tenant } from '../entity/Tenant.entity.js';
+import { fileTypeFromBuffer } from 'file-type';
 export class ChurchService {
     static async getChurchInfo(tenantId) {
         try {
@@ -28,7 +29,16 @@ export class ChurchService {
                 .getOne();
             if (!properties)
                 throw new Error(`No properties defined for this tenant`);
-            const base64Logo = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : "";
+            const base64String = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : null;
+            let base64Logo = "";
+            if (base64String) {
+                const b64buffer = Buffer.from(base64String, "base64");
+                const fileInfo = await fileTypeFromBuffer(b64buffer);
+                const extType = fileInfo === null || fileInfo === void 0 ? void 0 : fileInfo.ext;
+                const mimeType = fileInfo === null || fileInfo === void 0 ? void 0 : fileInfo.mime;
+                // Append the base64 data string
+                base64Logo = `data:${mimeType};base64,${base64String}`;
+            }
             return {
                 success: true,
                 statusCode: 200,
@@ -96,16 +106,13 @@ export class ChurchService {
             if (!tenant)
                 throw new Error(`setChurchProperties: Tenant not found for this tenant ID`);
             // Check if properties already exists for this tenant
-            console.log(`Seeing if tenant ${tenant.id} is already defined in properties table`);
             let churchProps = await propsRepository.findOne({ where: { tenant: { id: tenantId } } });
             if (!churchProps) {
-                console.log(`Configuration not found so creating new row`);
                 churchProps = propsRepository.create(info);
                 churchProps.tenant = tenant;
             }
             else {
                 // update existing props with new data
-                console.log(`Configuration found so updating existing row`);
                 propsRepository.merge(churchProps, info);
             }
             // Save the change in DB

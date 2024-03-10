@@ -39,7 +39,6 @@ export class ChurchController {
     }
     static async setConfiguration(req, res) {
         const { serviceTimeoutInMin, serviceId, sourceLanguage, targetLanguages } = req.body;
-        console.log(`${serviceId} : ${serviceTimeoutInMin} : ${sourceLanguage} : ${targetLanguages}`);
         const props = {
             defaultServiceId: serviceId,
             serviceTimeoutInMin: serviceTimeoutInMin,
