@@ -20,9 +20,15 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         const { serviceCode } = data;
         console.log(`Recording started for ${serviceCode}`)
 
-        // start a new transcript
-        const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("NEFC")).responseObject.tenant;
-        const transcriptId = await TranscriptService.startTranscript(tenant!, serviceCode);
+        // Make sure no translations are happening for this tenant
+        const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
+        if (tenant) {
+
+            await TranscriptService.stopAllTranscripts(tenant.id, serviceCode);
+
+            // start a new transcript
+            const transcriptId = await TranscriptService.startTranscript(tenant!, serviceCode);
+        }
 
     });
     socket.on('recordingStopped', async (data) => {
@@ -31,9 +37,10 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
 
         // stop transcript
         try {
-            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("NEFC")).responseObject.tenant;
+            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
             if (!tenant) throw new Error(`Tenant not found for this church key`);
-            const transcript: Transcript | null = await TranscriptService.getActiveTranscript(tenant, serviceCode);
+
+            const transcript: Transcript | null = await TranscriptService.getActiveTranscript(tenant.id, serviceCode);
             if (!transcript) throw new Error(`No active transcript found`);
 
             await TranscriptService.stopTranscript(transcript.id);
@@ -56,8 +63,8 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         try {
             // write it to the DB
             const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
-            if (!tenant)  throw new Error(`Tenant not found for this church key`);
-            const transcriptEntity = await TranscriptService.getActiveTranscript(tenant, serviceCode);
+            if (!tenant) throw new Error(`Tenant not found for this church key`);
+            const transcriptEntity = await TranscriptService.getActiveTranscript(tenant.id, serviceCode);
             if (!transcriptEntity) throw new Error(`No active transcript found`);
 
             const messageCount = await TranscriptService.incrementMessageCount(transcriptEntity.id);
@@ -76,6 +83,7 @@ export const registerControlHandlers = (controlIo: Namespace, clientIo: Server, 
         registerForServiceTranscripts(listenerData);
 
         roomEmitter.on('subscriptionChange', (service) => {
+            console.log(`New room emitter listener.  Listener count now: ${roomEmitter.listenerCount('subscriptionChange')}`);
             if (process.env.EXTRA_DEBUGGING) console.log(`Detected subscription change for service: ${service}`);
             const jsonString = getActiveLanguages(clientIo, service);
             const room = service;

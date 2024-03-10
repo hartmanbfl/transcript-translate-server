@@ -3,19 +3,34 @@ import { Phrase } from "../entity/Phrase.entity.js";
 import { Transcript } from "../entity/Transcript.entity.js";
 import { DbService } from "./db.service.js";
 export class TranscriptService {
-    static async addPhrase(transcript, phrase_text, tenant_id) {
+    static async addPhrase(transcript, phrase_text, tenantId) {
         try {
+            await this.updateStatus(transcript.id, "IN_PROGRESS");
             const phraseRepository = AppDataSource.getRepository(Phrase);
             const phrase = new Phrase();
             phrase.phrase_text = phrase_text;
-            phrase.tenant_id = tenant_id;
+            phrase.tenant_id = tenantId;
             phrase.transcript_id = transcript.id;
             phrase.phrase_number = transcript.message_count;
             phrase.transcript = transcript;
             await phraseRepository.save(phrase);
         }
         catch (error) {
-            console.log(`Error: ${error}`);
+            console.log(`Error in addPhrase: ${error}`);
+        }
+    }
+    static async updateStatus(transcriptId, status) {
+        try {
+            await AppDataSource
+                .getRepository(Transcript)
+                .createQueryBuilder()
+                .update(Transcript)
+                .set({ status: status })
+                .where("id = :transcriptId", { transcriptId })
+                .execute();
+        }
+        catch (error) {
+            console.log(`Error in updateStatus: ${this.updateStatus}`);
         }
     }
     static async startTranscript(tenant, serviceId) {
@@ -30,7 +45,7 @@ export class TranscriptService {
             return newTranscript.id;
         }
         catch (error) {
-            console.log(`Error: ${error}`);
+            console.log(`Error in startTranscript: ${error}`);
         }
     }
     static async stopTranscript(transcriptId) {
@@ -43,32 +58,52 @@ export class TranscriptService {
             await transcriptRepository.save(transcript);
         }
         catch (error) {
-            console.log(`Error: ${error}`);
+            console.log(`Error in stopTranscript: ${error}`);
         }
     }
-    static async getActiveTranscript(tenant, serviceId) {
+    static async stopAllTranscripts(tenantId, serviceId) {
         try {
             const transcriptRepository = AppDataSource.getRepository(Transcript);
-            //console.log(`Looking for serviceId: ${serviceId}, tenantId: ${tenant.id}`)
-            const transcripts = await transcriptRepository.find({
-                relations: {
-                    tenant: true
-                },
-                where: [
-                    { status: "STARTED", service_id: serviceId },
-                    { status: "IN_PROGRESS", service_id: serviceId }
-                ]
+            const transcripts = await transcriptRepository
+                .createQueryBuilder('transcript')
+                .innerJoinAndSelect('transcript.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .andWhere('service_id = :serviceId', { serviceId })
+                .andWhere('status IN (:...statuses)', { statuses: ['STARTED', 'IN_PROGRESS'] })
+                .getMany();
+            if (!transcripts)
+                return;
+            transcripts.forEach(async (transcript) => {
+                transcript.status = "ENDED";
+                await transcriptRepository.save(transcript);
             });
-            //console.log(`Found ${transcripts.length} transcripts`);
+        }
+        catch (error) {
+            console.log(`Error in stopAllTranscripts: ${error}`);
+        }
+    }
+    static async getActiveTranscript(tenantId, serviceId) {
+        try {
+            const transcripts = await AppDataSource
+                .getRepository(Transcript)
+                .createQueryBuilder('transcript')
+                .innerJoinAndSelect('transcript.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .andWhere('transcript.service_id = :serviceId', { serviceId })
+                .andWhere('status IN (:...statuses)', { statuses: ['STARTED', 'IN_PROGRESS'] })
+                .getMany();
             if (transcripts.length === 1) {
                 return transcripts[0];
             }
             else {
+                transcripts.forEach(transcript => {
+                    console.log(`Transcript: id-> ${transcript.id}, status-> ${transcript.status}`);
+                });
                 throw new Error(`More than one active transcript for this service!`);
             }
         }
         catch (error) {
-            console.log(`Error: ${error}`);
+            console.log(`Error in getActiveTranscript: ${error}`);
             return null;
         }
     }
