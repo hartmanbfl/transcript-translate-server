@@ -55,13 +55,13 @@ const listenForClients = () => {
     })
 }
 
+// Start listening for mobile clients to join
+listenForClients();
+
 controlIo.on('connection', (socket) => {
     console.log(`Client ${socket.id} connected to our socket.io control namespace`);
     setControlIoSocket(socket);
     onControlConnection(socket);
-
-    // Start listening for mobile clients to join
-    listenForClients();
 });
 controlConnections.on('connection', (socket) => {
     const controlConnection = socket.nsp;
