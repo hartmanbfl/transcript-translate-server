@@ -2,18 +2,25 @@ import { ChurchService, configurationService, getLanguages, getLivestreamStatus,
 import * as dotenv from 'dotenv';
 export class ChurchController {
     static async getServiceInfo(req, res) {
-        dotenv.config();
-        let serviceResponse;
-        if (process.env.USE_DATABASE) {
-            const jwt = req.token;
-            serviceResponse = await ChurchService.getChurchInfo(jwt.tenantId);
+        try {
+            dotenv.config();
+            let serviceResponse;
+            if (process.env.USE_DATABASE) {
+                const tenantId = req.query.tenantId;
+                if (!tenantId)
+                    throw new Error(`getServiceInfo: Tenant ID must be defined`);
+                serviceResponse = await ChurchService.getChurchInfo(tenantId);
+            }
+            else {
+                serviceResponse = await infoService();
+            }
+            res.status(serviceResponse.statusCode).json({ ...serviceResponse });
         }
-        else {
-            serviceResponse = await infoService();
+        catch (error) {
+            res.status(400).json({ error: error });
         }
-        res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
-    static async getConfigration(req, res) {
+    static async getConfiguration(req, res) {
         dotenv.config();
         let serviceResponse;
         if (process.env.USE_DATABASE) {

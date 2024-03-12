@@ -5,6 +5,20 @@ let clientIoSocket;
 let controlIo;
 let controlConnections;
 let controlIoSocket;
+export class SocketIoService {
+    static extractTenantFromNamespace(namespace) {
+        console.log(`NAMESPACE: ${namespace}`);
+        if (namespace.startsWith("/control-") || namespace.startsWith("/client-")) {
+            const firstDash = namespace.indexOf("-");
+            console.log(`firstDash: ${firstDash}`);
+            if (firstDash !== -1) {
+                console.log(`substr: ${namespace.substring(firstDash + 1)}`);
+                return namespace.substring(firstDash + 1);
+            }
+        }
+        return "";
+    }
+}
 export const initializeSocketIo = (server) => {
     io = new Server(server, {
         connectionStateRecovery: {},
@@ -14,20 +28,9 @@ export const initializeSocketIo = (server) => {
         }
     });
     controlIo = io.of("/control");
-    //TBD JWT    io.engine.use((req: {
-    //TBD JWT        headers: any, 
-    //TBD JWT        _query: Record<string, string> 
-    //TBD JWT    }, res: Response, next: Function) => {
-    //TBD JWT        const isHandshake = req._query.sid === undefined;
-    //TBD JWT        if (!isHandshake) {
-    //TBD JWT            return next();
-    //TBD JWT        }
-    //TBD JWT
-    //TBD JWT        const header = req.headers["authorization"];
-    //TBD JWT    })
     // Multi tenant support (church-<tenant ID>)
-    clientConnections = io.of(/^\/church-\d+$/);
-    controlConnections = io.of(/^\/control-\d+$/);
+    clientConnections = io.of(/^\/church-[0-9a-z-]+$/);
+    controlConnections = io.of(/^\/control-[0-9a-z-]+$/);
     return { controlIo, io, clientConnections, controlConnections };
 };
 export const getControlIo = () => {

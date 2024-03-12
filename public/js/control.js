@@ -70,7 +70,6 @@ const languages = [
 ];
 const languageMap = new Map(languages.map((obj) => [obj.key, obj.value]));
 
-
 // Method to see what audio input devices are available on the PC and populate
 // a drop-down list with these values
 const getUserAudioDevices = async () => {
@@ -418,29 +417,30 @@ window.addEventListener("load", async () => {
     document.querySelector('#key').value = localStorage.getItem('churchKey');
 
 
-    // Get any configuration properties we need to process from the server
-    await processConfigurationProperties();
-
     // Get the service code from the query parameter in the URL
     const url = new URL(location.href)
     console.log(`URL: ${url}`);
     const search = new URLSearchParams(url.search)
     const serviceIdentifier = search.get('id')
 
-    // Get the JWT from the URL
-    const token = search.get('token')
+    // Get the tenant from the URL
+    const tenantId = search.get('tenantId');
 
-    if (token) {
-        console.log(`Initializing socket io with token: ${token}`);
-        controlSocket = io('/control', {
-            extraHeaders: {
-                authorization: `${token}`
-            },
-            autoConnect: false
-        })
-    } else {
-        controlSocket = io('/control', { autoConnect: false });
-    }
+    // Get any configuration properties we need to process from the server
+    await processConfigurationProperties();
+
+//    if (token) {
+//        console.log(`Initializing socket io with token: ${token}`);
+//        controlSocket = io('/control', {
+//            extraHeaders: {
+//                authorization: `${token}`
+//            },
+//            autoConnect: false
+//        })
+//    } else {
+    console.log(`Creating control socket: /control-${tenantId}`);
+        controlSocket = io(`/control-${tenantId}`, { autoConnect: false });
+//    }
 
 
     // When we first load, generate a new Service ID if one isn't already defined

@@ -6,8 +6,8 @@ const router = Router();
 router.get("/", (req, res) => {
     res.send("OK church");
 });
-router.get("/info", authentication, ChurchController.getServiceInfo);
-router.get("/configuration", authentication, ChurchController.getConfigration);
+router.get("/info", ChurchController.getServiceInfo);
+router.get("/configuration", authentication, ChurchController.getConfiguration);
 // Check whether the church service with the given ID is available
 router.get("/:serviceId/status", ChurchController.getStatus);
 // Chech whether the church service with the given ID is livestreaming

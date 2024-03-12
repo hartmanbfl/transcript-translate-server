@@ -34,9 +34,13 @@ export class TranscriptService {
             console.log(`Error in updateStatus: ${this.updateStatus}`);
         }
     }
-    static async startTranscript(tenant: Tenant, serviceId: string) {
+    static async startTranscript(tenantId: string, serviceId: string) {
         try {
             const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const tenant = await AppDataSource
+                .getRepository(Tenant)
+                .findOne({where: { id: tenantId }});
+            if (!tenant) throw new Error(`Tenant not found for this tenant ID`);    
             const transcript = new Transcript();
             transcript.tenant = tenant;
             transcript.service_id = serviceId;

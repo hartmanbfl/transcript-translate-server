@@ -1,5 +1,6 @@
 import { AppDataSource } from "../data-source.js";
 import { Phrase } from "../entity/Phrase.entity.js";
+import { Tenant } from "../entity/Tenant.entity.js";
 import { Transcript } from "../entity/Transcript.entity.js";
 import { DbService } from "./db.service.js";
 export class TranscriptService {
@@ -33,9 +34,14 @@ export class TranscriptService {
             console.log(`Error in updateStatus: ${this.updateStatus}`);
         }
     }
-    static async startTranscript(tenant, serviceId) {
+    static async startTranscript(tenantId, serviceId) {
         try {
             const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const tenant = await AppDataSource
+                .getRepository(Tenant)
+                .findOne({ where: { id: tenantId } });
+            if (!tenant)
+                throw new Error(`Tenant not found for this tenant ID`);
             const transcript = new Transcript();
             transcript.tenant = tenant;
             transcript.service_id = serviceId;

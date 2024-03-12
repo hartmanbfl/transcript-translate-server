@@ -10,7 +10,7 @@ import { fileTypeFromBuffer } from 'file-type';
 export class ChurchService {
     static async getChurchInfo(tenantId) {
         try {
-            console.log(`Attempting to get the themes`);
+            console.log(`Attempting to get the themes for tenant: ${tenantId}`);
             const theme = await AppDataSource
                 .getRepository(AppThemingData)
                 .createQueryBuilder('theme')

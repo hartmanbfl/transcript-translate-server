@@ -32,6 +32,9 @@ import { registerClientHandlers } from './controllers/socketio/clientHandler.con
 const onControlConnection = (socket) => {
     registerControlHandlers(controlIo, io, socket);
 };
+const onControlConnections = (socket) => {
+    registerControlHandlers(socket.nsp, io, socket);
+};
 const onClientConnection = (socket) => {
     // Single tenant
     registerClientHandlers(io, socket);
@@ -42,6 +45,7 @@ const onClientConnection = (socket) => {
 const listenForClients = () => {
     // Single tenant
     io.on('connection', (socket) => {
+        console.log(`Server got new connection: ${socket.id}`);
         setClientIoSocket(socket);
         onClientConnection(socket);
     });
@@ -50,17 +54,17 @@ const listenForClients = () => {
         const clientConnection = socket.nsp;
     });
 };
+// Start listening for mobile clients to join
+listenForClients();
 controlIo.on('connection', (socket) => {
-    console.log(`Client ${socket.id} connected to our socket.io control namespace`);
+    console.log(`Control Page ${socket.id} connected to our socket.io control namespace`);
     setControlIoSocket(socket);
     onControlConnection(socket);
-    // Start listening for mobile clients to join
-    listenForClients();
 });
 controlConnections.on('connection', (socket) => {
     const controlConnection = socket.nsp;
     console.log(`Connection to control connection in namespace: ${controlConnection.name}`);
-    onControlConnection(socket);
+    onControlConnections(socket);
 });
 // Define tenant routes
 import tenantRouter from './routes/tenants.routes.js';
