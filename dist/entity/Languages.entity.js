@@ -7,38 +7,22 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-let Session = class Session {
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+let Languages = class Languages {
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
     __metadata("design:type", String)
-], Session.prototype, "id", void 0);
+], Languages.prototype, "id", void 0);
 __decorate([
     Column(),
     __metadata("design:type", String)
-], Session.prototype, "service_id", void 0);
+], Languages.prototype, "name", void 0);
 __decorate([
     Column(),
     __metadata("design:type", String)
-], Session.prototype, "status", void 0);
-__decorate([
-    Column(),
-    __metadata("design:type", String)
-], Session.prototype, "source_language", void 0);
-__decorate([
-    CreateDateColumn(),
-    __metadata("design:type", Date)
-], Session.prototype, "created_at", void 0);
-__decorate([
-    UpdateDateColumn(),
-    __metadata("design:type", Date)
-], Session.prototype, "updated_at", void 0);
-__decorate([
-    Column({ nullable: true }),
-    __metadata("design:type", Date)
-], Session.prototype, "ended_at", void 0);
-Session = __decorate([
-    Entity({ name: "main_session" })
-], Session);
-export { Session };
+], Languages.prototype, "locale", void 0);
+Languages = __decorate([
+    Entity({ name: "main_languages" })
+], Languages);
+export { Languages };

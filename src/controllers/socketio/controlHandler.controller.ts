@@ -20,7 +20,6 @@ export const registerControlHandlers = (controlIo: Namespace, socketIoServer: Se
         console.log(`Recording started for ${serviceCode} on namespace ${socket.nsp.name}`);
 
         // Make sure no translations are happening for this tenant
-//        const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
         const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
         console.log(`Starting transcript for tenant: ${tenantId}`);
         if (tenantId) {
@@ -38,8 +37,6 @@ export const registerControlHandlers = (controlIo: Namespace, socketIoServer: Se
 
         // stop transcript
         try {
-//            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
-
             const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
             if (tenantId.length === 0) throw new Error(`Tenant not found for this namespace`);
 
@@ -65,7 +62,6 @@ export const registerControlHandlers = (controlIo: Namespace, socketIoServer: Se
 
         try {
             // write it to the DB
-//            const tenant: Tenant | null = (await TenantService.getTenantByChurchKey("GDOT")).responseObject.tenant;
             const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
             if (tenantId.length === 0) throw new Error(`Tenant ID not found for this namespace`);
 
@@ -80,11 +76,12 @@ export const registerControlHandlers = (controlIo: Namespace, socketIoServer: Se
     });
     // Listen for changes in the rooms
     socket.on('monitor', (data) => {
-        const room = data;
-        console.log(`Control is monitoring ${room}`);
-        socket.join(room);
+        const { serviceId } = data;
+        const serviceToMonitor: string = serviceId;
+        console.log(`Control is monitoring ${serviceToMonitor}`);
+        socket.join(serviceToMonitor);
         // Start up our transcript listerner for this service code
-        const listenerData = { io: socketIoServer, serviceId: room, serviceLanguageMap, serviceSubscriptionMap };
+        const listenerData = { io: socketIoServer, serviceId: serviceToMonitor, serviceLanguageMap, serviceSubscriptionMap };
         registerForServiceTranscripts(listenerData);
 
         roomEmitter.on('subscriptionChange', (service) => {

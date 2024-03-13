@@ -22,7 +22,7 @@ export class ChurchService {
                 .innerJoinAndSelect('theme.logo', 'logo')
                 .where('tenant.id = :tenantId', { tenantId })
                 .getOne();
-            if (!theme) throw new Error(`No theme defined for this tenant`);    
+            if (!theme) throw new Error(`No theme defined for this tenant`);
 
             console.log(`Retrieved theme for ${theme.tenant.name}`);
 
@@ -32,9 +32,9 @@ export class ChurchService {
                 .innerJoin('properties.tenant', 'tenant')
                 .where('tenant.id = :tenantId', { tenantId })
                 .getOne();
-            if (!properties) throw new Error(`No properties defined for this tenant`);   
+            if (!properties) throw new Error(`No properties defined for this tenant`);
 
-            const base64String: string | null = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : null; 
+            const base64String: string | null = (theme.logo) ? DatabaseFilesService.convertByteaToBase64(theme.logo.data) : null;
 
             let base64Logo: string = "";
             if (base64String) {
@@ -72,7 +72,7 @@ export class ChurchService {
             }
         }
     }
-    static async getChurchConfiguration(tenantId: string ) {
+    static async getChurchConfiguration(tenantId: string) {
         try {
             const configuration = await AppDataSource
                 .getRepository(ChurchProperties)
@@ -99,7 +99,7 @@ export class ChurchService {
                 success: false,
                 statusCode: 400,
                 message: `Properties not retrieved successfully`,
-                responseObject: null 
+                responseObject: null
             }
         }
     }
@@ -109,15 +109,15 @@ export class ChurchService {
             const propsRepository = AppDataSource.getRepository(ChurchProperties);
 
             // Get the tenant
-            const tenant = await tenantRepository.findOne({where: {id: tenantId}});
+            const tenant = await tenantRepository.findOne({ where: { id: tenantId } });
             if (!tenant) throw new Error(`setChurchProperties: Tenant not found for this tenant ID`);
 
             // Check if properties already exists for this tenant
-            let churchProps = await propsRepository.findOne({ where: { tenant: { id: tenantId} }});
+            let churchProps = await propsRepository.findOne({ where: { tenant: { id: tenantId } } });
 
             if (!churchProps) {
                 churchProps = propsRepository.create(info);
-                churchProps.tenant = tenant; 
+                churchProps.tenant = tenant;
             } else {
                 // update existing props with new data
                 propsRepository.merge(churchProps, info);
@@ -131,7 +131,7 @@ export class ChurchService {
                 success: true,
                 statusCode: 200,
                 message: `Properties set successfully`,
-                responseObject: churchProps 
+                responseObject: churchProps
             }
         } catch (error) {
             console.log(`Error: ${error}`)
@@ -139,7 +139,7 @@ export class ChurchService {
                 success: false,
                 statusCode: 400,
                 message: `Properties not set successfully`,
-                responseObject: null 
+                responseObject: null
             }
         }
     }

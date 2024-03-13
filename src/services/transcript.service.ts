@@ -193,6 +193,35 @@ export class TranscriptService {
         }
     }
 
+    static async deleteEmptyTranscripts(): Promise<ApiResponseType<string>> {
+        try {
+            const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const transcripts = await transcriptRepository 
+                .createQueryBuilder()
+                .delete()
+                .from(Transcript)
+                .where('message_count = :messageCount', { messageCount: 0 })
+                .andWhere('status = :status', { status: "ENDED" })
+                .execute();
+
+            
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Deleted empty transcript records`,
+                responseObject: `Successfully deleted empty records` 
+            };
+        } catch (error) {
+            console.log(`Error in deleteEmptyTranscripts: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: `${error}` 
+            };
+        }
+    }
+
     static async search(tenantId: string, searchCriteria: Partial<Transcript>): Promise<ApiResponseType<Transcript[]>> {
         try {
             console.log(`TenantID: ${tenantId}`);

@@ -45,6 +45,10 @@ __decorate([
     UpdateDateColumn(),
     __metadata("design:type", Date)
 ], Transcript.prototype, "updated_at", void 0);
+__decorate([
+    Column({ nullable: true }),
+    __metadata("design:type", Date)
+], Transcript.prototype, "ended_at", void 0);
 Transcript = __decorate([
     Entity({ name: "main_transcript" })
 ], Transcript);

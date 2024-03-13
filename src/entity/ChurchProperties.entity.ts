@@ -18,9 +18,9 @@ export class ChurchProperties {
 
     @Column({
         name: 'default_service_id',
-        default: 1
+        default: '1'
     })
-    defaultServiceId: number;
+    defaultServiceId: string;
 
     @Column({
         name: 'default_language',

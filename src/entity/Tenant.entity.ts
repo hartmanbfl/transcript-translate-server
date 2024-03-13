@@ -3,6 +3,7 @@ import { AppThemingData } from "./AppThemingData.entity.js";
 import { Transcript} from "./Transcript.entity.js";
 import { User } from "./User.entity.js";
 import { ChurchProperties } from "./ChurchProperties.entity.js";
+import { Session } from "./Session.entity.js";
 
 @Entity({ name: "main_tenant" })
 export class Tenant {
@@ -41,6 +42,9 @@ export class Tenant {
 
   @OneToMany(() => Transcript, (transcript) => transcript.tenant)
   transcripts: Transcript[];
+
+//  @OneToMany(() => Session, (session) => session.tenant)
+//  sessions: Session[];
 
   @OneToMany(() => User, (user) => user.tenant)
   users: User[];

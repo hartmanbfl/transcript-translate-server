@@ -30,9 +30,9 @@ __decorate([
 __decorate([
     Column({
         name: 'default_service_id',
-        default: 1
+        default: '1'
     }),
-    __metadata("design:type", Number)
+    __metadata("design:type", String)
 ], ChurchProperties.prototype, "defaultServiceId", void 0);
 __decorate([
     Column({

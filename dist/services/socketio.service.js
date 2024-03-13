@@ -7,12 +7,9 @@ let controlConnections;
 let controlIoSocket;
 export class SocketIoService {
     static extractTenantFromNamespace(namespace) {
-        console.log(`NAMESPACE: ${namespace}`);
         if (namespace.startsWith("/control-") || namespace.startsWith("/client-")) {
             const firstDash = namespace.indexOf("-");
-            console.log(`firstDash: ${firstDash}`);
             if (firstDash !== -1) {
-                console.log(`substr: ${namespace.substring(firstDash + 1)}`);
                 return namespace.substring(firstDash + 1);
             }
         }

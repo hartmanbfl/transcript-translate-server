@@ -11,6 +11,10 @@ export class TranscriptController {
         const serviceResponse = await TranscriptService.getLastTranscript(jwt.tenantId);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
     }
+    static async deleteEmptyTranscripts(req, res) {
+        const serviceResponse = await TranscriptService.deleteEmptyTranscripts();
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
+    }
     static async search(req, res) {
         const jwt = req.token;
         try {

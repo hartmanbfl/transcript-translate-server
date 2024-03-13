@@ -65,14 +65,16 @@ async function translateTextAndDistribute(data) {
 // Service based methods
 // data = {io, serviceId} 
 export const registerForServiceTranscripts = (data) => {
-    const { io, serviceId, serviceLanguageMap, serviceSubscriptionMap } = data;
+    const { io, serviceLanguageMap } = data;
+    const serviceId = data.serviceId;
+    const serviceSubscriptionMap = data.serviceSubscriptionMap;
     // Check if we have already registered
     if (serviceSubscriptionMap.get(serviceId) !== undefined && serviceSubscriptionMap.get(serviceId) === true) {
         console.log(`Already registered so returning.`);
         return;
     }
     // Initialize the service  
-    console.log(`Initializing language map for service: ${serviceId}`);
+    console.log(`Initializing language map for service: ${serviceId}.`);
     serviceLanguageMap.set(serviceId, []);
     serviceSubscriptionMap.set(serviceId, true);
     // Subscribe to a RxJs Subject to detect when transcripts are available

@@ -12,7 +12,7 @@ export class Phrase {
     @Column()
     transcript_id: string;
 
-    @ManyToOne(() => Transcript, (transcript) => transcript.phrases)
+    @ManyToOne(() => Transcript, (transcript) => transcript.phrases, { onDelete: "CASCADE" })
     transcript: Relation<Transcript>;
 
     @Column("text")

@@ -68,7 +68,9 @@ async function translateTextAndDistribute(data: any) {
 
 // data = {io, serviceId} 
 export const registerForServiceTranscripts = (data: any) => {
-    const { io, serviceId, serviceLanguageMap, serviceSubscriptionMap } = data;
+    const { io, serviceLanguageMap } = data;
+    const serviceId: string = data.serviceId;
+    const serviceSubscriptionMap: Map<string, boolean> = data.serviceSubscriptionMap;
 
     // Check if we have already registered
     if (serviceSubscriptionMap.get(serviceId) !== undefined && serviceSubscriptionMap.get(serviceId) === true) {
@@ -77,7 +79,7 @@ export const registerForServiceTranscripts = (data: any) => {
     }
 
     // Initialize the service  
-    console.log(`Initializing language map for service: ${serviceId}`);
+    console.log(`Initializing language map for service: ${serviceId}.`);
     serviceLanguageMap.set(serviceId, []);
     serviceSubscriptionMap.set(serviceId, true);
 

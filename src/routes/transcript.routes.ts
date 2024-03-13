@@ -9,5 +9,6 @@ router.get("/lastTranscript", authentication, authorization(["admin"]), Transcri
 router.get("/:id", authentication, authorization(["superadmin", "admin"]), TranscriptController.getFullTranscript);
 
 router.post("/search", authentication, authorization(["admin"]), TranscriptController.search);
+router.delete("/empty", authentication, authorization(["superadmin"]), TranscriptController.deleteEmptyTranscripts);
 
 export default router;

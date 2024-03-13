@@ -3,7 +3,7 @@ dotenv.config();
 
 // Create maps to track the languages per Service
 export const serviceLanguageMap = new Map();
-export const serviceSubscriptionMap = new Map();
+export const serviceSubscriptionMap = new Map<string, boolean>();
 
 // Also track the subscriptions per room { Subscriber: Room[] }
 export const clientSubscriptionMap = new Map();

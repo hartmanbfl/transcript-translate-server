@@ -24,7 +24,7 @@ __decorate([
     __metadata("design:type", String)
 ], Phrase.prototype, "transcript_id", void 0);
 __decorate([
-    ManyToOne(() => Transcript, (transcript) => transcript.phrases),
+    ManyToOne(() => Transcript, (transcript) => transcript.phrases, { onDelete: "CASCADE" }),
     __metadata("design:type", Object)
 ], Phrase.prototype, "transcript", void 0);
 __decorate([

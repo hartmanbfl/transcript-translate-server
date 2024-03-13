@@ -24,6 +24,8 @@ export const registerClientHandlers = (io, socket) => {
     });
     socket.on('register', (serviceId) => {
         console.log(`Client ${socket.id} registering for messages for service ${serviceId}`);
+        const headers = socket.handshake.headers;
+        console.log(`Headers:  ${headers.location} / ${headers.host} / ${headers["user-agent"]}`);
         const hearbeats = `${serviceId}:heartbeat`;
         socket.join(hearbeats);
     });

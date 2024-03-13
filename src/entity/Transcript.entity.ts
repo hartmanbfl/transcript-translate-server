@@ -29,4 +29,8 @@ export class Transcript{
 
     @UpdateDateColumn()
     updated_at: Date;
+
+    @Column({nullable: true})
+    ended_at: Date;
+
 }
