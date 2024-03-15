@@ -41,7 +41,9 @@ export class ChurchController {
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async getLanguages(req, res) {
-        const serviceResponse = await getLanguages(req.params.serviceId);
+        const { roomId } = req.params;
+        const tenantId = req.query.tenantId;
+        const serviceResponse = await getLanguages(roomId, tenantId);
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async setConfiguration(req, res) {

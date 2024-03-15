@@ -1,11 +1,17 @@
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.repository.js";
 import { parseRoom } from "../utils/room.util.js";
 import { getClientIo } from "./socketio.service.js";
-export const getSubscribersInRoom = async (roomId) => {
-    var _a, _b, _c, _d;
+export const getSubscribersInRoom = async (roomId, tenantId) => {
+    var _a, _b, _c, _d, _e;
     try {
-        const clientIo = getClientIo();
-        const clients = (_d = (_c = (_b = (_a = clientIo === null || clientIo === void 0 ? void 0 : clientIo.sockets) === null || _a === void 0 ? void 0 : _a.adapter) === null || _b === void 0 ? void 0 : _b.rooms) === null || _c === void 0 ? void 0 : _c.get(roomId)) === null || _d === void 0 ? void 0 : _d.size;
+        const clientIo = getClientIo(tenantId);
+        let clients;
+        if (!tenantId) {
+            clients = (_d = (_c = (_b = (_a = clientIo.sockets) === null || _a === void 0 ? void 0 : _a.adapter) === null || _b === void 0 ? void 0 : _b.rooms) === null || _c === void 0 ? void 0 : _c.get(roomId)) === null || _d === void 0 ? void 0 : _d.size;
+        }
+        else {
+            clients = (_e = clientIo.adapter.rooms.get(roomId)) === null || _e === void 0 ? void 0 : _e.size;
+        }
         console.log(`getSubscribersInRoom: roomId-> ${roomId}, clients-> ${clients}`);
         return {
             success: true,

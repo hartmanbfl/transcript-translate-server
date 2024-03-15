@@ -262,7 +262,7 @@ let heartbeatTimer;
 const startHeartbeatTimer = () => {
     heartbeatTimer = setInterval(() => {
         controlSocket.emit('heartbeat', { serviceCode: serviceCode, status: streamingStatus });
-    }, 3000);
+    }, 5000);
 }
 const stopHeartbeatTimer = () => {
     clearInterval(heartbeatTimer);

@@ -3,9 +3,13 @@ import { addTranslationLanguageToService, removeTranslationLanguageFromService }
 import { serviceLanguageMap } from '../../repositories/index.repository.js';
 import { parseRoom } from "../../utils/room.util.js";
 import { roomEmitter } from "../../globals.js";
-import { Server, Socket } from "socket.io";
+import { Namespace, Server, Socket } from "socket.io";
+import { SocketIoService } from "../../services/socketio.service.js";
 
 export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) => {
+
+    const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
+    console.log(`Tenant ID for client: ${tenantId}`);
 
     const getNumberOfSubscribersInRoom = (room: string) => {
         try {
@@ -19,7 +23,7 @@ export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) 
         }
     }
 
-    socket.on('disconnect', () => {
+   socket.on('disconnect', () => {
         console.log(`Client ${socket.id} disconnected`);
 
         // Disconnect all rooms from this client

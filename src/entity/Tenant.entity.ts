@@ -43,8 +43,8 @@ export class Tenant {
   @OneToMany(() => Transcript, (transcript) => transcript.tenant)
   transcripts: Transcript[];
 
-//  @OneToMany(() => Session, (session) => session.tenant)
-//  sessions: Session[];
+  @OneToMany(() => Session, (session) => session.tenant)
+  sessions: Session[];
 
   @OneToMany(() => User, (user) => user.tenant)
   users: User[];

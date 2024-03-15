@@ -7,50 +7,43 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Tenant } from "./Tenant.entity.js";
-import { Subscriber } from "./Subscriber.entity.js";
-import { Transcript } from "./Transcript.entity.js";
-let Session = class Session {
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Session } from "./Session.entity.js";
+let Subscriber = class Subscriber {
 };
 __decorate([
     PrimaryGeneratedColumn("uuid"),
     __metadata("design:type", String)
-], Session.prototype, "id", void 0);
-__decorate([
-    ManyToOne(() => Tenant, (tenant) => tenant.sessions),
-    JoinColumn({ name: "tenant_id" }),
-    __metadata("design:type", Object)
-], Session.prototype, "tenant", void 0);
-__decorate([
-    OneToMany(() => Subscriber, (subscriber) => subscriber.session),
-    __metadata("design:type", Object)
-], Session.prototype, "subscribers", void 0);
-__decorate([
-    OneToMany(() => Transcript, (transcript) => transcript.session),
-    __metadata("design:type", Object)
-], Session.prototype, "transcripts", void 0);
+], Subscriber.prototype, "id", void 0);
 __decorate([
     Column(),
     __metadata("design:type", String)
-], Session.prototype, "service_id", void 0);
+], Subscriber.prototype, "tenant_id", void 0);
+__decorate([
+    ManyToOne(() => Session, (session) => session.subscribers),
+    __metadata("design:type", Object)
+], Subscriber.prototype, "session", void 0);
 __decorate([
     Column(),
     __metadata("design:type", String)
-], Session.prototype, "status", void 0);
+], Subscriber.prototype, "language", void 0);
+__decorate([
+    Column(),
+    __metadata("design:type", String)
+], Subscriber.prototype, "user_agent", void 0);
 __decorate([
     CreateDateColumn(),
     __metadata("design:type", Date)
-], Session.prototype, "created_at", void 0);
+], Subscriber.prototype, "created_at", void 0);
 __decorate([
     UpdateDateColumn(),
     __metadata("design:type", Date)
-], Session.prototype, "updated_at", void 0);
+], Subscriber.prototype, "updated_at", void 0);
 __decorate([
     Column({ nullable: true }),
     __metadata("design:type", Date)
-], Session.prototype, "ended_at", void 0);
-Session = __decorate([
-    Entity({ name: "main_session" })
-], Session);
-export { Session };
+], Subscriber.prototype, "ended_at", void 0);
+Subscriber = __decorate([
+    Entity({ name: "main_subscribers" })
+], Subscriber);
+export { Subscriber };

@@ -3,11 +3,11 @@ import { Namespace, Server, Socket } from 'socket.io';
 import { Jwt, JwtHeader, JwtPayload } from "jsonwebtoken";
 
 let io: Server;
-let clientConnections;
+let clientNamespaces;
 let clientIoSocket: Socket;
 
 let controlIo: Namespace;
-let controlConnections;
+let controlNamespaces;
 let controlIoSocket: Socket;
 
 export class SocketIoService {
@@ -21,6 +21,12 @@ export class SocketIoService {
         }
         return "";
     }
+    static getClientNamespace(tenantId: string) : string {
+        return `client-${tenantId}`;
+    }
+    static getControlNamespace(tenantId: string): string {
+        return `control-${tenantId}`;
+    }
 }
 
 export const initializeSocketIo = (server: any) => {
@@ -33,18 +39,22 @@ export const initializeSocketIo = (server: any) => {
     });
     controlIo = io.of("/control");
 
-    // Multi tenant support (church-<tenant ID>)
-    clientConnections = io.of(/^\/church-[0-9a-z-]+$/);
-    controlConnections = io.of(/^\/control-[0-9a-z-]+$/);
+    // Multi tenant support (client-<tenant ID>)
+    clientNamespaces = io.of(/^\/client-[0-9a-z-]+$/);
+    controlNamespaces = io.of(/^\/control-[0-9a-z-]+$/);
 
-    return { controlIo, io, clientConnections, controlConnections }
+    return { controlIo, io, clientNamespaces, controlNamespaces }
 }
 
 export const getControlIo = (): Namespace => {
     return controlIo;
 }
-export const getClientIo = (): Server => {
-    return io;
+export const getClientIo = (tenantId: string | null): Server | Namespace => {
+    if (tenantId) {
+        return io.of(`/client-${tenantId}`);
+    } else {
+        return io;
+    }
 }
 
 export const setControlIoSocket = (socket: Socket) => {

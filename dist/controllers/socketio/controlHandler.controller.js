@@ -5,28 +5,47 @@ import { getActiveLanguages } from '../../services/church.service.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../../repositories/index.repository.js';
 import { TranscriptService } from '../../services/transcript.service.js';
 import { SocketIoService } from '../../services/socketio.service.js';
+import { SessionService } from '../../services/session.service.js';
 // Environment variables
 dotenv.config();
-export const registerControlHandlers = (controlIo, socketIoServer, socket) => {
-    console.log(`Registering ${socket.id} connected to our socket.io control namespace: ${controlIo.name}`);
+export const registerControlHandlers = (socketIoServer, socket) => {
+    console.log(`Registering ${socket.id} connected to our socket.io control namespace: ${socket.nsp.name}`);
+    const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
+    let sessionId;
+    let clientConnection;
+    let controlConnection;
+    if (socket.nsp.name) {
+        console.log(`Using namespace ${socket.nsp.name} to talk to client devices`);
+        clientConnection = socketIoServer.of(`client-${tenantId}`);
+        controlConnection = socket.nsp;
+    }
+    else {
+        console.log(`Using server connection to talk to clients`);
+        clientConnection = socketIoServer;
+        controlConnection = socket;
+    }
     socket.on('recordingStarted', async (data) => {
         const { serviceCode } = data;
         console.log(`Recording started for ${serviceCode} on namespace ${socket.nsp.name}`);
+        if (!sessionId)
+            throw new Error(`Session is not defined`);
+        await SessionService.updateStatus(sessionId, "RECORDING");
         // Make sure no translations are happening for this tenant
-        const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
         console.log(`Starting transcript for tenant: ${tenantId}`);
         if (tenantId) {
             await TranscriptService.stopAllTranscripts(tenantId, serviceCode);
             // start a new transcript
-            const transcriptId = await TranscriptService.startTranscript(tenantId, serviceCode);
+            const transcriptId = await TranscriptService.startTranscript(tenantId, serviceCode, sessionId);
         }
     });
     socket.on('recordingStopped', async (data) => {
         const { serviceCode } = data;
         console.log(`Recording stopped for ${serviceCode} on namespace ${socket.nsp.name}`);
+        if (!sessionId)
+            throw new Error(`Session is not defined`);
+        await SessionService.updateStatus(sessionId, "STOPPED");
         // stop transcript
         try {
-            const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
             if (tenantId.length === 0)
                 throw new Error(`Tenant not found for this namespace`);
             const transcript = await TranscriptService.getActiveTranscript(tenantId, serviceCode);
@@ -38,8 +57,11 @@ export const registerControlHandlers = (controlIo, socketIoServer, socket) => {
             console.log(`Error: ${error}`);
         }
     });
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', async (reason) => {
         console.log(`Control io disconnected for client-> ${socket.id}, namespace-> ${socket.nsp.name} reason-> ${reason}`);
+        if (sessionId) {
+            await SessionService.endSession(sessionId);
+        }
     });
     socket.on('transcriptReady', async (data) => {
         const { serviceCode, transcript } = data;
@@ -49,7 +71,6 @@ export const registerControlHandlers = (controlIo, socketIoServer, socket) => {
         transcriptAvailServiceSub.next(transciptData);
         try {
             // write it to the DB
-            const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
             if (tenantId.length === 0)
                 throw new Error(`Tenant ID not found for this namespace`);
             const transcriptEntity = await TranscriptService.getActiveTranscript(tenantId, serviceCode);
@@ -63,23 +84,24 @@ export const registerControlHandlers = (controlIo, socketIoServer, socket) => {
         }
     });
     // Listen for changes in the rooms
-    socket.on('monitor', (data) => {
+    socket.on('monitor', async (data) => {
         const { serviceId } = data;
-        const serviceToMonitor = serviceId;
-        console.log(`Control is monitoring ${serviceToMonitor}`);
-        socket.join(serviceToMonitor);
+        console.log(`Control is monitoring ${serviceId}`);
+        // Start a new session
+        sessionId = await SessionService.startNewSession(tenantId, serviceId);
+        socket.join(serviceId);
         // Start up our transcript listerner for this service code
-        const listenerData = { io: socketIoServer, serviceId: serviceToMonitor, serviceLanguageMap, serviceSubscriptionMap };
+        const listenerData = { io: socketIoServer, serviceId, serviceLanguageMap, serviceSubscriptionMap, tenantId };
         registerForServiceTranscripts(listenerData);
         roomEmitter.on('subscriptionChange', (service) => {
             console.log(`New room emitter listener.  Listener count now: ${roomEmitter.listenerCount('subscriptionChange')}`);
             if (process.env.EXTRA_DEBUGGING)
                 console.log(`Detected subscription change for service: ${service}`);
-            const jsonString = getActiveLanguages(socketIoServer, service);
             const room = service;
+            const jsonString = getActiveLanguages(clientConnection, service);
+            clientConnection.emit(room, jsonString);
             if (process.env.EXTRA_DEBUGGING)
                 console.log(`Attempting to emit: ${JSON.stringify(jsonString, null, 2)} to control room: ${room}`);
-            socket.emit(room, jsonString);
         });
     });
     socket.on('heartbeat', (data) => {
@@ -88,10 +110,10 @@ export const registerControlHandlers = (controlIo, socketIoServer, socket) => {
         // Send the heartbeat out to all subscribers in this service
         if (status == "livestreaming") {
             const room = `${serviceCode}:heartbeat`;
-            socketIoServer.to(room).emit('livestreaming');
+            clientConnection.to(room).emit('livestreaming');
         }
         // Send back the current subscriber list
-        const jsonString = getActiveLanguages(socketIoServer, serviceCode);
-        socket.emit('subscribers', jsonString);
+        const jsonString = getActiveLanguages(clientConnection, serviceCode);
+        controlConnection.emit('subscribers', jsonString);
     });
 };

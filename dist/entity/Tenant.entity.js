@@ -12,6 +12,7 @@ import { AppThemingData } from "./AppThemingData.entity.js";
 import { Transcript } from "./Transcript.entity.js";
 import { User } from "./User.entity.js";
 import { ChurchProperties } from "./ChurchProperties.entity.js";
+import { Session } from "./Session.entity.js";
 let Tenant = class Tenant {
 };
 __decorate([
@@ -62,6 +63,10 @@ __decorate([
     OneToMany(() => Transcript, (transcript) => transcript.tenant),
     __metadata("design:type", Array)
 ], Tenant.prototype, "transcripts", void 0);
+__decorate([
+    OneToMany(() => Session, (session) => session.tenant),
+    __metadata("design:type", Array)
+], Tenant.prototype, "sessions", void 0);
 __decorate([
     OneToMany(() => User, (user) => user.tenant),
     __metadata("design:type", Array)

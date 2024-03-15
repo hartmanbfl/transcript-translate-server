@@ -1,6 +1,7 @@
 import { getChurchAdditionalWelcome, getChurchDefaultServiceId, getChurchGreeting, getChurchLanguage, getChurchLogoBase64, getChurchMessage, getChurchName, getChurchServiceTimeout, getChurchTranslationLanguages, getChurchWaitingMessage } from '../repositories/church.repository.js';
 import { serviceLanguageMap, serviceSubscriptionMap, streamingStatusMap } from '../repositories/index.repository.js';
 import { getClientIo } from './socketio.service.js';
+import { Server } from 'socket.io';
 import { AppDataSource } from '../data-source.js';
 import { AppThemingData } from '../entity/AppThemingData.entity.js';
 import { ChurchProperties } from '../entity/ChurchProperties.entity.js';
@@ -244,9 +245,9 @@ export const getLivestreamStatus = (serviceId) => {
         };
     }
 };
-export const getLanguages = (serviceId) => {
+export const getLanguages = (serviceId, tenantId) => {
     try {
-        const clientIo = getClientIo();
+        const clientIo = getClientIo(tenantId);
         const jsonString = getActiveLanguages(clientIo, serviceId);
         return {
             success: true,
@@ -268,7 +269,7 @@ export const getLanguages = (serviceId) => {
     }
 };
 export const getActiveLanguages = (io, serviceId) => {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f, _g;
     //    const jsonData = {
     //        serviceId: serviceId,
     //        languages: []
@@ -279,7 +280,13 @@ export const getActiveLanguages = (io, serviceId) => {
     };
     // Get the number of subscribers to the transcript
     const transcriptRoom = `${serviceId}:transcript`;
-    const transcriptRoomObj = io.sockets.adapter.rooms.get(transcriptRoom);
+    let transcriptRoomObj;
+    if (io instanceof Server) {
+        transcriptRoomObj = io.sockets.adapter.rooms.get(transcriptRoom);
+    }
+    else {
+        transcriptRoomObj = io.adapter.rooms.get(transcriptRoom);
+    }
     const transcriptSubscribers = (transcriptRoomObj == undefined) ? 0 : transcriptRoomObj.size;
     // Get the languages currently active 
     const langArray = serviceLanguageMap.get(serviceId);
@@ -295,7 +302,13 @@ export const getActiveLanguages = (io, serviceId) => {
     // Get the number of subscribers for each of the languages
     for (let language in langArray) {
         const room = `${serviceId}:${langArray[language]}`;
-        const clients = (_d = (_c = (_b = (_a = io === null || io === void 0 ? void 0 : io.sockets) === null || _a === void 0 ? void 0 : _a.adapter) === null || _b === void 0 ? void 0 : _b.rooms) === null || _c === void 0 ? void 0 : _c.get(room)) === null || _d === void 0 ? void 0 : _d.size;
+        let clients;
+        if (io instanceof Server) {
+            clients = (_d = (_c = (_b = (_a = io === null || io === void 0 ? void 0 : io.sockets) === null || _a === void 0 ? void 0 : _a.adapter) === null || _b === void 0 ? void 0 : _b.rooms) === null || _c === void 0 ? void 0 : _c.get(room)) === null || _d === void 0 ? void 0 : _d.size;
+        }
+        else {
+            clients = (_g = (_f = (_e = io.adapter) === null || _e === void 0 ? void 0 : _e.rooms) === null || _f === void 0 ? void 0 : _f.get(room)) === null || _g === void 0 ? void 0 : _g.size;
+        }
         const languageEntry = {
             name: langArray[language],
             subscribers: (clients == undefined) ? 0 : clients

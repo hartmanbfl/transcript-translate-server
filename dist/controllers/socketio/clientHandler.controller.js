@@ -3,7 +3,10 @@ import { addTranslationLanguageToService, removeTranslationLanguageFromService }
 import { serviceLanguageMap } from '../../repositories/index.repository.js';
 import { parseRoom } from "../../utils/room.util.js";
 import { roomEmitter } from "../../globals.js";
+import { SocketIoService } from "../../services/socketio.service.js";
 export const registerClientHandlers = (io, socket) => {
+    const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
+    console.log(`Tenant ID for client: ${tenantId}`);
     const getNumberOfSubscribersInRoom = (room) => {
         var _a, _b, _c, _d;
         try {
@@ -24,8 +27,7 @@ export const registerClientHandlers = (io, socket) => {
     });
     socket.on('register', (serviceId) => {
         console.log(`Client ${socket.id} registering for messages for service ${serviceId}`);
-        const headers = socket.handshake.headers;
-        console.log(`Headers:  ${headers.location} / ${headers.host} / ${headers["user-agent"]}`);
+        console.log(`UserAgent: ${socket.handshake.headers["user-agent"]}`);
         const hearbeats = `${serviceId}:heartbeat`;
         socket.join(hearbeats);
     });

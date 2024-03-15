@@ -1,5 +1,6 @@
 import { AppDataSource } from "../data-source.js";
 import { Phrase } from "../entity/Phrase.entity.js";
+import { Session } from "../entity/Session.entity.js";
 import { Tenant } from "../entity/Tenant.entity.js";
 import { Transcript } from "../entity/Transcript.entity.js";
 import { ApiResponseType } from "../types/apiResonse.types.js";
@@ -34,18 +35,22 @@ export class TranscriptService {
             console.log(`Error in updateStatus: ${this.updateStatus}`);
         }
     }
-    static async startTranscript(tenantId: string, serviceId: string) {
+    static async startTranscript(tenantId: string, serviceId: string, sessionId: string) {
         try {
             const transcriptRepository = AppDataSource.getRepository(Transcript);
-            const tenant = await AppDataSource
-                .getRepository(Tenant)
-                .findOne({where: { id: tenantId }});
+            const tenant = await AppDataSource.getRepository(Tenant).findOne({where: { id: tenantId }});
             if (!tenant) throw new Error(`Tenant not found for this tenant ID`);    
+
+            const sessionRepository = AppDataSource.getRepository(Session);
+            const session = await AppDataSource.getRepository(Session).findOne({where: { id: sessionId }});
+            if (!session) throw new Error(`Session not found for this session ID`);    
+
             const transcript = new Transcript();
             transcript.tenant = tenant;
             transcript.service_id = serviceId;
             transcript.message_count = 0;
             transcript.status = "STARTED";
+            transcript.session = session; 
             const newTranscript = await transcriptRepository.save(transcript)
             return newTranscript.id;
         } catch (error) {

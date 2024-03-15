@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import translate from 'google-translate-api-x';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { transcriptAvailServiceSub } from './globals.js';
+import { SocketIoService } from './services/socketio.service.js';
 dotenv.config();
 let TRANSLATE;
 let parent;
@@ -37,24 +38,38 @@ const translateText = async (data) => {
     }
 };
 const distributeTranslation = (data) => {
-    const { io, channel, translation } = data;
+    const { io, channel, translation, tenantId } = data;
     try {
         if (process.env.DEBUG_TRANSLATION)
             console.log(`Sending on ${channel}, Cloud translated-> ${translation}`);
-        io.to(channel).emit("translation", translation);
+        let clientConnection;
+        if (tenantId) {
+            clientConnection = io.of(SocketIoService.getClientNamespace(tenantId));
+        }
+        else {
+            clientConnection = io;
+        }
+        clientConnection.to(channel).emit("translation", translation);
     }
     catch (error) {
         console.log(`Error in distribute translation: ${error}`);
     }
 };
 async function translateTextAndDistribute(data) {
-    const { io, channel, lang, transcript } = data;
+    const { io, channel, lang, transcript, tenantId } = data;
     try {
         const translated = await translate(transcript, { to: lang });
         // @ts-ignore - using free google translate
         console.log(`Sending ${lang} to ${channel}, transcript-> ${transcript} : translated-> ${translated.text}`);
+        let clientConnection;
+        if (tenantId) {
+            clientConnection = io.of(SocketIoService.getClientNamespace(tenantId));
+        }
+        else {
+            clientConnection = io;
+        }
         // @ts-ignore - using free google translate
-        io.to(channel).emit("translation", translated.text);
+        clientConnection.to(channel).emit("translation", translated.text);
         // @ts-ignore - using free google translate
         return translated.text;
     }
@@ -65,13 +80,21 @@ async function translateTextAndDistribute(data) {
 // Service based methods
 // data = {io, serviceId} 
 export const registerForServiceTranscripts = (data) => {
-    const { io, serviceLanguageMap } = data;
+    const { io, serviceLanguageMap, tenantId } = data;
     const serviceId = data.serviceId;
+    // TBD - not multi tenant
     const serviceSubscriptionMap = data.serviceSubscriptionMap;
     // Check if we have already registered
     if (serviceSubscriptionMap.get(serviceId) !== undefined && serviceSubscriptionMap.get(serviceId) === true) {
         console.log(`Already registered so returning.`);
         return;
+    }
+    let clientConnection;
+    if (tenantId) {
+        clientConnection = io.of(SocketIoService.getClientNamespace(tenantId));
+    }
+    else {
+        clientConnection = io;
     }
     // Initialize the service  
     console.log(`Initializing language map for service: ${serviceId}.`);
@@ -84,7 +107,7 @@ export const registerForServiceTranscripts = (data) => {
             console.log(`Received transcript: ${serviceCode} ${transcript}`);
         // Send the transcript to any subscribers 
         let channel = `${serviceCode}:transcript`;
-        io.to(channel).emit("transcript", transcript);
+        clientConnection.to(channel).emit("transcript", transcript);
         // Now send the translation to any subscribers.  First get the array
         // of currently subscribed languages for this service
         let languagesForChannel = serviceLanguageMap.get(serviceCode);
@@ -100,11 +123,11 @@ export const registerForServiceTranscripts = (data) => {
             if (process.env.USE_GOOGLE_TRANSLATE_SUBSCRIPTION === "true") {
                 let translation = await translateText({ lang, transcript });
                 const ioChannel = `${serviceCode}:${lang}`;
-                distributeTranslation({ io, channel: ioChannel, translation });
+                distributeTranslation({ io, channel: ioChannel, translation, tenantId });
             }
             else {
                 const ioChannel = `${serviceCode}:${lang}`;
-                const data = { io, channel: ioChannel, lang, transcript };
+                const data = { io, channel: ioChannel, lang, transcript, tenantId };
                 let translation = await translateTextAndDistribute(data);
             }
         });

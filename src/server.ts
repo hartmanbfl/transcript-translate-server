@@ -7,7 +7,7 @@ import path from 'path';
 
 import { initializeSocketIo, setClientIoSocket, setControlIoSocket } from './services/socketio.service.js';
 import { UserService } from './services/user.service.js';
-import { Socket } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import { errorHandler } from './middleware/error.middleware.js';
 import { AppDataSource } from './data-source.js';
 
@@ -36,7 +36,7 @@ app.use(express.json());
 // DEBUG app.use(logRequests);
 
 // Initialize the socket IO
-const { controlIo: controlIo, io: io, clientConnections: clientConnections, controlConnections: controlConnections } = initializeSocketIo(server);
+const { controlIo: controlIo, io: io, clientNamespaces: clientNamespaces, controlNamespaces: controlNamespaces } = initializeSocketIo(server);
 
 // Process the socket io requests
 import { registerControlHandlers } from './controllers/socketio/controlHandler.controller.js';
@@ -44,13 +44,15 @@ import { registerClientHandlers } from './controllers/socketio/clientHandler.con
 
 // Register for socket request handlers
 const onControlConnection = (socket: Socket) => {
-    registerControlHandlers(controlIo, io, socket);
+    registerControlHandlers(io, socket);
 }
-const onControlConnections = (socket: Socket) => {
-    registerControlHandlers(socket.nsp, io, socket);
+const onControlNamespaceConnection = (socket: Socket) => {
+    registerControlHandlers(io, socket);
 }
 const onClientConnection = (socket: Socket) => {
-    // Single tenant
+    registerClientHandlers(io, socket);
+}
+const onClientNamespaceConnection = (socket: Socket) => {
     registerClientHandlers(io, socket);
 }
 
@@ -65,8 +67,9 @@ const listenForClients = () => {
         onClientConnection(socket);
     })
     // Multi tenant
-    clientConnections.on('connection', (socket) => {
-        const clientConnection = socket.nsp;
+    clientNamespaces.on('connection', (socket) => {
+        console.log(`Got client namespace connection: ${socket.nsp.name}`);
+        onClientNamespaceConnection(socket);
     })
 }
 // Start listening for mobile clients to join
@@ -77,10 +80,10 @@ controlIo.on('connection', (socket) => {
     setControlIoSocket(socket);
     onControlConnection(socket);
 });
-controlConnections.on('connection', (socket) => {
+controlNamespaces.on('connection', (socket) => {
     const controlConnection = socket.nsp;
     console.log(`Connection to control connection in namespace: ${controlConnection.name}`);
-    onControlConnections(socket);
+    onControlNamespaceConnection(socket);
 })
 
 // Define tenant routes

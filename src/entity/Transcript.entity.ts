@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Relation, UpdateDateColumn } from "typeorm";
 import { Tenant } from "./Tenant.entity.js";
 import { Phrase } from "./Phrase.entity.js";
+import { Session } from "./Session.entity.js";
 
 @Entity({name: "main_transcript"})
 export class Transcript{
@@ -14,6 +15,10 @@ export class Transcript{
     // A transcript is made up of many sentences/phrases
     @OneToMany(() => Phrase, (phrase) => phrase.transcript)
     phrases: Phrase[];
+
+    // You can have multiple transcripts (stop/start recording) in one church session
+    @ManyToOne(() => Session, (session) => session.transcripts)
+    session: Relation<Session>;
 
     @Column({nullable: true})
     message_count: number;

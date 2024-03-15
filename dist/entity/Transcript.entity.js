@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Tenant } from "./Tenant.entity.js";
 import { Phrase } from "./Phrase.entity.js";
+import { Session } from "./Session.entity.js";
 let Transcript = class Transcript {
 };
 __decorate([
@@ -25,6 +26,10 @@ __decorate([
     OneToMany(() => Phrase, (phrase) => phrase.transcript),
     __metadata("design:type", Array)
 ], Transcript.prototype, "phrases", void 0);
+__decorate([
+    ManyToOne(() => Session, (session) => session.transcripts),
+    __metadata("design:type", Object)
+], Transcript.prototype, "session", void 0);
 __decorate([
     Column({ nullable: true }),
     __metadata("design:type", Number)

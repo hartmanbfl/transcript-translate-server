@@ -3,7 +3,9 @@ import { getRoomsForAllClients, getSubscribersInAllRooms, getSubscribersInRoom }
 
 export class RoomController {
     static async getSubscribers(req: Request, res: Response) {
-        const serviceResponse = await getSubscribersInRoom(req.params.roomId);
+        const { roomId } = req.params;
+        const tenantId = req.query.tenantId as string;
+        const serviceResponse = await getSubscribersInRoom(roomId, tenantId);
 
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }

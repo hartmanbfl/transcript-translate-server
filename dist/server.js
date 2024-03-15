@@ -24,19 +24,21 @@ app.use(express.static("public"));
 app.use(express.json());
 // DEBUG app.use(logRequests);
 // Initialize the socket IO
-const { controlIo: controlIo, io: io, clientConnections: clientConnections, controlConnections: controlConnections } = initializeSocketIo(server);
+const { controlIo: controlIo, io: io, clientNamespaces: clientNamespaces, controlNamespaces: controlNamespaces } = initializeSocketIo(server);
 // Process the socket io requests
 import { registerControlHandlers } from './controllers/socketio/controlHandler.controller.js';
 import { registerClientHandlers } from './controllers/socketio/clientHandler.controller.js';
 // Register for socket request handlers
 const onControlConnection = (socket) => {
-    registerControlHandlers(controlIo, io, socket);
+    registerControlHandlers(io, socket);
 };
-const onControlConnections = (socket) => {
-    registerControlHandlers(socket.nsp, io, socket);
+const onControlNamespaceConnection = (socket) => {
+    registerControlHandlers(io, socket);
 };
 const onClientConnection = (socket) => {
-    // Single tenant
+    registerClientHandlers(io, socket);
+};
+const onClientNamespaceConnection = (socket) => {
     registerClientHandlers(io, socket);
 };
 // Websocket connection to the client.  Moved this into its own connection in 
@@ -50,8 +52,9 @@ const listenForClients = () => {
         onClientConnection(socket);
     });
     // Multi tenant
-    clientConnections.on('connection', (socket) => {
-        const clientConnection = socket.nsp;
+    clientNamespaces.on('connection', (socket) => {
+        console.log(`Got client namespace connection: ${socket.nsp.name}`);
+        onClientNamespaceConnection(socket);
     });
 };
 // Start listening for mobile clients to join
@@ -61,10 +64,10 @@ controlIo.on('connection', (socket) => {
     setControlIoSocket(socket);
     onControlConnection(socket);
 });
-controlConnections.on('connection', (socket) => {
+controlNamespaces.on('connection', (socket) => {
     const controlConnection = socket.nsp;
     console.log(`Connection to control connection in namespace: ${controlConnection.name}`);
-    onControlConnections(socket);
+    onControlNamespaceConnection(socket);
 });
 // Define tenant routes
 import tenantRouter from './routes/tenants.routes.js';

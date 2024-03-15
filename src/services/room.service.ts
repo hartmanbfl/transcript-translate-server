@@ -1,13 +1,19 @@
-import { Server } from "socket.io";
+import { Namespace, Server } from "socket.io";
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.repository.js";
 import { RoomSocketPayload } from "../types/rooms.types.js";
 import { parseRoom } from "../utils/room.util.js";
 import { getClientIo } from "./socketio.service.js";
 
-export const getSubscribersInRoom = async (roomId: string) => {
+export const getSubscribersInRoom = async (roomId: string, tenantId: string) => {
     try {
-        const clientIo: Server = getClientIo();
-        const clients: number | undefined = clientIo?.sockets?.adapter?.rooms?.get(roomId)?.size;
+        const clientIo: Server | Namespace = getClientIo(tenantId);
+        let clients: number | undefined;
+        if (!tenantId) {
+            clients = (clientIo as Server).sockets?.adapter?.rooms?.get(roomId)?.size;
+        } else {
+            clients = (clientIo as Namespace).adapter.rooms.get(roomId)?.size;
+        }
+
         console.log(`getSubscribersInRoom: roomId-> ${roomId}, clients-> ${clients}`);
         return {
             success: true,

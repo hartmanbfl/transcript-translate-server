@@ -10,6 +10,8 @@ import { fileURLToPath } from 'url';
 import { Phrase } from "./entity/Phrase.entity.js";
 import { Transcript } from "./entity/Transcript.entity.js";
 import { ChurchProperties } from "./entity/ChurchProperties.entity.js";
+import { Session } from "./entity/Session.entity.js";
+import { Subscriber } from "./entity/Subscriber.entity.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config();
@@ -28,6 +30,8 @@ export const AppDataSource = new DataSource({
         ChurchProperties,
         DatabaseFile,
         Phrase,
+        Session,
+        Subscriber,
         Tenant,
         Transcript,
         User

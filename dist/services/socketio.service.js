@@ -1,9 +1,9 @@
 import { Server } from 'socket.io';
 let io;
-let clientConnections;
+let clientNamespaces;
 let clientIoSocket;
 let controlIo;
-let controlConnections;
+let controlNamespaces;
 let controlIoSocket;
 export class SocketIoService {
     static extractTenantFromNamespace(namespace) {
@@ -15,6 +15,12 @@ export class SocketIoService {
         }
         return "";
     }
+    static getClientNamespace(tenantId) {
+        return `client-${tenantId}`;
+    }
+    static getControlNamespace(tenantId) {
+        return `control-${tenantId}`;
+    }
 }
 export const initializeSocketIo = (server) => {
     io = new Server(server, {
@@ -25,16 +31,21 @@ export const initializeSocketIo = (server) => {
         }
     });
     controlIo = io.of("/control");
-    // Multi tenant support (church-<tenant ID>)
-    clientConnections = io.of(/^\/church-[0-9a-z-]+$/);
-    controlConnections = io.of(/^\/control-[0-9a-z-]+$/);
-    return { controlIo, io, clientConnections, controlConnections };
+    // Multi tenant support (client-<tenant ID>)
+    clientNamespaces = io.of(/^\/client-[0-9a-z-]+$/);
+    controlNamespaces = io.of(/^\/control-[0-9a-z-]+$/);
+    return { controlIo, io, clientNamespaces, controlNamespaces };
 };
 export const getControlIo = () => {
     return controlIo;
 };
-export const getClientIo = () => {
-    return io;
+export const getClientIo = (tenantId) => {
+    if (tenantId) {
+        return io.of(`/client-${tenantId}`);
+    }
+    else {
+        return io;
+    }
 };
 export const setControlIoSocket = (socket) => {
     controlIoSocket = socket;
