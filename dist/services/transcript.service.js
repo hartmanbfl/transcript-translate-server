@@ -41,7 +41,6 @@ export class TranscriptService {
             const tenant = await AppDataSource.getRepository(Tenant).findOne({ where: { id: tenantId } });
             if (!tenant)
                 throw new Error(`Tenant not found for this tenant ID`);
-            const sessionRepository = AppDataSource.getRepository(Session);
             const session = await AppDataSource.getRepository(Session).findOne({ where: { id: sessionId } });
             if (!session)
                 throw new Error(`Session not found for this session ID`);
@@ -178,6 +177,35 @@ export class TranscriptService {
                 .where('tenant.id = :tenantId', { tenantId })
                 .orderBy('transcript.created_at', 'DESC')
                 .limit(1)
+                .getMany();
+            transcripts.forEach(transcript => {
+                console.log(`Found transcript with ID: ${transcript.id} and message count: ${transcript.message_count}`);
+            });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully obtained transcripts`,
+                responseObject: transcripts
+            };
+        }
+        catch (error) {
+            console.log(`Error: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: []
+            };
+        }
+    }
+    static async getBySessionId(sessionId) {
+        try {
+            const transcriptRepository = AppDataSource.getRepository(Transcript);
+            const transcripts = await transcriptRepository
+                .createQueryBuilder('transcript')
+                .innerJoinAndSelect('transcript.session', 'session')
+                .where('session.id = :sessionId', { sessionId })
+                .orderBy('transcript.created_at', 'ASC')
                 .getMany();
             transcripts.forEach(transcript => {
                 console.log(`Found transcript with ID: ${transcript.id} and message count: ${transcript.message_count}`);

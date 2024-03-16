@@ -26,11 +26,15 @@ __decorate([
 __decorate([
     Column(),
     __metadata("design:type", String)
-], Subscriber.prototype, "language", void 0);
+], Subscriber.prototype, "room", void 0);
 __decorate([
     Column(),
     __metadata("design:type", String)
 ], Subscriber.prototype, "user_agent", void 0);
+__decorate([
+    Column(),
+    __metadata("design:type", String)
+], Subscriber.prototype, "socket_id", void 0);
 __decorate([
     CreateDateColumn(),
     __metadata("design:type", Date)

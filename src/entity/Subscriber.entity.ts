@@ -13,10 +13,13 @@ export class Subscriber {
     session: Relation<Session>;
 
     @Column()
-    language: string;
+    room: string;
 
     @Column()
     user_agent: string;
+
+    @Column()
+    socket_id: string;
 
     @CreateDateColumn()
     created_at: Date;

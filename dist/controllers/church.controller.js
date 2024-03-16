@@ -1,4 +1,4 @@
-import { ChurchService, configurationService, getLanguages, getLivestreamStatus, infoService, statusService } from "../services/church.service.js";
+import { ChurchService, configurationService, getLanguages, getLivestreamStatus, getLivestreamStatusDb, infoService, statusService, statusServiceDb } from "../services/church.service.js";
 import * as dotenv from 'dotenv';
 export class ChurchController {
     static async getServiceInfo(req, res) {
@@ -33,11 +33,27 @@ export class ChurchController {
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async getStatus(req, res) {
-        const serviceResponse = await statusService(req.params.serviceId);
+        const { serviceId } = req.params;
+        let serviceResponse;
+        if (process.env.USE_DATABASE) {
+            const tenantId = req.query.tenantId;
+            serviceResponse = await statusServiceDb(tenantId, serviceId);
+        }
+        else {
+            serviceResponse = await statusService(serviceId);
+        }
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async getLivestreamStatus(req, res) {
-        const serviceResponse = await getLivestreamStatus(req.params.serviceId);
+        const { serviceId } = req.params;
+        let serviceResponse;
+        if (process.env.USE_DATABASE) {
+            const jwt = req.token;
+            serviceResponse = await getLivestreamStatusDb(jwt.tenantId, serviceId);
+        }
+        else {
+            serviceResponse = await getLivestreamStatus(serviceId);
+        }
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async getLanguages(req, res) {

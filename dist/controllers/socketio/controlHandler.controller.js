@@ -31,11 +31,11 @@ export const registerControlHandlers = (socketIoServer, socket) => {
             throw new Error(`Session is not defined`);
         await SessionService.updateStatus(sessionId, "RECORDING");
         // Make sure no translations are happening for this tenant
-        console.log(`Starting transcript for tenant: ${tenantId}`);
         if (tenantId) {
             await TranscriptService.stopAllTranscripts(tenantId, serviceCode);
             // start a new transcript
             const transcriptId = await TranscriptService.startTranscript(tenantId, serviceCode, sessionId);
+            console.log(`Starting transcript ${transcriptId} for tenant: ${tenantId}, service: ${serviceCode}, and session: ${sessionId}`);
         }
     });
     socket.on('recordingStopped', async (data) => {
@@ -87,6 +87,8 @@ export const registerControlHandlers = (socketIoServer, socket) => {
     socket.on('monitor', async (data) => {
         const { serviceId } = data;
         console.log(`Control is monitoring ${serviceId}`);
+        // Cleanup any sessions that are currently active
+        await SessionService.stopOldSessions(tenantId, serviceId);
         // Start a new session
         sessionId = await SessionService.startNewSession(tenantId, serviceId);
         socket.join(serviceId);
@@ -94,7 +96,8 @@ export const registerControlHandlers = (socketIoServer, socket) => {
         const listenerData = { io: socketIoServer, serviceId, serviceLanguageMap, serviceSubscriptionMap, tenantId };
         registerForServiceTranscripts(listenerData);
         roomEmitter.on('subscriptionChange', (service) => {
-            console.log(`New room emitter listener.  Listener count now: ${roomEmitter.listenerCount('subscriptionChange')}`);
+            if (process.env.EXTRA_DEBUGGING)
+                console.log(`New room emitter listener.  Listener count now: ${roomEmitter.listenerCount('subscriptionChange')}`);
             if (process.env.EXTRA_DEBUGGING)
                 console.log(`Detected subscription change for service: ${service}`);
             const room = service;

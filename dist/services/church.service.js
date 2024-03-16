@@ -8,10 +8,11 @@ import { ChurchProperties } from '../entity/ChurchProperties.entity.js';
 import { DatabaseFilesService } from './databaseFiles.service.js';
 import { Tenant } from '../entity/Tenant.entity.js';
 import { fileTypeFromBuffer } from 'file-type';
+import { Session } from '../entity/Session.entity.js';
+import { SessionService } from './session.service.js';
 export class ChurchService {
     static async getChurchInfo(tenantId) {
         try {
-            console.log(`Attempting to get the themes for tenant: ${tenantId}`);
             const theme = await AppDataSource
                 .getRepository(AppThemingData)
                 .createQueryBuilder('theme')
@@ -221,9 +222,71 @@ export const statusService = (serviceId) => {
         };
     }
 };
+export const statusServiceDb = async (tenantId, serviceId) => {
+    try {
+        // Check if there is an active session with this service ID
+        let active = false;
+        const sessionRepository = AppDataSource.getRepository(Session);
+        const sessionId = await SessionService.getActiveSession(tenantId, serviceId);
+        if (sessionId) {
+            active = true;
+        }
+        if (process.env.EXTRA_DEBUGGING)
+            console.log(`Checking if ${serviceId} exists in the serviceSubscriptionMap: ${active}`);
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Service is currently ${active}`,
+            responseObject: {
+                active: active
+            }
+        };
+    }
+    catch (error) {
+        return {
+            success: false,
+            statusCode: 400,
+            message: `Error: ${error}`,
+            responseObject: {
+                error: error
+            }
+        };
+    }
+};
 export const getLivestreamStatus = (serviceId) => {
     try {
         const streamingStatus = streamingStatusMap.get(serviceId);
+        return {
+            success: true,
+            statusCode: 200,
+            message: `Streaming Status for service ${serviceId}`,
+            responseObject: {
+                status: streamingStatus
+            }
+        };
+    }
+    catch (error) {
+        console.error(`ERROR getting streaming status: ${error}`);
+        return {
+            success: false,
+            statusCode: 400,
+            message: `Failed to get Streaming Status for service ${serviceId}`,
+            responseObject: {
+                error: error
+            }
+        };
+    }
+};
+export const getLivestreamStatusDb = async (tenantId, serviceId) => {
+    try {
+        const sessionRepository = AppDataSource.getRepository(Session);
+        const sessionId = await SessionService.getActiveSession(tenantId, serviceId);
+        if (!sessionId)
+            throw new Error(`Active Session ID not found`);
+        const session = await sessionRepository.findOne({ where: { id: sessionId } });
+        if (!session)
+            throw new Error(`Session not found with this ID`);
+        const streamingStatus = (session.status === "RECORDING") ? "livestreaming" : "offline";
         return {
             success: true,
             statusCode: 200,

@@ -38,13 +38,13 @@ export const registerControlHandlers = (socketIoServer: Server, socket: Socket) 
         await SessionService.updateStatus(sessionId, "RECORDING");
 
         // Make sure no translations are happening for this tenant
-        console.log(`Starting transcript for tenant: ${tenantId}`);
         if (tenantId) {
 
             await TranscriptService.stopAllTranscripts(tenantId, serviceCode);
 
             // start a new transcript
             const transcriptId = await TranscriptService.startTranscript(tenantId, serviceCode, sessionId);
+            console.log(`Starting transcript ${transcriptId} for tenant: ${tenantId}, service: ${serviceCode}, and session: ${sessionId}`);
         }
 
     });
@@ -100,6 +100,9 @@ export const registerControlHandlers = (socketIoServer: Server, socket: Socket) 
         const { serviceId } = data;
         console.log(`Control is monitoring ${serviceId}`);
 
+        // Cleanup any sessions that are currently active
+        await SessionService.stopOldSessions(tenantId, serviceId);
+
         // Start a new session
         sessionId = await SessionService.startNewSession(tenantId, serviceId);
 
@@ -109,7 +112,7 @@ export const registerControlHandlers = (socketIoServer: Server, socket: Socket) 
         registerForServiceTranscripts(listenerData);
 
         roomEmitter.on('subscriptionChange', (service) => {
-            console.log(`New room emitter listener.  Listener count now: ${roomEmitter.listenerCount('subscriptionChange')}`);
+            if (process.env.EXTRA_DEBUGGING) console.log(`New room emitter listener.  Listener count now: ${roomEmitter.listenerCount('subscriptionChange')}`);
             if (process.env.EXTRA_DEBUGGING) console.log(`Detected subscription change for service: ${service}`);
             const room = service;
             const jsonString = getActiveLanguages(clientConnection, service);

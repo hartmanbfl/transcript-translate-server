@@ -11,6 +11,12 @@ export class TranscriptController {
         const serviceResponse = await TranscriptService.getLastTranscript(jwt.tenantId);
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
     }
+    static async getBySession(req, res) {
+        const { sessionId } = req.params;
+        const jwt = req.token;
+        const serviceResponse = await TranscriptService.getBySessionId(sessionId);
+        res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);
+    }
     static async deleteEmptyTranscripts(req, res) {
         const serviceResponse = await TranscriptService.deleteEmptyTranscripts();
         res.status(serviceResponse.statusCode).json(serviceResponse.responseObject);

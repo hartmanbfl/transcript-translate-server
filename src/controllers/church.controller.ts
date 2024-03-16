@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ChurchService, configurationService, getLanguages, getLivestreamStatus, infoService, statusService } from "../services/church.service.js"
+import { ChurchService, configurationService, getLanguages, getLivestreamStatus, getLivestreamStatusDb, infoService, statusService, statusServiceDb } from "../services/church.service.js"
 import { ApiResponseType } from "../types/apiResonse.types.js";
 import { ChurchInfo } from "../types/church.types.js";
 import * as dotenv from 'dotenv';
@@ -38,12 +38,26 @@ export class ChurchController {
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async getStatus(req: Request, res: Response) {
-        const serviceResponse = await statusService(req.params.serviceId);
+        const { serviceId } = req.params;
+        let serviceResponse: ApiResponseType<any>;
+        if (process.env.USE_DATABASE) {
+            const tenantId = req.query.tenantId as string;
+            serviceResponse = await statusServiceDb(tenantId, serviceId);
+        } else {
+            serviceResponse = await statusService(serviceId);
+        }
 
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }
     static async getLivestreamStatus(req: Request, res: Response) {
-        const serviceResponse = await getLivestreamStatus(req.params.serviceId);
+        const { serviceId } = req.params;
+        let serviceResponse: ApiResponseType<any>;
+        if (process.env.USE_DATABASE) {
+            const jwt = (req as CustomRequest).token as TokenInterface;
+            serviceResponse = await getLivestreamStatusDb(jwt.tenantId, serviceId);
+        } else {
+            serviceResponse = await getLivestreamStatus(serviceId);
+        }
 
         res.status(serviceResponse.statusCode).json({ ...serviceResponse });
     }

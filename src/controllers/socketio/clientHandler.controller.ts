@@ -3,8 +3,10 @@ import { addTranslationLanguageToService, removeTranslationLanguageFromService }
 import { serviceLanguageMap } from '../../repositories/index.repository.js';
 import { parseRoom } from "../../utils/room.util.js";
 import { roomEmitter } from "../../globals.js";
-import { Namespace, Server, Socket } from "socket.io";
+import { Server, Socket } from "socket.io";
 import { SocketIoService } from "../../services/socketio.service.js";
+import { SessionService } from "../../services/session.service.js";
+import { SubscriberService } from "../../services/subscriber.service.js";
 
 export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) => {
 
@@ -15,7 +17,7 @@ export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) 
         try {
             let subscribers = io.sockets?.adapter?.rooms?.get(room)?.size;
             if (subscribers === undefined)
-               subscribers = 0;
+                subscribers = 0;
             return subscribers;
         } catch (error) {
             console.log(`Error getting subscribers in room ${room}: ${error}`);
@@ -23,7 +25,7 @@ export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) 
         }
     }
 
-   socket.on('disconnect', () => {
+    socket.on('disconnect', () => {
         console.log(`Client ${socket.id} disconnected`);
 
         // Disconnect all rooms from this client
@@ -32,20 +34,27 @@ export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) 
 
     socket.on('register', (serviceId) => {
         console.log(`Client ${socket.id} registering for messages for service ${serviceId}`);
-        console.log(`UserAgent: ${socket.handshake.headers["user-agent"]}`);
 
         const hearbeats = `${serviceId}:heartbeat`;
         socket.join(hearbeats);
     });
 
     // Rooms defined by <ServiceId:Language>
-    socket.on('join', (room) => {
+    socket.on('join', async (room) => {
         try {
             const { serviceId, language } = parseRoom(room);
 
             socket.join(room);
 
-            console.log(`Client-> ${socket.id} just joined room-> ${room}`);
+            console.log(`Client-> ${socket.id} just joined room-> ${room} in namespace-> ${socket.nsp.name}`);
+
+            // Add this participant to the session
+            let subscriber: string | null;
+            const sessionId = await SessionService.getActiveSession(tenantId, serviceId);
+            if (sessionId) {
+                const userAgent = socket.handshake.headers["user-agent"] as string;
+                subscriber = await SubscriberService.subscriberAdded(sessionId, room, userAgent, socket.id);
+            }
 
             // Add this client to the room
             let socketId = socket.id;
@@ -66,12 +75,20 @@ export const registerClientHandlers = (io: NonNullable<Server>, socket: Socket) 
             console.log(`ERROR joining room: ${error}`);
         }
     })
-    socket.on('leave', (room) => {
+    socket.on('leave', async (room) => {
         try {
             const { serviceId, language } = parseRoom(room);
 
             socket.leave(room);
-            console.log(`Client -> ${socket.id} is leaving room-> ${room}`);
+            console.log(`Client -> ${socket.id} is leaving room-> ${room} in namespace-> ${socket.nsp.name}`);
+
+            // Remove this participant from the session
+            const subscriberId = await SubscriberService.getSubscriberBySocketId(socket.id, room);
+            if (subscriberId) {
+                await SubscriberService.subscriberRemoved(subscriberId);
+            } else {
+                console.warn(`No subscriber found for this socket ID`);
+            }
 
             // Remove this client from the room
             const socketId = socket.id;
