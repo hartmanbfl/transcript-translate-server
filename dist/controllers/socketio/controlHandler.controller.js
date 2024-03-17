@@ -86,7 +86,7 @@ export const registerControlHandlers = (socketIoServer, socket) => {
     // Listen for changes in the rooms
     socket.on('monitor', async (data) => {
         const { serviceId } = data;
-        console.log(`Control is monitoring ${serviceId}`);
+        console.log(`Control is monitoring ${serviceId} for tenant ${tenantId}`);
         // Cleanup any sessions that are currently active
         await SessionService.stopOldSessions(tenantId, serviceId);
         // Start a new session

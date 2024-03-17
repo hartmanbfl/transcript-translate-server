@@ -94,4 +94,45 @@ export class SessionService {
             console.log(`Error in stopOldSessions: ${error}`);
         }
     }
+    static async addLanguageToSession(sessionId: string, language: string) {
+        try {
+            const sessionRepository = AppDataSource.getRepository(Session);
+            const session = await sessionRepository.findOne({ where: { id: sessionId }});
+            if (!session) throw new Error(`Session not found for this session ID`);
+
+            // Get current language list and add this language if not currently 
+            // in the list
+            let langArray = session.languages;
+            if (!langArray) {
+                langArray = [language];
+            } else if (langArray.indexOf(language) === -1) {
+                langArray.push(language);
+            } 
+            session.languages = langArray;
+            await sessionRepository.save(session);
+
+        } catch (error) {
+            console.log(`Error in addLanguageToSession: ${error}`);
+        }
+    }
+    static async removeLanguageFromSession(sessionId: string, language: string) {
+        try {
+            const sessionRepository = AppDataSource.getRepository(Session);
+            const session = await sessionRepository.findOne({ where: { id: sessionId }});
+            if (!session) throw new Error(`Session not found for this session ID`);
+
+            // Get current language list and add this language if not currently 
+            // in the list
+            const langArray = session.languages;
+            if (langArray && langArray.indexOf(language) !== -1) {
+                const idx = langArray.indexOf(language);
+                langArray.splice(idx, 1);
+            } 
+            session.languages = langArray;
+            await sessionRepository.save(session);
+
+        } catch (error) {
+            console.log(`Error in addLanguageToSession: ${error}`);
+        }
+    }
 }

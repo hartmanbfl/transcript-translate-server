@@ -24,6 +24,9 @@ export class Session {
     @Column()
     status: string;
 
+    @Column("text", { array: true, nullable: true })
+    languages: string[];
+
     @CreateDateColumn()
     created_at: Date;
 

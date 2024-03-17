@@ -39,6 +39,10 @@ __decorate([
     __metadata("design:type", String)
 ], Session.prototype, "status", void 0);
 __decorate([
+    Column("text", { array: true, nullable: true }),
+    __metadata("design:type", Array)
+], Session.prototype, "languages", void 0);
+__decorate([
     CreateDateColumn(),
     __metadata("design:type", Date)
 ], Session.prototype, "created_at", void 0);

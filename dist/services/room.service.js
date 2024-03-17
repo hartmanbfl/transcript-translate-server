@@ -1,16 +1,20 @@
+var _a;
 import { clientSubscriptionMap, roomSubscriptionMap, serviceLanguageMap } from "../repositories/index.repository.js";
 import { parseRoom } from "../utils/room.util.js";
 import { getClientIo } from "./socketio.service.js";
-export const getSubscribersInRoom = async (roomId, tenantId) => {
-    var _a, _b, _c, _d, _e;
+export class RoomService {
+}
+_a = RoomService;
+RoomService.getSubscribersInRoom = async (roomId, tenantId) => {
+    var _b, _c, _d, _e, _f;
     try {
         const clientIo = getClientIo(tenantId);
         let clients;
         if (!tenantId) {
-            clients = (_d = (_c = (_b = (_a = clientIo.sockets) === null || _a === void 0 ? void 0 : _a.adapter) === null || _b === void 0 ? void 0 : _b.rooms) === null || _c === void 0 ? void 0 : _c.get(roomId)) === null || _d === void 0 ? void 0 : _d.size;
+            clients = (_e = (_d = (_c = (_b = clientIo.sockets) === null || _b === void 0 ? void 0 : _b.adapter) === null || _c === void 0 ? void 0 : _c.rooms) === null || _d === void 0 ? void 0 : _d.get(roomId)) === null || _e === void 0 ? void 0 : _e.size;
         }
         else {
-            clients = (_e = clientIo.adapter.rooms.get(roomId)) === null || _e === void 0 ? void 0 : _e.size;
+            clients = (_f = clientIo.adapter.rooms.get(roomId)) === null || _f === void 0 ? void 0 : _f.size;
         }
         console.log(`getSubscribersInRoom: roomId-> ${roomId}, clients-> ${clients}`);
         return {
@@ -34,7 +38,7 @@ export const getSubscribersInRoom = async (roomId, tenantId) => {
         };
     }
 };
-export const getSubscribersInAllRooms = () => {
+RoomService.getSubscribersInAllRooms = () => {
     try {
         let subscriberString = {};
         for (const [key, value] of roomSubscriptionMap.entries()) {
@@ -61,7 +65,7 @@ export const getSubscribersInAllRooms = () => {
         };
     }
 };
-export const getRoomsForAllClients = () => {
+RoomService.getRoomsForAllClients = () => {
     try {
         let subscriberString = {};
         for (const [key, value] of clientSubscriptionMap.entries()) {
@@ -88,7 +92,7 @@ export const getRoomsForAllClients = () => {
         };
     }
 };
-export const disconnectClientFromAllRooms = (data) => {
+RoomService.disconnectClientFromAllRooms = (data) => {
     const { socket } = data;
     const client = socket.id;
     if (clientSubscriptionMap.get(client) === undefined) {
@@ -103,7 +107,7 @@ export const disconnectClientFromAllRooms = (data) => {
         roomArray.forEach((room) => {
             console.log(`CLient ${client} leaving room ${room}`);
             socket.leave(room);
-            removeClientFromRoom({ room, socketId: client });
+            _a.removeClientFromRoom({ room, socketId: client });
         });
         // Remove this client completely
         clientSubscriptionMap.set(client, {});
@@ -114,7 +118,7 @@ export const disconnectClientFromAllRooms = (data) => {
         subscriberString[key] = value;
     }
 };
-export const addClientToRoom = (data) => {
+RoomService.addClientToRoom = (data) => {
     const { room, socketId } = data;
     //debug    console.log(`addClientToRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
@@ -127,7 +131,7 @@ export const addClientToRoom = (data) => {
         }
     }
 };
-export const removeClientFromRoom = (data) => {
+RoomService.removeClientFromRoom = (data) => {
     const { room, socketId } = data;
     //debug    console.log(`removeClientFromRoom: room-> ${room}, socketId-> ${socketId}`);
     if (roomSubscriptionMap.get(room) === undefined) {
@@ -158,7 +162,7 @@ export const removeClientFromRoom = (data) => {
         }
     }
 };
-export const addRoomToClient = (data) => {
+RoomService.addRoomToClient = (data) => {
     const { room, socketId } = data;
     if (clientSubscriptionMap.get(socketId) === undefined) {
         clientSubscriptionMap.set(socketId, [room]);
@@ -170,7 +174,7 @@ export const addRoomToClient = (data) => {
         }
     }
 };
-export const removeRoomFromClient = (data) => {
+RoomService.removeRoomFromClient = (data) => {
     const { room, socketId } = data;
     if (clientSubscriptionMap.get(socketId) === undefined) {
         if (process.env.EXTRA_DEBUGGING)
@@ -187,7 +191,7 @@ export const removeRoomFromClient = (data) => {
     }
 };
 // Helper function to make sure room exists for this server
-export const isRoomValid = (data) => {
+RoomService.isRoomValid = (data) => {
     const { serviceId, language } = data;
     if (typeof serviceId === "undefined") {
         console.log(`ERROR: client is attempting to connect to a service that is not currently running on this server.`);

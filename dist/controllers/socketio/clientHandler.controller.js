@@ -1,4 +1,4 @@
-import { addClientToRoom, addRoomToClient, disconnectClientFromAllRooms, removeClientFromRoom, removeRoomFromClient } from "../../services/room.service.js";
+import { RoomService } from "../../services/room.service.js";
 import { addTranslationLanguageToService, removeTranslationLanguageFromService } from "../../translate.js";
 import { serviceLanguageMap } from '../../repositories/index.repository.js';
 import { parseRoom } from "../../utils/room.util.js";
@@ -9,23 +9,21 @@ import { SubscriberService } from "../../services/subscriber.service.js";
 export const registerClientHandlers = (io, socket) => {
     const tenantId = SocketIoService.extractTenantFromNamespace(socket.nsp.name);
     console.log(`Tenant ID for client: ${tenantId}`);
-    const getNumberOfSubscribersInRoom = (room) => {
-        var _a, _b, _c, _d;
-        try {
-            let subscribers = (_d = (_c = (_b = (_a = io.sockets) === null || _a === void 0 ? void 0 : _a.adapter) === null || _b === void 0 ? void 0 : _b.rooms) === null || _c === void 0 ? void 0 : _c.get(room)) === null || _d === void 0 ? void 0 : _d.size;
-            if (subscribers === undefined)
-                subscribers = 0;
-            return subscribers;
-        }
-        catch (error) {
-            console.log(`Error getting subscribers in room ${room}: ${error}`);
-            return 0;
-        }
-    };
+    //    const getNumberOfSubscribersInRoom = (room: string) => {
+    //        try {
+    //            let subscribers = io.sockets?.adapter?.rooms?.get(room)?.size;
+    //            if (subscribers === undefined)
+    //                subscribers = 0;
+    //            return subscribers;
+    //        } catch (error) {
+    //            console.log(`Error getting subscribers in room ${room}: ${error}`);
+    //            return 0;
+    //        }
+    //    }
     socket.on('disconnect', () => {
         console.log(`Client ${socket.id} disconnected`);
         // Disconnect all rooms from this client
-        disconnectClientFromAllRooms({ socket });
+        RoomService.disconnectClientFromAllRooms({ socket });
     });
     socket.on('register', (serviceId) => {
         console.log(`Client ${socket.id} registering for messages for service ${serviceId}`);
@@ -47,12 +45,16 @@ export const registerClientHandlers = (io, socket) => {
             }
             // Add this client to the room
             let socketId = socket.id;
-            addClientToRoom({ room, socketId });
+            RoomService.addClientToRoom({ room, socketId });
             // Add this room to the client
-            addRoomToClient({ room, socketId });
+            RoomService.addRoomToClient({ room, socketId });
             const joinData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
                 addTranslationLanguageToService(joinData);
+                // Add to the DB for this session
+                if (sessionId) {
+                    await SessionService.addLanguageToSession(sessionId, language);
+                }
             }
             // Let subscribers know that something has changed
             roomEmitter.emit('subscriptionChange', serviceId);
@@ -76,15 +78,20 @@ export const registerClientHandlers = (io, socket) => {
             }
             // Remove this client from the room
             const socketId = socket.id;
-            removeClientFromRoom({ room, socketId });
+            RoomService.removeClientFromRoom({ room, socketId });
             // Remove this room from the client
-            removeRoomFromClient({ room, socketId });
+            RoomService.removeRoomFromClient({ room, socketId });
             const leaveData = { serviceId, language, serviceLanguageMap };
             if (language != "transcript") {
                 // If no other subscribers to this language, remove it
-                const subscribersInRoom = getNumberOfSubscribersInRoom(room);
+                const subscribersInRoom = (await RoomService.getSubscribersInRoom(room, tenantId)).responseObject.clients;
                 if (subscribersInRoom == 0) {
                     removeTranslationLanguageFromService(leaveData);
+                    // Remove from our active session
+                    const sessionId = await SessionService.getActiveSession(tenantId, serviceId);
+                    if (sessionId) {
+                        await SessionService.removeLanguageFromSession(sessionId, language);
+                    }
                 }
             }
             // Let subscribers know that something has changed
