@@ -1,10 +1,28 @@
 import { ChurchService, configurationService, getLanguages, getLivestreamStatus, getLivestreamStatusDb, infoService, statusService, statusServiceDb } from "../services/church.service.js";
 import * as dotenv from 'dotenv';
+import { generateUuid4 } from "../utils/index.util.js";
 export class ChurchController {
     static async getServiceInfo(req, res) {
         try {
             dotenv.config();
             let serviceResponse;
+            // See if device-info cookie is set
+            const deviceInfo = req.cookies['device-id'];
+            if (deviceInfo) {
+                console.log(`Device-ID set to: ${deviceInfo}`);
+            }
+            else {
+                const id = generateUuid4();
+                console.log(`Setting device cookie to ${id}`);
+                // Development (localhost)
+                res.cookie('device-id', id, {
+                    httpOnly: true,
+                    path: "/",
+                    secure: true,
+                    sameSite: "none",
+                    maxAge: 365 * 24 * 60 * 60 * 1000,
+                });
+            }
             if (process.env.USE_DATABASE) {
                 const tenantId = req.query.tenantId;
                 if (!tenantId)

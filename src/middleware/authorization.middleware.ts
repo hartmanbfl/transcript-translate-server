@@ -1,13 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "../data-source.js";
 import { User } from "../entity/User.entity.js"
-import { TokenInterface } from "../types/token.types.js";
+import { CustomRequest, TokenInterface } from "../types/token.types.js";
 
-
-// Allow expansion of express Request type
-export interface CustomRequest extends Request {
-    token: string | TokenInterface;
-}
 
 export const authorization = (roles: string[]) => {
     return async (req: Request, res: Response, next: NextFunction) => {

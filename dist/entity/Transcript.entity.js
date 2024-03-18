@@ -27,7 +27,7 @@ __decorate([
     __metadata("design:type", Array)
 ], Transcript.prototype, "phrases", void 0);
 __decorate([
-    ManyToOne(() => Session, (session) => session.transcripts),
+    ManyToOne(() => Session, (session) => session.transcripts, { onDelete: 'CASCADE' }),
     __metadata("design:type", Object)
 ], Transcript.prototype, "session", void 0);
 __decorate([

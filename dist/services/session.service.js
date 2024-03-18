@@ -135,4 +135,36 @@ export class SessionService {
             console.log(`Error in addLanguageToSession: ${error}`);
         }
     }
+    static async deleteEmptySessions(tenantId) {
+        try {
+            const sessionRepository = AppDataSource.getRepository(Session);
+            const sessions = await sessionRepository
+                .createQueryBuilder('session')
+                .innerJoinAndSelect('session.tenant', 'tenant')
+                .where('tenant.id = :tenantId', { tenantId })
+                .leftJoinAndSelect('session.transcripts', 'transcript')
+                .where('transcript.message_count = :messageCount', { messageCount: 0 })
+                .getMany();
+            console.log(`Found ${sessions.length} sessions with empty transcripts`);
+            sessions.forEach(async (session) => {
+                console.log(`Session to be deleted: ${session.id}`);
+                await sessionRepository.remove(session);
+            });
+            return {
+                success: true,
+                statusCode: 200,
+                message: `Successfully deleted ${sessions.length} sessions`,
+                responseObject: `Successfully deleted ${sessions.length} sessions`
+            };
+        }
+        catch (error) {
+            console.log(`Error in deleteEmptySessions: ${error}`);
+            return {
+                success: false,
+                statusCode: 400,
+                message: `${error}`,
+                responseObject: `${error}`
+            };
+        }
+    }
 }

@@ -20,7 +20,7 @@ __decorate([
     __metadata("design:type", String)
 ], Subscriber.prototype, "tenant_id", void 0);
 __decorate([
-    ManyToOne(() => Session, (session) => session.subscribers),
+    ManyToOne(() => Session, (session) => session.subscribers, { onDelete: 'CASCADE' }),
     __metadata("design:type", Object)
 ], Subscriber.prototype, "session", void 0);
 __decorate([

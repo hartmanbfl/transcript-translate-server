@@ -17,7 +17,7 @@ export class Transcript{
     phrases: Phrase[];
 
     // You can have multiple transcripts (stop/start recording) in one church session
-    @ManyToOne(() => Session, (session) => session.transcripts)
+    @ManyToOne(() => Session, (session) => session.transcripts, { onDelete: 'CASCADE'})
     session: Relation<Session>;
 
     @Column({nullable: true})

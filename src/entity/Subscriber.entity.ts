@@ -9,7 +9,7 @@ export class Subscriber {
     @Column()
     tenant_id: string;
 
-    @ManyToOne(() => Session, (session) => session.subscribers)
+    @ManyToOne(() => Session, (session) => session.subscribers, { onDelete: 'CASCADE'})
     session: Relation<Session>;
 
     @Column()

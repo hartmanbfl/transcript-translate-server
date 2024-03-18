@@ -1,5 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import { serialize } from 'cookie';
 import cors from 'cors';
 import * as dotenv from 'dotenv';
 import http from 'http';
@@ -41,6 +42,10 @@ const onClientConnection = (socket) => {
 const onClientNamespaceConnection = (socket) => {
     registerClientHandlers(io, socket);
 };
+io.engine.on("initial_headers", (headers) => {
+    const uuid = generateUuid4();
+    headers["set-cookie"] = serialize("deviceId", uuid, { maxAge: 1 * 24 * 60 * 60 * 1000, sameSite: "none", secure: true });
+});
 // Websocket connection to the client.  Moved this into its own connection in 
 // order to make sure the server is running and connected first before starting
 // to join clients to the stream
@@ -53,7 +58,6 @@ const listenForClients = () => {
     });
     // Multi tenant
     clientNamespaces.on('connection', (socket) => {
-        console.log(`Got client namespace connection: ${socket.nsp.name}`);
         onClientNamespaceConnection(socket);
     });
 };
@@ -69,21 +73,15 @@ controlNamespaces.on('connection', (socket) => {
     console.log(`Connection to control connection in namespace: ${controlConnection.name}`);
     onControlNamespaceConnection(socket);
 });
-// Define tenant routes
-import tenantRouter from './routes/tenants.routes.js';
-app.use('/tenants', tenantRouter);
-// Define theme routes
-import themeRouter from './routes/themes.routes.js';
-app.use('/themes', themeRouter);
 // Define authentication routes
 import authRouter from './routes/auth.routes.js';
 app.use('/auth', authRouter);
-// Define API user routes
-import userRouter from './routes/user.routes.js';
-app.use('/users', userRouter);
 // Define church routes
 import churchRouter from './routes/church.routes.js';
 app.use('/church', churchRouter);
+// Clients (sockets) routes
+import clientRouter from './routes/clients.routes.js';
+app.use('/clients', clientRouter);
 // Define deepgram routes
 import deepgramRouter from './routes/deepgram.routes.js';
 app.use('/deepgram', deepgramRouter);
@@ -93,13 +91,21 @@ app.use('/qrcode', qrCodeRouter);
 // Rooms routes
 import roomRouter from './routes/room.routes.js';
 app.use('/rooms', roomRouter);
-// Clients (sockets) routes
-import clientRouter from './routes/clients.routes.js';
-import { TenantService } from './services/tenant.service.js';
-app.use('/clients', clientRouter);
+// Define session routes
+import sessionRouter from './routes/sessions.routes.js';
+app.use('/sessions', sessionRouter);
+// Define tenant routes
+import tenantRouter from './routes/tenants.routes.js';
+app.use('/tenants', tenantRouter);
+// Define theme routes
+import themeRouter from './routes/themes.routes.js';
+app.use('/themes', themeRouter);
 // Define API transcript routes
 import transcriptRouter from './routes/transcript.routes.js';
 app.use('/transcripts', transcriptRouter);
+// Define API user routes
+import userRouter from './routes/user.routes.js';
+app.use('/users', userRouter);
 // Serve the Web Pages
 const __dirname = path.resolve(path.dirname(''));
 app.get('/', (req, res) => {
@@ -123,6 +129,8 @@ app.get('/health', (req, res) => {
     res.status(200).send('Ok');
 });
 // Connect to DB if using
+import { TenantService } from './services/tenant.service.js';
+import { generateUuid4 } from './utils/index.util.js';
 if (USE_DATABASE) {
     AppDataSource.initialize()
         .then(async () => {
