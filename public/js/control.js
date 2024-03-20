@@ -19,53 +19,425 @@ let currentPhrase = [];
 
 const languages = [
     {
-        key: "ar",
+        key: "af-ZA",
+        value: "Afrikaans"
+    },
+    {
+        key: "sq-AL",
+        value: "Albanian"
+    },
+    {
+        key: "am-ET",
+        value: "Amharic"
+    },
+    {
+        key: "ar-001",
         value: "Arabic"
     },
     {
-        key: "de",
-        value: "German",
+        key: "hy-AM",
+        value: "Armenian"
     },
     {
-        key: "es",
-        value: "Spanish",
+        key: "az-AZ",
+        value: "Azerbaijani"
     },
     {
-        key: "fa",
-        value: "Farsi",
+        key: "eu-ES",
+        value: "Basque"
     },
     {
-        key: "fr",
-        value: "French",
+        key: "be-BY",
+        value: "Belarusian"
     },
     {
-        key: "hi",
-        value: "Hindi",
+        key: "bn-BD",
+        value: "Bengali"
     },
     {
-        key: "it",
-        value: "Italian",
+        key: "bs-BA",
+        value: "Bosnian"
     },
     {
-        key: "ro",
-        value: "Romanian",
+        key: "bg-BG",
+        value: "Bulgarian"
     },
     {
-        key: "ru",
-        value: "Russian",
+        key: "ca-ES",
+        value: "Catalan"
     },
     {
-        key: "tr",
-        value: "Turkish",
+        key: "ceb-PH",
+        value: "Cebuano"
     },
     {
-        key: "uk",
-        value: "Ukranian",
+        key: "ny-MW",
+        value: "Chichewa"
     },
     {
-        key: "zh",
-        value: "Chinese",
+        key: "zh-CN",
+        value: "Chinese (Simplified)"
     },
+    {
+        key: "zh-TW",
+        value: "Chinese (Traditional)"
+    },
+    {
+        key: "co-FR",
+        value: "Corsican"
+    },
+    {
+        key: "hr-HR",
+        value: "Croatian"
+    },
+    {
+        key: "cs-CZ",
+        value: "Czech"
+    },
+    {
+        key: "da-DK",
+        value: "Danish"
+    },
+    {
+        key: "nl-NL",
+        value: "Dutch"
+    },
+    {
+        key: "en-US",
+        value: "English"
+    },
+    {
+        key: "eo-001",
+        value: "Esperanto"
+    },
+    {
+        key: "et-EE",
+        value: "Estonian"
+    },
+    {
+        key: "fil-PH",
+        value: "Filipino"
+    },
+    {
+        key: "fi-FI",
+        value: "Finnish"
+    },
+    {
+        key: "fr-FR",
+        value: "French"
+    },
+    {
+        key: "fy-NL",
+        value: "Frisian"
+    },
+    {
+        key: "gl-ES",
+        value: "Galician"
+    },
+    {
+        key: "ka-GE",
+        value: "Georgian"
+    },
+    {
+        key: "de-DE",
+        value: "German"
+    },
+    {
+        key: "el-GR",
+        value: "Greek"
+    },
+    {
+        key: "gu-IN",
+        value: "Gujarati"
+    },
+    {
+        key: "ht-HT",
+        value: "Haitian Creole"
+    },
+    {
+        key: "ha-NG",
+        value: "Hausa"
+    },
+    {
+        key: "haw-US",
+        value: "Hawaiian"
+    },
+    {
+        key: "he-IL",
+        value: "Hebrew"
+    },
+    {
+        key: "hi-IN",
+        value: "Hindi"
+    },
+    {
+        key: "hmn-CN",
+        value: "Hmong"
+    },
+    {
+        key: "hu-HU",
+        value: "Hungarian"
+    },
+    {
+        key: "is-IS",
+        value: "Icelandic"
+    },
+    {
+        key: "ig-NG",
+        value: "Igbo"
+    },
+    {
+        key: "id-ID",
+        value: "Indonesian"
+    },
+    {
+        key: "ga-IE",
+        value: "Irish"
+    },
+    {
+        key: "it-IT",
+        value: "Italian"
+    },
+    {
+        key: "ja-JP",
+        value: "Japanese"
+    },
+    {
+        key: "jv-ID",
+        value: "Javanese"
+    },
+    {
+        key: "kn-IN",
+        value: "Kannada"
+    },
+    {
+        key: "kk-KZ",
+        value: "Kazakh"
+    },
+    {
+        key: "km-KH",
+        value: "Khmer"
+    },
+    {
+        key: "ko-KR",
+        value: "Korean"
+    },
+    {
+        key: "ku-TR",
+        value: "Kurdish"
+    },
+    {
+        key: "ky-KG",
+        value: "Kyrgyz"
+    },
+    {
+        key: "lo-LA",
+        value: "Lao"
+    },
+    {
+        key: "la-001",
+        value: "Latin"
+    },
+    {
+        key: "lv-LV",
+        value: "Latvian"
+    },
+    {
+        key: "lt-LT",
+        value: "Lithuanian"
+    },
+    {
+        key: "lb-LU",
+        value: "Luxembourgish"
+    },
+    {
+        key: "mk-MK",
+        value: "Macedonian"
+    },
+    {
+        key: "mg-MG",
+        value: "Malagasy"
+    },
+    {
+        key: "ms-MY",
+        value: "Malay"
+    },
+    {
+        key: "ml-IN",
+        value: "Malayalam"
+    },
+    {
+        key: "mt-MT",
+        value: "Maltese"
+    },
+    {
+        key: "mi-NZ",
+        value: "Maori"
+    },
+    {
+        key: "mr-IN",
+        value: "Marathi"
+    },
+    {
+        key: "mn-MN",
+        value: "Mongolian"
+    },
+    {
+        key: "my-MM",
+        value: "Myanmar (Burmese)"
+    },
+    {
+        key: "ne-NP",
+        value: "Nepali"
+    },
+    {
+        key: "no-NO",
+        value: "Norwegian"
+    },
+    {
+        key: "ps-AF",
+        value: "Pashto"
+    },
+    {
+        key: "fa-IR",
+        value: "Persian"
+    },
+    {
+        key: "pl-PL",
+        value: "Polish"
+    },
+    {
+        key: "pt-BR",
+        value: "Portuguese (Brazil)"
+    },
+    {
+        key: "pt-PT",
+        value: "Portuguese (Portugal)"
+    },
+    {
+        key: "pa-IN",
+        value: "Punjabi"
+    },
+    {
+        key: "ro-RO",
+        value: "Romanian"
+    },
+    {
+        key: "ru-RU",
+        value: "Russian"
+    },
+    {
+        key: "sm-AS",
+        value: "Samoan"
+    },
+    {
+        key: "gd-GB",
+        value: "Scots Gaelic"
+    },
+    {
+        key: "sr-RS",
+        value: "Serbian"
+    },
+    {
+        key: "st-LS",
+        value: "Sesotho"
+    },
+    {
+        key: "sn-ZW",
+        value: "Shona"
+    },
+    {
+        key: "sd-PK",
+        value: "Sindhi"
+    },
+    {
+        key: "si-LK",
+        value: "Sinhala"
+    },
+    {
+        key: "sk-SK",
+        value: "Slovak"
+    },
+    {
+        key: "sl-SI",
+        value: "Slovenian"
+    },
+    {
+        key: "so-SO",
+        value: "Somali"
+    },
+    {
+        key: "es-ES",
+        value: "Spanish"
+    },
+    {
+        key: "su-ID",
+        value: "Sundanese"
+    },
+    {
+        key: "sw-TZ",
+        value: "Swahili"
+    },
+    {
+        key: "sv-SE",
+        value: "Swedish"
+    },
+    {
+        key: "tg-TJ",
+        value: "Tajik"
+    },
+    {
+        key: "ta-IN",
+        value: "Tamil"
+    },
+    {
+        key: "te-IN",
+        value: "Telugu"
+    },
+    {
+        key: "th-TH",
+        value: "Thai"
+    },
+    {
+        key: "tr-TR",
+        value: "Turkish"
+    },
+    {
+        key: "uk-UA",
+        value: "Ukrainian"
+    },
+    {
+        key: "ur-PK",
+        value: "Urdu"
+    },
+    {
+        key: "uz-UZ",
+        value: "Uzbek"
+    },
+    {
+        key: "vi-VN",
+        value: "Vietnamese"
+    },
+    {
+        key: "cy-GB",
+        value: "Welsh"
+    },
+    {
+        key: "xh-ZA",
+        value: "Xhosa"
+    },
+    {
+        key: "yi-001",
+        value: "Yiddish"
+    },
+    {
+        key: "yo-NG",
+        value: "Yoruba"
+    },
+    {
+        key: "zu-ZA",
+        value: "Zulu"
+    }
 ];
 const languageMap = new Map(languages.map((obj) => [obj.key, obj.value]));
 
