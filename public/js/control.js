@@ -19,423 +19,415 @@ let currentPhrase = [];
 
 const languages = [
     {
-        key: "af-ZA",
+        key: "af",
         value: "Afrikaans"
     },
     {
-        key: "sq-AL",
+        key: "sq",
         value: "Albanian"
     },
     {
-        key: "am-ET",
+        key: "am",
         value: "Amharic"
     },
     {
-        key: "ar-001",
+        key: "ar",
         value: "Arabic"
     },
     {
-        key: "hy-AM",
+        key: "hy",
         value: "Armenian"
     },
     {
-        key: "az-AZ",
+        key: "az",
         value: "Azerbaijani"
     },
     {
-        key: "eu-ES",
+        key: "eu",
         value: "Basque"
     },
     {
-        key: "be-BY",
+        key: "be",
         value: "Belarusian"
     },
     {
-        key: "bn-BD",
+        key: "bn",
         value: "Bengali"
     },
     {
-        key: "bs-BA",
+        key: "bs",
         value: "Bosnian"
     },
     {
-        key: "bg-BG",
+        key: "bg",
         value: "Bulgarian"
     },
     {
-        key: "ca-ES",
+        key: "ca",
         value: "Catalan"
     },
     {
-        key: "ceb-PH",
+        key: "ceb",
         value: "Cebuano"
     },
     {
-        key: "ny-MW",
+        key: "ny",
         value: "Chichewa"
     },
     {
-        key: "zh-CN",
-        value: "Chinese (Simplified)"
+        key: "zh",
+        value: "Chinese"
     },
     {
-        key: "zh-TW",
-        value: "Chinese (Traditional)"
-    },
-    {
-        key: "co-FR",
+        key: "co",
         value: "Corsican"
     },
     {
-        key: "hr-HR",
+        key: "hr",
         value: "Croatian"
     },
     {
-        key: "cs-CZ",
+        key: "cs",
         value: "Czech"
     },
     {
-        key: "da-DK",
+        key: "da",
         value: "Danish"
     },
     {
-        key: "nl-NL",
+        key: "nl",
         value: "Dutch"
     },
     {
-        key: "en-US",
+        key: "en",
         value: "English"
     },
     {
-        key: "eo-001",
+        key: "eo",
         value: "Esperanto"
     },
     {
-        key: "et-EE",
+        key: "et",
         value: "Estonian"
     },
     {
-        key: "fil-PH",
+        key: "fil",
         value: "Filipino"
     },
     {
-        key: "fi-FI",
+        key: "fi",
         value: "Finnish"
     },
     {
-        key: "fr-FR",
+        key: "fr",
         value: "French"
     },
     {
-        key: "fy-NL",
+        key: "fy",
         value: "Frisian"
     },
     {
-        key: "gl-ES",
+        key: "gl",
         value: "Galician"
     },
     {
-        key: "ka-GE",
+        key: "ka",
         value: "Georgian"
     },
     {
-        key: "de-DE",
+        key: "de",
         value: "German"
     },
     {
-        key: "el-GR",
+        key: "el",
         value: "Greek"
     },
     {
-        key: "gu-IN",
+        key: "gu",
         value: "Gujarati"
     },
     {
-        key: "ht-HT",
+        key: "ht",
         value: "Haitian Creole"
     },
     {
-        key: "ha-NG",
+        key: "ha",
         value: "Hausa"
     },
     {
-        key: "haw-US",
+        key: "haw",
         value: "Hawaiian"
     },
     {
-        key: "he-IL",
+        key: "he",
         value: "Hebrew"
     },
     {
-        key: "hi-IN",
+        key: "hi",
         value: "Hindi"
     },
     {
-        key: "hmn-CN",
+        key: "hmn",
         value: "Hmong"
     },
     {
-        key: "hu-HU",
+        key: "hu",
         value: "Hungarian"
     },
     {
-        key: "is-IS",
+        key: "is",
         value: "Icelandic"
     },
     {
-        key: "ig-NG",
+        key: "ig",
         value: "Igbo"
     },
     {
-        key: "id-ID",
+        key: "id",
         value: "Indonesian"
     },
     {
-        key: "ga-IE",
+        key: "ga",
         value: "Irish"
     },
     {
-        key: "it-IT",
+        key: "it",
         value: "Italian"
     },
     {
-        key: "ja-JP",
+        key: "ja",
         value: "Japanese"
     },
     {
-        key: "jv-ID",
+        key: "jv",
         value: "Javanese"
     },
     {
-        key: "kn-IN",
+        key: "kn",
         value: "Kannada"
     },
     {
-        key: "kk-KZ",
+        key: "kk",
         value: "Kazakh"
     },
     {
-        key: "km-KH",
+        key: "km",
         value: "Khmer"
     },
     {
-        key: "ko-KR",
+        key: "ko",
         value: "Korean"
     },
     {
-        key: "ku-TR",
+        key: "ku",
         value: "Kurdish"
     },
     {
-        key: "ky-KG",
+        key: "ky",
         value: "Kyrgyz"
     },
     {
-        key: "lo-LA",
+        key: "lo",
         value: "Lao"
     },
     {
-        key: "la-001",
+        key: "la",
         value: "Latin"
     },
     {
-        key: "lv-LV",
+        key: "lv",
         value: "Latvian"
     },
     {
-        key: "lt-LT",
+        key: "lt",
         value: "Lithuanian"
     },
     {
-        key: "lb-LU",
+        key: "lb",
         value: "Luxembourgish"
     },
     {
-        key: "mk-MK",
+        key: "mk",
         value: "Macedonian"
     },
     {
-        key: "mg-MG",
+        key: "mg",
         value: "Malagasy"
     },
     {
-        key: "ms-MY",
+        key: "ms",
         value: "Malay"
     },
     {
-        key: "ml-IN",
+        key: "ml",
         value: "Malayalam"
     },
     {
-        key: "mt-MT",
+        key: "mt",
         value: "Maltese"
     },
     {
-        key: "mi-NZ",
+        key: "mi",
         value: "Maori"
     },
     {
-        key: "mr-IN",
+        key: "mr",
         value: "Marathi"
     },
     {
-        key: "mn-MN",
+        key: "mn",
         value: "Mongolian"
     },
     {
-        key: "my-MM",
+        key: "my",
         value: "Myanmar (Burmese)"
     },
     {
-        key: "ne-NP",
+        key: "ne",
         value: "Nepali"
     },
     {
-        key: "no-NO",
+        key: "no",
         value: "Norwegian"
     },
     {
-        key: "ps-AF",
+        key: "ps",
         value: "Pashto"
     },
     {
-        key: "fa-IR",
+        key: "fa",
         value: "Persian"
     },
     {
-        key: "pl-PL",
+        key: "pl",
         value: "Polish"
     },
     {
-        key: "pt-BR",
-        value: "Portuguese (Brazil)"
+        key: "pt",
+        value: "Portuguese"
     },
     {
-        key: "pt-PT",
-        value: "Portuguese (Portugal)"
-    },
-    {
-        key: "pa-IN",
+        key: "pa",
         value: "Punjabi"
     },
     {
-        key: "ro-RO",
+        key: "ro",
         value: "Romanian"
     },
     {
-        key: "ru-RU",
+        key: "ru",
         value: "Russian"
     },
     {
-        key: "sm-AS",
+        key: "sm",
         value: "Samoan"
     },
     {
-        key: "gd-GB",
+        key: "gd",
         value: "Scots Gaelic"
     },
     {
-        key: "sr-RS",
+        key: "sr",
         value: "Serbian"
     },
     {
-        key: "st-LS",
+        key: "st",
         value: "Sesotho"
     },
     {
-        key: "sn-ZW",
+        key: "sn",
         value: "Shona"
     },
     {
-        key: "sd-PK",
+        key: "sd",
         value: "Sindhi"
     },
     {
-        key: "si-LK",
+        key: "si",
         value: "Sinhala"
     },
     {
-        key: "sk-SK",
+        key: "sk",
         value: "Slovak"
     },
     {
-        key: "sl-SI",
+        key: "sl",
         value: "Slovenian"
     },
     {
-        key: "so-SO",
+        key: "so",
         value: "Somali"
     },
     {
-        key: "es-ES",
+        key: "es",
         value: "Spanish"
     },
     {
-        key: "su-ID",
+        key: "su",
         value: "Sundanese"
     },
     {
-        key: "sw-TZ",
+        key: "sw",
         value: "Swahili"
     },
     {
-        key: "sv-SE",
+        key: "sv",
         value: "Swedish"
     },
     {
-        key: "tg-TJ",
+        key: "tg",
         value: "Tajik"
     },
     {
-        key: "ta-IN",
+        key: "ta",
         value: "Tamil"
     },
     {
-        key: "te-IN",
+        key: "te",
         value: "Telugu"
     },
     {
-        key: "th-TH",
+        key: "th",
         value: "Thai"
     },
     {
-        key: "tr-TR",
+        key: "tr",
         value: "Turkish"
     },
     {
-        key: "uk-UA",
+        key: "uk",
         value: "Ukrainian"
     },
     {
-        key: "ur-PK",
+        key: "ur",
         value: "Urdu"
     },
     {
-        key: "uz-UZ",
+        key: "uz",
         value: "Uzbek"
     },
     {
-        key: "vi-VN",
+        key: "vi",
         value: "Vietnamese"
     },
     {
-        key: "cy-GB",
+        key: "cy",
         value: "Welsh"
     },
     {
-        key: "xh-ZA",
+        key: "xh",
         value: "Xhosa"
     },
     {
-        key: "yi-001",
+        key: "yi",
         value: "Yiddish"
     },
     {
-        key: "yo-NG",
+        key: "yo",
         value: "Yoruba"
     },
     {
-        key: "zu-ZA",
+        key: "zu",
         value: "Zulu"
     }
 ];
